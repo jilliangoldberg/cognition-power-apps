@@ -18,17 +18,24 @@ export function RecordDrawer({
   activity,
   onClose,
   onAction,
+  persistence = 'local',
+  readOnly = false,
+  onRefresh,
 }: {
   module: ToolModule;
   record: ToolRecord;
-  activity: Activity[];
+  activity: (Activity & { actorName?: string })[];
   onClose: () => void;
-  onAction: (request: MutationRequest) => string | null;
+  onAction: (request: MutationRequest) => string | null | Promise<string | null>;
+  persistence?: 'local' | 'shared';
+  readOnly?: boolean;
+  onRefresh?: () => Promise<void>;
 }) {
   const [form, setForm] = useState<FormChoice | null>(null);
   const [owner, setOwner] = useState(record.owner);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const available = module.actions.filter((candidate) => candidate.available(record));
   const action = form?.kind === 'action' ? form.action : null;
   const label = action?.label ?? (form?.kind === 'assignment' ? 'Reassign owner' : 'Add note');
@@ -39,24 +46,33 @@ export function RecordDrawer({
     setReason('');
     setError('');
   }
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!form) return;
+    if (!form || submitting || readOnly) return;
+    setSubmitting(true);
     const target = {
       moduleId: module.id,
       recordId: record.id,
       expectedVersion: form.version,
       reason,
     };
-    const message = onAction(
-      form.kind === 'assignment'
-        ? { ...target, kind: 'assignment', owner }
-        : form.kind === 'note'
-          ? { ...target, kind: 'note' }
-          : { ...target, actionId: form.action.id },
-    );
-    if (message) setError(message);
-    else clearForm();
+    try {
+      const message = await onAction(
+        form.kind === 'assignment'
+          ? { ...target, kind: 'assignment', owner }
+          : form.kind === 'note'
+            ? { ...target, kind: 'note' }
+            : { ...target, actionId: form.action.id },
+      );
+      if (message) setError(message);
+      else clearForm();
+    } catch {
+      setError(
+        'Save response unavailable. Your input is retained; retry the same change to check its outcome.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
   return (
     <Dialog
@@ -106,20 +122,25 @@ export function RecordDrawer({
         </dl>
         <div className="detail-divider" />
         <h4 className="section-label">ACTIONS</h4>
-        {form ? (
+        {readOnly ? (
+          <p>Viewer access · shared records are read-only.</p>
+        ) : form ? (
           <form className="action-form" onSubmit={submit}>
             <h3>{label}</h3>
             <p>
               {action?.confirmation ??
-                (form.kind === 'assignment'
-                  ? 'Owners are local demo labels, not authenticated people or permissions. Explain the handoff.'
-                  : 'Add fictional operational context only. Notes stay in this browser and are editable local data, not a secure audit log.')}
+                (persistence === 'shared'
+                  ? 'Use fictional context only. This change is saved on the server and attributed to your signed-in account; this is not compliance-grade audit storage.'
+                  : form.kind === 'assignment'
+                    ? 'Owners are local demo labels, not authenticated people or permissions. Explain the handoff.'
+                    : 'Add fictional operational context only. Notes stay in this browser and are editable local data, not a secure audit log.')}
             </p>
             {form.kind === 'assignment' && (
               <>
                 <label htmlFor="demo-owner">New owner</label>
                 <select
                   id="demo-owner"
+                  disabled={submitting}
                   value={owner}
                   onChange={(event) => setOwner(event.target.value)}
                 >
@@ -135,6 +156,7 @@ export function RecordDrawer({
             </label>
             <textarea
               id="action-reason"
+              disabled={submitting}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               placeholder="Add context for this change…"
@@ -143,24 +165,58 @@ export function RecordDrawer({
               required
               rows={3}
             />
-            <div className="input-hint">5–500 characters · Recorded in local activity</div>
+            <div className="input-hint">5–500 characters · Recorded in {persistence} activity</div>
             {error && (
               <p className="form-error" role="alert">
                 {error}
               </p>
             )}
+            {onRefresh && (
+              <div className="action-buttons">
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  disabled={submitting}
+                  onClick={onRefresh}
+                >
+                  Refresh latest case (keep input)
+                </button>
+                {record.version !== form.version && (
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    disabled={submitting}
+                    onClick={() => {
+                      setForm({ ...form, version: record.version });
+                      setError(
+                        'Latest version selected. Review the updated case details and confirm your change again.',
+                      );
+                    }}
+                  >
+                    Use refreshed version {record.version}
+                  </button>
+                )}
+              </div>
+            )}
             <div className="action-buttons">
-              <button type="button" className="button button-secondary" onClick={clearForm}>
+              <button
+                type="button"
+                className="button button-secondary"
+                onClick={clearForm}
+                disabled={submitting}
+              >
                 Cancel
               </button>
               <button
                 className={`button ${action?.tone === 'danger' ? 'button-danger' : 'button-primary'}`}
                 type="submit"
                 disabled={
-                  reason.trim().length < 5 || (form.kind === 'assignment' && owner === record.owner)
+                  submitting ||
+                  reason.trim().length < 5 ||
+                  (form.kind === 'assignment' && owner === record.owner)
                 }
               >
-                Confirm {label.toLowerCase()}
+                {submitting ? 'Saving…' : `Confirm ${label.toLowerCase()}`}
               </button>
             </div>
           </form>
@@ -209,21 +265,27 @@ export function RecordDrawer({
           </>
         )}
         <div className="detail-divider" />
-        <h4 className="section-label">LOCAL NOTES ({notes.length})</h4>
+        <h4 className="section-label">
+          {persistence.toUpperCase()} NOTES ({notes.length})
+        </h4>
         {notes.length === 0 ? (
-          <p className="muted activity-empty">No local notes. Use fictional context only.</p>
+          <p className="muted activity-empty">
+            No {persistence} notes. Use fictional context only.
+          </p>
         ) : (
           <ol className="local-notes">
             {notes.map((note) => (
               <li key={note.id}>
                 <p>{note.reason}</p>
-                <small>Demo operator · {dateTime(note.at)}</small>
+                <small>
+                  {note.actorName ?? 'Demo operator'} · {dateTime(note.at)}
+                </small>
               </li>
             ))}
           </ol>
         )}
         <div className="detail-divider" />
-        <h4 className="section-label">LOCAL ACTIVITY</h4>
+        <h4 className="section-label">{persistence.toUpperCase()} ACTIVITY</h4>
         {changes.length === 0 ? (
           <p className="muted activity-empty">
             No workflow changes yet. Initial sample states have no invented operator history.
@@ -241,7 +303,9 @@ export function RecordDrawer({
                     {event.before} → {event.after}
                   </p>
                   <p>{event.reason}</p>
-                  <small>Demo operator · {dateTime(event.at)}</small>
+                  <small>
+                    {event.actorName ?? 'Demo operator'} · {dateTime(event.at)}
+                  </small>
                 </div>
               </li>
             ))}

@@ -20,7 +20,8 @@ export const defaultFilters: RecordFilters = {
   sort: 'updated',
   agingOnly: false,
 };
-export const viewsKey = (id: ToolId) => `workbench.views.v1.${id}`;
+export const viewsKey = (id: ToolId, namespace?: string) =>
+  `workbench.views.v1.${namespace ? `${namespace}.` : ''}${id}`;
 
 export function filterRecords(
   records: ToolRecord[],
@@ -62,13 +63,16 @@ export function filterRecords(
     );
 }
 
-export function loadViews(module: ToolModule): {
+export function loadViews(
+  module: ToolModule,
+  namespace?: string,
+): {
   views: SavedView[];
   warning: string;
   blocked: boolean;
 } {
   try {
-    const raw = localStorage.getItem(viewsKey(module.id));
+    const raw = localStorage.getItem(viewsKey(module.id, namespace));
     if (raw === null) return { views: [], warning: '', blocked: false };
     const value: unknown = JSON.parse(raw);
     if (
@@ -103,9 +107,9 @@ export function loadViews(module: ToolModule): {
   }
 }
 
-export function saveViews(id: ToolId, views: SavedView[]): boolean {
+export function saveViews(id: ToolId, views: SavedView[], namespace?: string): boolean {
   try {
-    localStorage.setItem(viewsKey(id), JSON.stringify(views));
+    localStorage.setItem(viewsKey(id, namespace), JSON.stringify(views));
     return true;
   } catch {
     return false;

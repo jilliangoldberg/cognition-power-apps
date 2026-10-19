@@ -1,10 +1,10 @@
-# Workbench · basic internal-tools prototype
+# Workbench · reusable internal-tools prototype
 
-A deliberately small React + TypeScript product sketch for a reusable internal-tools workspace built with Devin. Three synthetic tools reuse a shell, searchable/filterable/sortable table, detail drawer, local assignment and notes, reason-required changes, saved views, and local activity history.
+A small React + TypeScript workspace for **engineers working with Devin**, not a no-code builder or complete Power Apps replacement. The original three browser-local tools remain intact. v0.3 adds a materially different synthetic investigation page, a separate authenticated shared KYC slice, and an optional protected read-only Stripe test adapter. No real customer data or external writes.
 
-## Run
+## Run the local demo
 
-Requires Node 22.12+ (Node 24 LTS recommended; `.nvmrc` is provided).
+Requires **Node 24 LTS** (`.nvmrc`), including its built-in `node:sqlite`. No separate database service is needed. Its API is still evolving; keep the pinned major and rerun the server suite on upgrades.
 
 ```sh
 nvm use
@@ -12,7 +12,100 @@ npm install
 npm run dev
 ```
 
-Open the Vite address printed in your terminal. The dev server listens on all interfaces for the private Devin preview; use `npm run dev -- --host 127.0.0.1` on an untrusted network. No external account, API key, database, or connector is required. For a production bundle, `npm run build`, then `npm run preview`.
+Open the Vite address. The dev server listens on all interfaces for the private Devin preview; on an untrusted network use `npm run dev -- --host 127.0.0.1`. Original KYC, Refunds, Flags, and synthetic Investigation work without the API. `npm run preview` serves the built frontend **only**.
+
+## Run shared KYC
+
+1. Supply **unique**, 12–128 character `DEMO_ALEX_PASSWORD`, `DEMO_JAMIE_PASSWORD`, and `DEMO_VIEWER_PASSWORD` environment variables using a secret manager, secure prompt, or Devin secrets—not committed files, command arguments, or shell history. Identities are `alex@example.test` and `jamie@example.test` (operators), and `viewer@example.test` (read-only). There are **no built-in passwords**. Browser-local owner labels are not authenticated users.
+2. Run `npm run server:setup` once. It creates a fresh independent synthetic KYC dataset in `.workbench/workbench.sqlite` and salted password hashes. It never imports browser work or invents historical authenticated activity. Rerunning setup leaves existing credentials and shared work unchanged; it is **not** a password-rotation command. Unset password variables after setup.
+3. Run `npm run server` in a second terminal alongside Vite on **5173**. Vite proxies `/api` to the loopback-only server on **3001**. Default allowed origin is `http://localhost:5173`; set `APP_ORIGIN` to the **exact HTTPS preview origin** for a Devin preview (not the repository URL). Restart the API when that origin changes. Both browser profiles must use the same frontend origin.
+4. Open **Shared KYC**, sign in, change a case, then refresh in a separately authenticated browser profile. Regular/private profiles can hold different identities. No realtime push is implemented. Stale edits are rejected; **Refresh latest case (keep input)** works inside the drawer, then review the updated details, explicitly **Use refreshed version**, and confirm again. Nothing automatically rebases a decision onto a new version.
+5. If only the save response was lost, retry **unchanged** input before closing/reloading: the mounted page retains the same request ID to resolve the original save once. After reload or an ambiguous close, inspect version/history before submitting a new command.
+
+`WORKBENCH_DB` selects an explicit database path. A fresh path creates independent fixtures; switching paths does **not** migrate data. Keep this single-instance demo's database on persistent local disk. Browser reset cannot reset it. Initial SQLite schema is version 1, independent of browser schema v2. Unknown newer database schemas refuse startup rather than being reseeded.
+
+For a built single-origin demo, `npm run build`, then `npm run server` behind an approved HTTPS reverse proxy to loopback 3001. Set `APP_ORIGIN` to that HTTPS origin; cookies become `Secure`. `NODE_ENV=production` refuses startup without an explicit HTTPS origin. Do not expose the raw API port or use Vite as a production web server. This is a deployment recipe, **not a production-readiness claim**.
+
+## Optional sandbox lookup · step 5a
+
+The illustrative question is: **what status and amount does one sandbox PaymentIntent currently report?** Stripe is a demo adapter choice, not a client-provider assumption.
+
+Set server-only `STRIPE_TEST_KEY` (prefer an `rk_test_` restricted key granting PaymentIntent read access; `sk_test_` is also accepted), restart the API, then retrieve a known test `pi_…` ID from **Shared KYC**. Never prefix the key with `VITE_`. No key gives **not-connected**, never synthetic fallback. Live/publishable keys are rejected at startup; live-mode responses are rejected at runtime.
+
+The adapter uses only `GET https://api.stripe.com/v1/payment_intents/:id`, pinned to `2025-06-30.basil`, with a five-second timeout, no redirects, and **no automatic retries**. It returns an allowlisted snapshot with original status, normalized display label, source, and retrieval/attempt timestamps. Amounts remain integer **currency minor units**; not all currencies have two decimals. Keys, customer details, metadata, and `client_secret` never leave the server.
+
+It distinguishes not-found, rejected credentials/permissions, rate limits, temporary failures, invalid/incomplete responses, and unmapped statuses. Manual refresh retains previous good data as **stale** after failure, not as current evidence. This single-object scope deliberately does **not** paginate/list events or claim full payment history, settlement, or reconciliation. Missing required snapshot fields are unavailable, not partial success. Results are never merged with the synthetic investigation timeline.
+
+**Live connectivity remains unverified**: no sandbox credential was configured in this implementation session. Provider transport tests are mocked, not evidence that a real account works. No external write endpoint exists.
+
+References reviewed: [retrieve a PaymentIntent](https://docs.stripe.com/api/payment_intents/retrieve), [test/restricted keys](https://docs.stripe.com/keys), [API versioning](https://docs.stripe.com/api/versioning), [Node SQLite](https://nodejs.org/docs/latest-v24.x/api/sqlite.html), [Express security](https://expressjs.com/en/advanced/best-practice-security.html).
+
+## Try the workflows
+
+- **Local KYC:** filter status/owner, **My records**, **Unassigned**, or **Open 48h+** (not an SLA). Opening age and last update are separate. Reassign or add a fictional note with 5–500 characters of context.
+- **KYC waiting:** Request information → Waiting for information → Return to review preserves context without sending a customer message. Waiting/escalated cases must return to review before approval/rejection. This is an illustrative rule, not verified client policy or separation of duties.
+- **Local views:** Save named filter/sort definitions (up to 8 per tool), not record snapshots. They persist after reset. Shared KYC preferences have separate per-account/browser keys; they are not cross-device or a security boundary.
+- **Refunds:** simulate or decline a requested refund, constrained by remaining balance. Maya Robinson's shared-payment requests deliberately block simulation until cross-request allocation/reconciliation is modeled. Approval, processing, and failure examples are read-only provider-like illustrations. USD is a local-demo limitation; no currency/FX model is implemented.
+- **Flags:** change local staging settings; no running product consumes them.
+- **Activity/Overview:** summarize **only original browser-local data**. Reset explicitly clears local records, notes, and activity, not views, unrelated storage, or the shared database.
+- **Investigation:** search `TX-DEMO-001` through `TX-DEMO-006`: clean, conflicting, unavailable, stale, no-match, and incomplete sources. Expand timeline provenance; event time is separate from retrieval time. Targeted retries are simulated reads of one source, not connector reliability tests. Unavailable is not “no matching activity”; conflicts are not collapsed to an authoritative status.
+- **Shared KYC:** view attributable notes/history in each drawer. Operators can change shared cases; viewers cannot, including through direct API requests.
+
+## Synthetic data / saved-work compatibility
+
+The curated sample is **14 KYC cases, 10 refund requests ($18–$1,250), and 7 staging flags**: screen examples, not industry benchmarks, client volume, currency, jurisdictions, policy, or a particular fintech model. Names and `example.com`/`example.test` emails are fictional. Risk labels do not define a demographic/regulatory model. Customer IDs deliberately link some local examples; there are no name-based joins. Initial record context is not fabricated operator history.
+
+Browser data remains **schema v2**, original key `workbench.demo.v1`. Valid v1 work migrates event structure without replacing records, IDs, owners, fields, versions, decisions, or activity. Missing opening dates stay **Not recorded**, not inferred from update time. Rich fixtures require a new browser or explicit destructive reset. Malformed/unknown storage is preserved while temporary fixtures are used. Storage/quota failures warn that changes last for the current visit only. Saved view definitions use separate validated `workbench.views.v1.*` keys and are not overwritten if unreadable unless explicitly cleared.
+
+Investigation is a stateless custom page, **not a fourth persisted queue array**: no browser schema change or destructive migration is needed. The existing v1→v2 tests and new saved-work regression verify compatibility. Shared KYC seeds independently and never promotes browser labels/activity to authenticated history.
+
+## Extension contracts
+
+| Reused core                                                                 | Domain / custom-view code                                                |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `src/App.tsx`: shell, navigation, original demo state                       | `src/modules/{kyc,refunds,flags}.ts`: fields, metrics, states, actions   |
+| `ToolView`: queue search/filter/sort/views                                  | `src/features/pages.tsx`: tiny custom-page registry                      |
+| `RecordDrawer`: details, notes, assignment, async saves/conflicts           | `Investigation` + `evidence`: read-only non-queue UI and source fixtures |
+| `executeAction`: domain version/reason/transition checks, not authorization | `SharedKyc`: authenticated client, server-owned records                  |
+| `server/app.ts`: strict API schemas, session policy, read-only proxy        | `server/store.ts`: cases, atomic history, per-actor command results      |
+
+For an ordinary queue, add `ToolId`, `ToolModule`, registry entry, fixtures, tests, and an **additive persisted-state migration**. Metadata defines owners, allowed actions, details, and optional open-work/related-record guards. Assignment/notes increment version and update time, not opening time or domain status.
+
+For a custom page, add its `Page` ID and `{id,title,icon,View}` entry in `src/features/pages.tsx`. Its React code need not fake table columns/actions/statuses or enter the local queue schema. Both registries are **build-time TypeScript**, not a runtime plugin loader. App routing still has a typed-ID edit; this is an explicit small seam, not zero-core-change extensibility. Reviewed code is allowed; no visual/formula/workflow engine is being built.
+
+Shared KYC reuses pure KYC rules on the server only **after** authenticating/authorizing, validating strict command input, and checking active assignment targets. The caller cannot supply actors, timestamps, transitions, resulting fields, or another module. Client guards never replace API policy. A future custom operational module must use that server boundary deliberately; custom pages do not automatically inherit authorization merely by joining navigation.
+
+## Security / operating boundary
+
+- **One synthetic workspace:** active operators can read all cases, assign to active operators or Unassigned, add notes, and run KYC transitions. Viewers can read the same cases/history and sandbox snapshots but cannot mutate KYC. No tenant hierarchy, field masking, client-specific rules, SSO/MFA, approvals, or separation of duties.
+- **Sessions:** scrypt-salted hashes; opaque 256-bit session tokens stored hashed; eight-hour expiry; server-side logout/revocation checks; HttpOnly/SameSite=Strict cookies, Secure with HTTPS. Mutations require same-origin/custom-header JSON requests. Strict body/field limits, parameterized SQL, private/no-store API responses.
+- **Abuse limits:** in-process IP budget of 30 login or sandbox attempts per 15 minutes per category, deliberately coarse. A reverse proxy shares its IP. Not distributed abuse control; do not enable `trust proxy` or broad CORS without reviewing that boundary.
+- **Transactions:** optimistic versions; record update + attributable event + command result commit together. Same actor/request ID/payload replays; reused ID with changed input conflicts. This is local database deduplication, **not** provider exactly-once execution.
+- **Persistence:** SQLite WAL/full synchronization, one instance/local persistent disk. Case fields are JSON alongside relational account/session, case/version, history, and command tables; no dynamic entity engine. Whole small authorized case/history set is returned; search/counts share that scope. No production query pagination, document storage, bulk changes, queued jobs, high availability, or multi-region claim. Synchronous DB/scrypt work must be reassessed under load.
+- **Audit limits:** API has no history-edit route, but database administrators can change SQLite. History is attributable, not tamper-resistant/compliance-grade. Local Activity is editable browser data and never trusted server audit.
+- **No external effects:** KYC is not identity verification; refunds are local simulations; flags do not control a product. Only the configured sandbox GET can contact a provider.
+
+### Backup and retention
+
+`npm run db:backup -- /existing/private/directory/new-backup.sqlite` uses SQLite's online backup, including committed WAL state, with private file permissions; existing destination files are refused. Backups include hashes and sessions: protect them like the source. CI includes a backup/restore smoke test.
+
+To restore, stop the API and point `WORKBENCH_DB` at a private copy of a backup, **not an active database file**. Revoke restored sessions through an authorized database operator (`DELETE FROM sessions`) before exposure, restart, then check schema/history. Automatic backup scheduling, remote encryption, point-in-time recovery, retention expiry, password recovery/rotation, and disaster-recovery operations are not implemented. An operational pilot needs an owner, recovery objectives, retention policy, and restore drills.
+
+## Gates / next decisions
+
+[Gate evidence, effort ledger and operating cost](docs/gates-and-effort.md) is the authoritative implementation status for v0.3; older design attachments are broader hypotheses, not completed production requirements.
+
+| Gate     | Here                                                                                                               | Remaining                                                                                                           |
+| -------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| 1–2      | Original tools, richer samples, daily-work interactions                                                            | Client workflow validation                                                                                          |
+| 3        | Custom investigation/source failures/retry UI; saved-work compatibility                                            | Independent extension exercise and human review effort                                                              |
+| Narrow 4 | Password demo accounts, shared KYC, API policy, transactional history, concurrency/replay tests, backup smoke test | Enterprise identity, tenant/field scope, production operations, migration of other tools                            |
+| 5a       | Protected read-only Stripe test adapter, failure contracts, explicit not-connected                                 | Confirm provider, provision credential, validate live sandbox                                                       |
+| 5b       | **Deferred; not required for these read-only/collaboration proofs**                                                | Separate write use case, provider idempotency review, durable intent/outcome-unknown/reconciliation/recovery design |
+
+A fourth screen or sandbox call proves neither Power Apps replacement nor $250K/year savings. Use measured extension/review effort and total operating cost before comparing licensing alternatives.
+
+## Checks
 
 ```sh
 npm run format:check
@@ -20,62 +113,10 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+npm audit
+npm run measure
 ```
 
-## Try it
+`npm test` runs frontend domain/storage/component regressions in jsdom **and** Node tests against real loopback HTTP/SQLite. They cover independent sessions, forged requests, role denial, stale edits, replay, rollback, restart persistence, and backup/restore. Stripe transport is mocked; no live provider behavior is claimed. `npm run measure` reports reproducible local RSS, database/WAL size, latency and CPU for a disposable synthetic dataset—not a capacity test or hosting quote.
 
-1. Open **KYC review**, filter by owner/status, or try **My records**, **Unassigned**, and **Open 48h+** (a demo age filter, not an SLA). Opening age and last update are separate; new activity does not reset the opening date.
-2. Open a case, **Reassign owner**, or **Add note**. All three tools share these controls. Owners including “You” are local labels, not authenticated users. Changes require 5–500 characters of context and use the same version check and activity path as workflow actions.
-3. **Request information** moves a reviewable KYC case to **Waiting for information** without sending a message. **Return to review** records receipt/handoff context without deleting the earlier request or notes. Waiting and escalated cases must explicitly return to review before approval/rejection in this demo; this is not a verified client policy or enforced separation of duties.
-4. **Save view locally** names the current search, owner, status, age filter, and sort. Select it later (including after reload) or delete it. Up to 8 views per tool, with unique names; views store filter definitions, not record snapshots. Saved views are not shared and are kept when demo records reset.
-5. Open **Refunds** and simulate or decline a requested refund. Amounts use integer USD cents; simulation rejects requests above the remaining balance. Maya Robinson's two requests share a payment: simulation is deliberately blocked because cross-request allocation and reconciliation are not modeled. Approval, processing, and failure examples are read-only illustrations, not live provider outcomes; they still support notes and assignment. No multi-currency logic is implemented.
-6. Open **Feature flags** and enable/disable a local staging flag. No running product consumes these settings.
-7. Review **Activity**, reload to see local persistence, or **Reset demo data** to load the latest sample. Reset requires confirmation and clears record changes, assignments, notes, and activity; it keeps saved views and unrelated browser storage.
-
-All names, emails (`example.com`), and records are fictional. Existing client workflows have not been verified; these are interaction examples, not a reproduction of their actual screens or rules.
-
-## Curated sample and saved-work compatibility
-
-The current sample contains **14 KYC cases, 10 refund requests, and 7 staging flags**. These are screen examples, not industry benchmarks or estimates of client volume. KYC includes onboarding, information refreshes, incomplete/expired/unreadable evidence, resubmissions, waiting and escalation. Countries and review-risk labels do not imply jurisdictional rules or demographic risk models. Refunds span $18–$1,250, full/partial requests, prior refunds, a remaining-balance request, and illustrative exceptions. USD is a prototype display limitation, not a client currency assumption. Deliberately related KYC/refund records use stable fictional customer IDs; there are no name-based joins. Initial context is described in the records, not fabricated as historical operator activity.
-
-Demo data uses **schema version 2** under the original `workbench.demo.v1` storage key so older saved work is found. Loading valid v1 data upgrades its event structure without replacing records, fields, owners, versions, decisions, or activity. Missing opened dates remain **Not recorded**, not invented from last-update times. Richer fixture rows are only loaded on a new browser or explicit reset. Malformed/unsupported data remains untouched while temporary fixtures are used; reset is the explicit destructive opt-in. Saved view definitions use separate per-tool `workbench.views.v1.*` keys, are validated, and are not overwritten when unreadable unless explicitly cleared. Storage access/quota failures show warnings; unsaved changes last only for the current visit.
-
-## Small reuse boundary
-
-| Shared code                                                                   | Module-owned code                                                     |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `src/App.tsx`: shell, routing, demo state                                     | `src/modules/kyc.ts`: review states/actions                           |
-| `src/components/ToolView.tsx`: table, owner/status filters, saved views       | `src/modules/refunds.ts`: amount/shared-payment checks and simulation |
-| `src/components/RecordDrawer.tsx`: details and confirmation                   | `src/modules/flags.ts`: local flag transitions                        |
-| `src/core/actions.ts`: version/reason checks, assignment, notes, local events | Module metadata: columns, fields, metrics, notices, owner choices     |
-| `src/core/storage.ts`: versioned local persistence                            | Synthetic fixture fields and contract tests                           |
-
-To add a simple tool, add its ID to `ToolId`, declare a `ToolModule`, register it in `src/modules/index.ts`, and add fixtures and tests. The generic navigation, table, drawer, assignment, notes, and action path then pick it up. Declare allowed demo `owners`, optionally an `isOpen` predicate for age-filtered work and a `noActionMessage` for read-only/terminal states. Optional action `validate(record, moduleRecords)` guards related-record constraints before `apply` runs. Shared assignment/note events increment the record version and last update but never alter its domain status, opening date, or fields. Notes live as typed local events rather than a second persisted copy. Update the demo-state fixture/type contract deliberately when adding persisted data. The overview's cross-tool summary is intentionally bespoke.
-
-This is a build-time TypeScript contract, not a runtime plugin loader or no-code builder. Ordinary views use configuration. A genuinely different view may use reviewed custom React code; do not stretch a table schema into a universal UI engine. The early contract should evolve from real workflows.
-
-## Boundaries and tradeoffs
-
-- **Browser-only on purpose:** local storage rather than an API/database makes the first UI quick to reshape. It is not a shared source of truth; devices and tabs are not synchronized, and clearing site data loses changes. No real customer data should be entered.
-- **No security claims:** no login, authorization, approvals, separation of duties, secure audit storage, durable execution, or integrations. The demo operator and owners are display labels, not authenticated identities or enforced roles. Anyone with browser access can edit the data. Action guards are interaction checks, not a security boundary.
-- **Honest failure behavior:** malformed/unknown stored schemas are not silently overwritten. The UI uses temporary fixtures and offers an explicit reset. Storage failures show a warning. Reset is local and irreversible.
-- **Distinct domains:** a KYC decision is not identity verification; a simulated refund is not a provider refund; a saved flag is not observed runtime behavior. No external effects occur.
-- **Basic table only:** filtering and sorting run over small local fixtures. No backend queries, pagination, document storage, exports, bulk actions, multi-source connectors, or queued jobs.
-- **No framework up front:** one app, one registry, three small modules. No visual builder, generic workflow engine, runtime custom code, or connector marketplace.
-
-## Next increments (not implemented)
-
-| Increment                                         | Complexity   | Why later                                             |
-| ------------------------------------------------- | ------------ | ----------------------------------------------------- |
-| Validate KYC screens and states with the user     | Small        | Actual client workflow is unknown                     |
-| API + relational persistence + identity           | Medium–large | Required before a shared operational pilot            |
-| Server authorization + immutable event recording  | Large        | UI guards and local history are not security controls |
-| One synthetic/sandbox connector                   | Medium–large | Provider semantics must be known first                |
-| Durable financial actions/approval/reconciliation | Large        | Never infer money movement from this simulation       |
-| A fourth, materially different module             | Medium       | Test reuse after the first workflow is credible       |
-
-The v0.2 design remains the broader roadmap; its backend controls, compatibility requirements, and fourth-tool proof are **not complete** in this UI sketch.
-
-## Checks
-
-Vitest runs unit tests for domain transitions and storage plus React component tests in jsdom. Component tests mock the native dialog API, so they do **not** prove real-browser focus trapping, mobile layout, or full end-to-end operation. The CI workflow is configured to run lint, type checking, tests, and a production build. UI-driven testing can be added after approval.
+Component tests mock the native dialog API: they do **not** prove real-browser focus trapping, mobile layout, Chrome cookie behavior, or full UI end-to-end operation. UI-driven testing requires separate approval.

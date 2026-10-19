@@ -18,11 +18,12 @@ export type MutationRequest =
   | (ChangeTarget & { kind: 'assignment'; owner: string })
   | (ChangeTarget & { kind: 'note' });
 
-// This shared path is a UI prototype boundary, not server-side authorization.
+// Domain validation only. The API separately authenticates and authorizes callers.
 export function executeAction(
   state: DemoState,
   request: MutationRequest,
   now = new Date(),
+  owners?: string[],
 ): DemoState {
   const module = getModule(request.moduleId);
   if (!module) throw new Error('Unknown tool.');
@@ -38,7 +39,8 @@ export function executeAction(
   let before = record.status;
   let after = record.status;
   if (request.kind === 'assignment') {
-    if (!module.owners.includes(request.owner)) throw new Error('Choose a listed demo owner.');
+    if (!(owners ?? module.owners).includes(request.owner))
+      throw new Error('Choose a listed owner.');
     if (request.owner === record.owner) throw new Error('Choose a different owner.');
     result = { ...record, owner: request.owner };
     label = 'Owner reassigned';
