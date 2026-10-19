@@ -34,26 +34,35 @@ const tokenOf = (cookie = '') =>
 
 export function createApp(
   store: Store,
-  options: { origin: string; sandboxKey?: string; fetcher?: typeof fetch },
+  options: {
+    origin: string;
+    sandboxKey?: string;
+    fetcher?: typeof fetch;
+    allowInsecureLocalhost?: boolean;
+  },
 ) {
   const app = express();
   app.disable('x-powered-by');
   const lookup = createSandbox(options.sandboxKey, options.fetcher);
-  const origin = new URL(options.origin).origin;
+  const url = new URL(options.origin);
+  const origin = url.origin;
+  const secure = url.protocol === 'https:';
   if (
-    !origin.startsWith('https://') &&
-    ![
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:3001',
-      'http://127.0.0.1:3001',
-    ].includes(origin)
+    !secure &&
+    !(
+      options.allowInsecureLocalhost &&
+      process.env.NODE_ENV !== 'production' &&
+      url.protocol === 'http:' &&
+      ['localhost', '127.0.0.1'].includes(url.hostname)
+    )
   )
-    throw new Error('Non-local deployments require HTTPS.');
+    throw new Error(
+      'HTTPS is required. Plain HTTP needs explicit loopback-only development opt-in.',
+    );
   const cookieOptions = {
     httpOnly: true,
     sameSite: 'strict' as const,
-    secure: origin.startsWith('https://'),
+    secure,
     path: '/api',
     maxAge: 8 * 3_600_000,
   };
@@ -65,9 +74,16 @@ export function createApp(
       'Referrer-Policy': 'no-referrer',
     });
     if (
-      !['GET', 'HEAD'].includes(req.method) &&
-      (req.get('X-Workbench-Request') !== '1' ||
-        (req.get('Origin') && req.get('Origin') !== origin))
+      !secure &&
+      (!['localhost', '127.0.0.1'].includes(req.hostname) ||
+        !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? ''))
+    ) {
+      res.status(403).json({ error: 'Plain HTTP is restricted to local development.' });
+      return;
+    }
+    if (
+      (req.get('Origin') && req.get('Origin') !== origin) ||
+      (!['GET', 'HEAD'].includes(req.method) && req.get('X-Workbench-Request') !== '1')
     ) {
       res.status(403).json({ error: 'Same-origin JSON requests are required.' });
       return;

@@ -30,7 +30,8 @@ export default function App() {
   const [snapshot, setSnapshot] = useState(loadDemo);
   const data = snapshot.data;
   const dataRef = useRef(data);
-  const [warning, setWarning] = useState(snapshot.warning);
+  const [writeWarning, setWriteWarning] = useState('');
+  const warning = writeWarning || snapshot.warning;
   const [selection, setSelection] = useState<{ moduleId: ToolId; id: string } | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -70,10 +71,11 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (snapshot.blocked) return;
-    if (!saveDemo(data))
-      setWarning(
-        'Browser storage is unavailable. Changes will last only until this page is reloaded.',
-      );
+    setWriteWarning(
+      saveDemo(data)
+        ? ''
+        : 'Browser storage is unavailable. Changes will last only until this page is reloaded.',
+    );
   }, [data, snapshot.blocked]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -113,7 +115,7 @@ export default function App() {
     const fresh = createFixtures();
     dataRef.current = fresh;
     setSnapshot({ data: fresh, blocked: false, warning: '' });
-    setWarning('');
+    setWriteWarning('');
     setSelection(null);
     setResetOpen(false);
     notify('Demo reset. You’re back to the starting dataset.');

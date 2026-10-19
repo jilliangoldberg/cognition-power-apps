@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { SandboxResult } from '../../server/sandbox';
 import { dateTime } from '../core/format';
 import { api, HttpError } from './api';
@@ -8,10 +8,12 @@ export function SandboxLookup({ onUnauthorized }: { onUnauthorized?: () => void 
   const [result, setResult] = useState<SandboxResult | null>(null);
   const [previous, setPrevious] = useState<SandboxResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const working = useRef(false);
   const [error, setError] = useState('');
   async function lookup(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (working.current) return;
+    working.current = true;
     setBusy(true);
     setError('');
     const retained = result?.outcome === 'found' ? result : previous;
@@ -22,7 +24,7 @@ export function SandboxLookup({ onUnauthorized }: { onUnauthorized?: () => void 
         `/sandbox/payment-intents/${encodeURIComponent(id.trim())}`,
       );
       setResult(next);
-      if (next.outcome === 'found') setPrevious(null);
+      if (next.outcome !== 'unavailable') setPrevious(null);
     } catch (e) {
       if (e instanceof HttpError && e.status === 401) {
         setPrevious(null);
@@ -30,6 +32,7 @@ export function SandboxLookup({ onUnauthorized }: { onUnauthorized?: () => void 
       }
       setError('Lookup unavailable. No external outcome is inferred.');
     } finally {
+      working.current = false;
       setBusy(false);
     }
   }
@@ -56,6 +59,7 @@ export function SandboxLookup({ onUnauthorized }: { onUnauthorized?: () => void 
             setId(e.target.value);
             setResult(null);
             setPrevious(null);
+            setError('');
           }}
         />
         <button className="button button-secondary" disabled={busy}>

@@ -7,6 +7,7 @@ import { ToolView } from '../components/ToolView';
 import { RecordDrawer } from '../components/RecordDrawer';
 import { api, HttpError } from './api';
 import { SandboxLookup } from './SandboxLookup';
+import { randomId } from '../core/id';
 
 interface Snapshot {
   records: ToolRecord[];
@@ -23,6 +24,28 @@ export function SharedKyc() {
   const [busy, setBusy] = useState(true);
   const [notice, setNotice] = useState('');
   const pending = useRef<{ body: string; id: string } | null>(null);
+  const working = useRef(true);
+  const generation = useRef(0);
+  function begin() {
+    if (working.current) return false;
+    working.current = true;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    return true;
+  }
+  function finish() {
+    working.current = false;
+    setBusy(false);
+  }
+  function forgetSession() {
+    generation.current++;
+    setUser(null);
+    setSnapshot(null);
+    setSelected(null);
+    setNotice('');
+    pending.current = null;
+  }
   useEffect(() => {
     let active = true;
     Promise.all([api<{ user: User }>('/session'), api<Snapshot>('/kyc')])
@@ -39,72 +62,79 @@ export function SharedKyc() {
           );
       })
       .finally(() => {
-        if (active) setBusy(false);
+        if (active) {
+          working.current = false;
+          setBusy(false);
+        }
       });
     return () => {
       active = false;
     };
   }, []);
   async function refresh() {
-    setBusy(true);
-    setError('');
+    if (!begin()) return;
+    const current = generation.current;
     try {
-      setSnapshot(await api<Snapshot>('/kyc'));
+      const data = await api<Snapshot>('/kyc');
+      if (current !== generation.current) return;
+      setSnapshot(data);
       setNotice(
         'Shared data refreshed. Review changed details before explicitly using the refreshed version in an open form.',
       );
     } catch (e) {
+      if (current !== generation.current) return;
       setError(e instanceof Error ? e.message : 'Refresh failed.');
       if (e instanceof HttpError && e.status === 401) {
-        setUser(null);
-        setSnapshot(null);
-        setSelected(null);
+        forgetSession();
       }
     } finally {
-      setBusy(false);
+      finish();
     }
   }
   async function login(event: FormEvent) {
     event.preventDefault();
-    setBusy(true);
-    setError('');
+    if (!begin()) return;
+    const current = generation.current;
     try {
       const session = await api<{ user: User }>('/login', { email, password });
       setPassword('');
       const data = await api<Snapshot>('/kyc');
+      if (current !== generation.current) return;
       setUser(session.user);
       setSnapshot(data);
       pending.current = null;
     } catch (e) {
+      if (current !== generation.current) return;
       setError(e instanceof Error ? e.message : 'Sign-in failed.');
     } finally {
-      setBusy(false);
+      finish();
     }
   }
   async function logout() {
-    setBusy(true);
-    setError('');
+    if (!begin()) return;
     try {
       await api('/logout', {});
-      setUser(null);
-      setSnapshot(null);
-      setSelected(null);
-      pending.current = null;
+      forgetSession();
     } catch {
       setError('Could not confirm sign-out. Retry to invalidate the server session.');
     } finally {
-      setBusy(false);
+      finish();
     }
   }
   async function change(request: MutationRequest) {
+    if (!begin())
+      return 'Another shared request is in progress. Wait, then retry your unchanged input.';
+    const current = generation.current;
     const normalized = { ...request, kind: request.kind ?? 'action' };
     const body = JSON.stringify(normalized);
-    if (pending.current?.body !== body) pending.current = { body, id: crypto.randomUUID() };
     try {
+      if (pending.current?.body !== body) pending.current = { body, id: randomId() };
       const result = await api<{ record: ToolRecord; event: SharedEvent }>('/kyc/changes', {
         requestId: pending.current.id,
         change: normalized,
       });
+      if (current !== generation.current)
+        return 'Session changed. Sign in and review the latest case.';
       setSnapshot(
         (current) =>
           current && {
@@ -121,15 +151,16 @@ export function SharedKyc() {
       setNotice('Saved on server with authenticated history. Other users can refresh to see it.');
       return null;
     } catch (e) {
+      if (current !== generation.current)
+        return 'Session changed. Sign in and review the latest case.';
       if (e instanceof HttpError && e.status === 401) {
-        setUser(null);
-        setSnapshot(null);
-        setSelected(null);
-        pending.current = null;
+        forgetSession();
       }
       return e instanceof HttpError
         ? e.message
         : 'Save response unavailable; outcome unknown. Retry unchanged input before closing or reloading to resolve its outcome.';
+    } finally {
+      finish();
     }
   }
   const module = {
@@ -237,9 +268,7 @@ export function SharedKyc() {
           )}
           <SandboxLookup
             onUnauthorized={() => {
-              setUser(null);
-              setSnapshot(null);
-              setSelected(null);
+              forgetSession();
               setError('Session expired. Sign in again.');
             }}
           />

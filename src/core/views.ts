@@ -13,6 +13,12 @@ export interface SavedView {
   filters: RecordFilters;
 }
 
+const temporaryViews = new Map<string, SavedView[]>();
+const temporaryWarning = 'Views are available for this visit only; browser storage is unavailable.';
+export const clearViewSession = () => temporaryViews.clear();
+const copyViews = (views: SavedView[]) =>
+  views.map((view) => ({ ...view, filters: { ...view.filters } }));
+
 export const defaultFilters: RecordFilters = {
   search: '',
   status: 'all',
@@ -71,6 +77,8 @@ export function loadViews(
   warning: string;
   blocked: boolean;
 } {
+  const cached = temporaryViews.get(viewsKey(module.id, namespace));
+  if (cached) return { views: copyViews(cached), warning: temporaryWarning, blocked: false };
   try {
     const raw = localStorage.getItem(viewsKey(module.id, namespace));
     if (raw === null) return { views: [], warning: '', blocked: false };
@@ -108,10 +116,13 @@ export function loadViews(
 }
 
 export function saveViews(id: ToolId, views: SavedView[], namespace?: string): boolean {
+  const key = viewsKey(id, namespace);
   try {
-    localStorage.setItem(viewsKey(id, namespace), JSON.stringify(views));
+    localStorage.setItem(key, JSON.stringify(views));
+    temporaryViews.delete(key);
     return true;
   } catch {
+    temporaryViews.set(key, copyViews(views));
     return false;
   }
 }
