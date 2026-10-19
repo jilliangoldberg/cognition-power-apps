@@ -1,4 +1,7 @@
 import type { DemoState, ToolRecord } from './types';
+import { kycDefaults } from '../modules/kyc';
+import { refundDefaults } from '../modules/refunds';
+import { flagDefaults } from '../modules/flags';
 
 export function createFixtures(now = new Date()): DemoState {
   const time = (hours: number) => new Date(now.getTime() - hours * 3_600_000).toISOString();
@@ -69,25 +72,53 @@ export function createFixtures(now = new Date()): DemoState {
     reviewReason: string,
     owner: string,
     hours: number,
-  ): ToolRecord => ({
-    id,
-    name,
-    subtitle: `${name.toLowerCase().replaceAll(' ', '.')}@example.com`,
-    status,
-    owner,
-    openedAt: time(hours + (id === 'KYC-1033' ? 120 : 12)),
-    updatedAt: time(hours),
-    version: 1,
-    fields: {
-      customerId: `CUS-${id.slice(4)}`,
-      country,
-      accountType: 'Personal',
-      risk,
-      reviewReason,
-      summary: contexts[id][0],
-      nextStep: contexts[id][1],
-    },
-  });
+  ): ToolRecord =>
+    kycDefaults({
+      id,
+      name,
+      subtitle: `${name.toLowerCase().replaceAll(' ', '.')}@example.com`,
+      status,
+      owner,
+      openedAt: time(hours + (id === 'KYC-1033' ? 120 : 12)),
+      updatedAt: time(hours),
+      version: 1,
+      fields: {
+        customerId: `CUS-${id.slice(4)}`,
+        country,
+        accountType: 'Personal',
+        risk,
+        reviewReason,
+        summary: contexts[id][0],
+        nextStep: contexts[id][1],
+        identityEvidence:
+          id === 'KYC-1039'
+            ? 'Expired fictional document'
+            : id === 'KYC-1038'
+              ? 'Missing fictional identity field'
+              : 'Consistent fictional sample',
+        addressEvidence: ['KYC-1041', 'KYC-1033'].includes(id)
+          ? 'Missing dated fictional address evidence'
+          : id === 'KYC-1034'
+            ? 'Unreadable fictional submission'
+            : 'Consistent fictional sample',
+        consistencyEvidence: ['KYC-1040', 'KYC-1031', 'KYC-1035'].includes(id)
+          ? 'Inconsistent fictional identity details'
+          : 'Consistent fictional sample',
+        evidenceReviewed: [
+          'KYC-1042',
+          'KYC-1037',
+          'KYC-1036',
+          'KYC-1032',
+          'KYC-1030',
+          'KYC-1029',
+        ].includes(id),
+        evidenceReviewContext:
+          id === 'KYC-1042'
+            ? 'Fixture context: a fictional name-change explanation resolves the original discrepancy; no real review was performed.'
+            : 'Initial synthetic scenario, not an authenticated review event.',
+        informationNeeded: contexts[id][1],
+      },
+    });
   const refund = (
     id: string,
     name: string,
@@ -100,29 +131,35 @@ export function createFixtures(now = new Date()): DemoState {
     reason: string,
     owner: string,
     hours: number,
-  ): ToolRecord => ({
-    id,
-    name,
-    subtitle: paymentId,
-    status,
-    owner,
-    openedAt: time(hours + 8),
-    updatedAt: time(hours),
-    version: 1,
-    fields: {
-      customerId,
-      paymentId,
-      amountCents,
-      paymentCents,
-      refundedCents,
-      reason,
-      paymentAt: time(paymentId === 'PAY-8069' ? 200 : hours + 96),
-      summary:
-        paymentId === 'PAY-8069'
-          ? 'Two sample requests share this payment. Simulation is blocked: shared refundable capacity and reconciliation are not modeled. Investigate the other request first.'
-          : 'Illustrative request against a completed payment. Amounts are sample USD, not client averages or policy thresholds.',
-    },
-  });
+  ): ToolRecord =>
+    refundDefaults({
+      id,
+      name,
+      subtitle: paymentId,
+      status,
+      owner,
+      openedAt: time(hours + 8),
+      updatedAt: time(hours),
+      version: 1,
+      fields: {
+        customerId,
+        paymentId,
+        amountCents,
+        paymentCents,
+        refundedCents,
+        reason,
+        paymentAt: time(paymentId === 'PAY-8069' ? 200 : hours + 96),
+        sharedPaymentContext: paymentId === 'PAY-8069',
+        relatedRequests:
+          paymentId === 'PAY-8069'
+            ? `${id === 'REF-0199' ? 'REF-0195 · Failed example · 8450 cents' : 'REF-0199 · Requested · 24995 cents'} · initial synthetic snapshot, not reconciliation; current siblings are rechecked before actions`
+            : 'No sibling in the initial synthetic snapshot; current siblings are rechecked before actions.',
+        summary:
+          paymentId === 'PAY-8069'
+            ? 'Two sample requests share this payment. Simulation is blocked: shared refundable capacity and reconciliation are not modeled. Investigate the other request first.'
+            : 'Illustrative request against a completed payment. Amounts are sample USD, not client averages or policy thresholds.',
+      },
+    });
   const flag = (
     id: string,
     name: string,
@@ -132,17 +169,18 @@ export function createFixtures(now = new Date()): DemoState {
     description: string,
     hours: number,
     audience: string,
-  ): ToolRecord => ({
-    id,
-    name,
-    subtitle: key,
-    status,
-    owner,
-    openedAt: time(hours + 240),
-    updatedAt: time(hours),
-    version: 1,
-    fields: { environment: 'Staging', audience, description },
-  });
+  ): ToolRecord =>
+    flagDefaults({
+      id,
+      name,
+      subtitle: key,
+      status,
+      owner,
+      openedAt: time(hours + 240),
+      updatedAt: time(hours),
+      version: 1,
+      fields: { environment: 'Staging', audience, description },
+    });
   return {
     schemaVersion: 2,
     records: {

@@ -75,8 +75,18 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
       };
     }
     if (!isDemoState(value)) throw new Error('Unsupported demo data');
+    // Add only conservative flat defaults; never replace saved records or infer past outcomes.
+    const data: DemoState = {
+      ...value,
+      records: { ...value.records },
+    };
+    for (const module of modules)
+      data.records[module.id] = value.records[module.id].map(
+        (record) => module.withDefaults?.(record) ?? record,
+      );
+    if (!isDemoState(data)) throw new Error('Unsupported workflow data');
     return {
-      data: value,
+      data,
       warning: legacy
         ? 'Saved work preserved in the updated format. Reset demo data only if you want the richer sample records; resetting removes your local changes.'
         : '',

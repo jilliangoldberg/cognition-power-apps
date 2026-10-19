@@ -30,7 +30,9 @@ export function executeAction(
   const record = state.records[module.id].find((r) => r.id === request.recordId);
   if (!record) throw new Error('This record no longer exists.');
   if (record.version !== request.expectedVersion)
-    throw new Error('This record changed. Close it and open the latest version.');
+    throw new Error(
+      'This record changed. Review the latest version before retrying; keep your draft.',
+    );
   const reason = request.reason.trim();
   if (reason.length < 5 || reason.length > 500)
     throw new Error('Add a reason between 5 and 500 characters.');
@@ -47,13 +49,18 @@ export function executeAction(
     before = record.owner;
     after = request.owner;
   } else if (request.kind !== 'note') {
-    const action = module.actions.find((a) => a.id === request.actionId);
+    // Shared KYC supplies its server owner list and retains its existing command semantics.
+    const actions = owners === undefined ? (module.localActions ?? module.actions) : module.actions;
+    const action = actions.find((a) => a.id === request.actionId);
     if (!action || !action.available(record))
       throw new Error('This action is no longer available.');
+    const blocked = action.blockedReason?.(record);
+    if (blocked) throw new Error(blocked);
     action.validate?.(record, state.records[module.id]);
-    result = action.apply(record);
+    result = action.applyWithContext?.(record, reason) ?? action.apply(record);
     label = action.label;
     after = result.status;
+    if (action.history) ({ before, after } = action.history(record, result));
   }
   const updated = { ...result, version: record.version + 1, updatedAt: now.toISOString() };
   return {

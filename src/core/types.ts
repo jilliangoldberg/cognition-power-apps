@@ -41,6 +41,12 @@ export interface RecordAction {
   available: (record: ToolRecord) => boolean;
   validate?: (record: ToolRecord, records: ToolRecord[]) => void;
   apply: (record: ToolRecord) => ToolRecord;
+  applyWithContext?: (record: ToolRecord, reason: string) => ToolRecord;
+  eligibility?: (record: ToolRecord) => string;
+  blockedReason?: (record: ToolRecord) => string | undefined;
+  preview?: (record: ToolRecord) => string;
+  reasonLabel?: string;
+  history?: (before: ToolRecord, after: ToolRecord) => { before: string; after: string };
 }
 
 export interface DetailField {
@@ -66,6 +72,9 @@ export interface ToolModule {
   details: DetailField[];
   notice: string;
   actions: RecordAction[];
+  localActions?: RecordAction[];
+  localDetails?: DetailField[];
+  withDefaults?: (record: ToolRecord) => ToolRecord;
   metrics: (records: ToolRecord[]) => { label: string; value: string; hint: string }[];
   validateFields: (record: ToolRecord) => boolean;
 }
