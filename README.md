@@ -103,6 +103,8 @@ To restore, stop the API and point `WORKBENCH_DB` at a private copy of a backup,
 | 5a       | Protected read-only Stripe test adapter, failure contracts, explicit not-connected                                 | Confirm provider, provision credential, validate live sandbox                                                       |
 | 5b       | **Deferred; not required for these read-only/collaboration proofs**                                                | Separate write use case, provider idempotency review, durable intent/outcome-unknown/reconciliation/recovery design |
 
+[Scoped potential next steps](docs/gates-and-effort.md#potential-next-steps--validate-the-current-prototype) cover secure demo credentials, real sandbox validation, and approved real-browser testing, with dependencies, complexity, acceptance checks, and cleanup boundaries. These are proposals, not completed setup or testing.
+
 A fourth screen or sandbox call proves neither Power Apps replacement nor $250K/year savings. Use measured extension/review effort and total operating cost before comparing licensing alternatives.
 
 ## Checks
