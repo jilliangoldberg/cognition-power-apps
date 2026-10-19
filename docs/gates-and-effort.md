@@ -33,7 +33,7 @@ Classify by ownership, not just directory: the shared API client and custom-page
 | Regression/security tests (6 files) | Feature tests, shared-client tests, API tests, adapter tests, backup test, setup CLI test    | Keep original behavior and exercise new contracts; not a browser E2E suite                                                       |
 | Tooling/docs                        | Node 24 requirement, package/lockfile, TS/Vite/Vitest/CI, ignore rules, README, this ledger  | No pre-existing server was present; CI now includes server tests and formatting                                                  |
 
-Measured source diff for this increment (excluding tests, tooling, and docs): module/custom-view/adapter code **+714 / −0 lines** across 5 files; shared frontend/backend code **+881 / −60 lines** across 15 files. These counts are observational, not target ratios. Lockfile changes are deliberately excluded.
+Measured source diff for this increment (excluding tests, tooling, and docs): module/custom-view/adapter code **+714 / −0 lines** across 5 files; shared frontend/backend code **+781 / −60 lines** across 15 files. These counts are observational, not target ratios. Lockfile changes are deliberately excluded.
 
 Step 3 alone is primarily two module-owned files plus a small page-registry/navigation/type/style seam. It does **not** add a fake table module or a fourth persisted record array. Existing browser schema v2 and v1→v2 migration remain unchanged. A future persisted queue still needs an additive migration. The later shared slice deliberately reuses table/drawer/domain rules but makes API authorization and database ownership explicit; navigation is not a security boundary.
 
