@@ -13,8 +13,9 @@ import { ActivityView } from './components/ActivityView';
 import { About } from './components/About';
 import { Dialog } from './components/Dialog';
 import { customPages } from './features/pages';
+import { isToolPage, readRoute, recordRoute, routeHash } from './core/routing';
+import { defaultFilters, type RecordFilters } from './core/views';
 
-const isTool = (page: Page): page is ToolId => modules.some((module) => module.id === page);
 const pages: Page[] = [
   'overview',
   ...modules.map((module) => module.id),
@@ -22,26 +23,27 @@ const pages: Page[] = [
   'activity',
   'about',
 ];
-const readPage = (): Page =>
-  pages.find((page) => `#${page}` === window.location.hash) ?? 'overview';
+const currentRoute = () => readRoute(window.location.hash, pages);
 
 export default function App() {
-  const [page, setPage] = useState<Page>(readPage);
+  const [route, setRoute] = useState(currentRoute);
+  const { page, selection } = route;
+  const queueContexts = useRef<Partial<Record<ToolId, RecordFilters>>>({});
+  const priorSelection = useRef(selection);
   const [snapshot, setSnapshot] = useState(loadDemo);
   const data = snapshot.data;
   const dataRef = useRef(data);
   const [warning, setWarning] = useState(snapshot.warning);
-  const [selection, setSelection] = useState<{ moduleId: ToolId; id: string } | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
-  const module = isTool(page) ? getModule(page) : null;
+  const module = isToolPage(page) ? getModule(page) : null;
   const customPage = customPages.find((item) => item.id === page);
   const title =
     module?.shortTitle ??
     customPage?.title ??
-    (page === 'overview' ? 'Overview' : page === 'activity' ? 'Activity' : 'About prototype');
+    (page === 'overview' ? 'My work' : page === 'activity' ? 'Activity' : 'About prototype');
   const record = selection
     ? data.records[selection.moduleId].find((row) => row.id === selection.id)
     : null;
@@ -52,22 +54,77 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(''), 4500);
   }
 
-  const navigate = useCallback((next: Page) => {
-    window.location.hash = next;
-    setPage(next);
-    setSelection(null);
+  const go = useCallback((hash: string, replace = false, state: unknown = null) => {
+    window.history[replace ? 'replaceState' : 'pushState'](state, '', hash);
+    setRoute(readRoute(hash, pages));
     setMobileOpen(false);
   }, []);
 
+  const navigate = useCallback(
+    (next: Page) => {
+      go(
+        routeHash({
+          page: next,
+          work: 'mine',
+          filters: isToolPage(next)
+            ? (queueContexts.current[next] ?? defaultFilters)
+            : defaultFilters,
+        }),
+      );
+    },
+    [go],
+  );
+
+  function recordLink(moduleId: ToolId, row: ToolRecord) {
+    const filters =
+      page === moduleId ? route.filters : (queueContexts.current[moduleId] ?? defaultFilters);
+    return routeHash(recordRoute(route, moduleId, row.id, filters));
+  }
+
+  function openRecord(moduleId: ToolId, row: ToolRecord) {
+    const hash = recordLink(moduleId, row);
+    go(hash, false, {
+      workbenchRecord: hash,
+      returnHash: routeHash({ ...route, selection: undefined, returnHash: undefined }),
+    });
+  }
+
+  function closeRecord() {
+    const returnHash =
+      route.returnHash ?? routeHash({ ...route, selection: undefined, returnHash: undefined });
+    if (
+      window.history.state?.workbenchRecord === window.location.hash &&
+      window.history.state?.returnHash === returnHash
+    ) {
+      window.history.back();
+    } else go(returnHash, true);
+  }
+
   useEffect(() => {
     const update = () => {
-      setPage(readPage());
-      setSelection(null);
+      setRoute(currentRoute());
       setMobileOpen(false);
     };
     window.addEventListener('hashchange', update);
-    return () => window.removeEventListener('hashchange', update);
+    window.addEventListener('popstate', update);
+    return () => {
+      window.removeEventListener('hashchange', update);
+      window.removeEventListener('popstate', update);
+    };
   }, []);
+  useEffect(() => {
+    if (isToolPage(route.page)) queueContexts.current[route.page] = route.filters;
+  }, [route]);
+  useEffect(() => {
+    if (priorSelection.current && !selection) {
+      const key = `${priorSelection.current.moduleId}:${priorSelection.current.id}`;
+      const target = Array.from(document.querySelectorAll<HTMLElement>('[data-work-record]')).find(
+        (element) => element.dataset.workRecord === key,
+      );
+      (target ?? document.getElementById('main-content'))?.focus();
+    }
+    priorSelection.current = selection;
+  }, [selection]);
   useEffect(() => {
     if (snapshot.blocked) return;
     if (!saveDemo(data))
@@ -114,12 +171,16 @@ export default function App() {
     dataRef.current = fresh;
     setSnapshot({ data: fresh, blocked: false, warning: '' });
     setWarning('');
-    setSelection(null);
+    if (selection)
+      go(
+        route.returnHash ?? routeHash({ ...route, selection: undefined, returnHash: undefined }),
+        true,
+      );
     setResetOpen(false);
     notify('Demo reset. You’re back to the starting dataset.');
   }
 
-  function navItem(id: Page, label: string, icon: IconName, count?: number) {
+  function navItem(id: Page, label: string, icon: IconName) {
     return (
       <a
         key={id}
@@ -133,7 +194,6 @@ export default function App() {
       >
         <Icon name={icon} size={19} />
         <span>{label}</span>
-        {count !== undefined && <span className="nav-count">{count}</span>}
       </a>
     );
   }
@@ -183,11 +243,9 @@ export default function App() {
         </div>
         <nav aria-label="Workspace">
           <p className="nav-label">WORKSPACE</p>
-          {navItem('overview', 'Overview', 'grid')}
+          {navItem('overview', 'My work', 'grid')}
           <p className="nav-label nav-label-tools">YOUR TOOLS</p>
-          {modules.map((item) =>
-            navItem(item.id, item.shortTitle, item.icon, data.records[item.id].length),
-          )}
+          {modules.map((item) => navItem(item.id, item.shortTitle, item.icon))}
           <p className="nav-label nav-label-tools">EXTENSION PROOFS</p>
           {customPages.map((item) => navItem(item.id, item.title, item.icon))}
           <p className="nav-label nav-label-tools">MANAGE</p>
@@ -255,14 +313,59 @@ export default function App() {
               </button>
             </div>
           )}
-          {page === 'overview' && <Overview data={data} navigate={navigate} />}
+          {(route.error || (selection && !record)) && (
+            <div className="warning-banner" role="alert">
+              <Icon name="info" size={18} />
+              <p>
+                {route.error ??
+                  `Record ${selection?.id} was not found in this browser’s local dataset. It may have been removed or may exist only in another browser. No record was opened.`}
+              </p>
+              <button
+                className="text-button"
+                onClick={() =>
+                  go(
+                    route.returnHash ??
+                      routeHash({
+                        ...route,
+                        selection: undefined,
+                        returnHash: undefined,
+                        error: undefined,
+                      }),
+                    true,
+                  )
+                }
+              >
+                Return to{' '}
+                {route.returnHash?.startsWith('#overview')
+                  ? 'My work'
+                  : module
+                    ? 'queue'
+                    : 'My work'}
+              </button>
+            </div>
+          )}
+          {page === 'overview' && (
+            <Overview
+              data={data}
+              navigate={navigate}
+              view={route.work}
+              onViewChange={(work) => go(routeHash({ ...route, work }))}
+              recordHref={recordLink}
+              onSelect={openRecord}
+            />
+          )}
           {customPage && <customPage.View />}
           {module && (
             <ToolView
               key={module.id}
               module={module}
               records={data.records[module.id]}
-              onSelect={(row: ToolRecord) => setSelection({ moduleId: module.id, id: row.id })}
+              filters={route.filters}
+              onFiltersChange={(filters) =>
+                go(routeHash({ ...route, filters }), true, window.history.state)
+              }
+              recordHref={(row) => recordLink(module.id, row)}
+              onSelect={(row: ToolRecord) => openRecord(module.id, row)}
             />
           )}
           {page === 'activity' && <ActivityView activity={data.activity} />}
@@ -283,7 +386,7 @@ export default function App() {
           activity={data.activity.filter(
             (event) => event.moduleId === selection.moduleId && event.recordId === record.id,
           )}
-          onClose={() => setSelection(null)}
+          onClose={closeRecord}
           onAction={onAction}
         />
       )}
