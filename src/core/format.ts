@@ -1,3 +1,9 @@
+export function ageLabel(openedAt: string | undefined, now = new Date()): string {
+  if (!openedAt) return 'Not recorded';
+  const hours = Math.max(0, Math.floor((now.getTime() - Date.parse(openedAt)) / 3_600_000));
+  return hours < 24 ? `${hours}h` : `${Math.floor(hours / 24)}d ${hours % 24}h`;
+}
+
 export const money = (cents: number) =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',

@@ -1,24 +1,25 @@
 import { modules } from '../modules';
 import type { DemoState, Page } from '../core/types';
 import { countStatus, dateTime, money } from '../core/format';
+import { openKyc } from '../modules/kyc';
 import { Icon } from './Icon';
 import { Badge } from './Badge';
 
 export function Overview({ data, navigate }: { data: DemoState; navigate: (page: Page) => void }) {
   const metrics = [
     {
-      label: 'Cases awaiting review',
-      value: String(countStatus(data.records.kyc, 'Needs review')),
-      hint: 'KYC operations',
+      label: 'Open sample cases',
+      value: String(data.records.kyc.filter((r) => openKyc(r.status)).length),
+      hint: 'Includes waiting and escalated cases',
     },
     {
-      label: 'Pending refunds',
+      label: 'Requested refund value',
       value: money(
         data.records.refunds
           .filter((r) => r.status === 'Requested')
           .reduce((sum, r) => sum + Number(r.fields.amountCents), 0),
       ),
-      hint: 'Synthetic USD · no live funds',
+      hint: 'Sample USD · not provider-pending funds',
     },
     {
       label: 'Enabled flags',
@@ -72,7 +73,7 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
               <p>{module.description}</p>
               <div className="tool-card-footer">
                 <span>
-                  {data.records[module.id].length} {module.recordLabel}
+                  {data.records[module.id].length} sample {module.recordLabel}
                 </span>
                 <Badge label="Local demo" dot={false} />
               </div>

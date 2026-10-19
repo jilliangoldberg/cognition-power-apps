@@ -13,6 +13,8 @@ function isRecord(value: unknown): value is ToolRecord {
     object(value) &&
     ['id', 'name', 'subtitle', 'status', 'owner'].every((key) => typeof value[key] === 'string') &&
     validDate(value.updatedAt) &&
+    (value.openedAt === undefined ||
+      (validDate(value.openedAt) && Date.parse(value.openedAt) <= Date.parse(value.updatedAt))) &&
     Number.isSafeInteger(value.version) &&
     Number(value.version) >= 1 &&
     object(value.fields) &&
@@ -25,6 +27,7 @@ function isRecord(value: unknown): value is ToolRecord {
 function isActivity(value: unknown): value is Activity {
   return (
     object(value) &&
+    ['action', 'assignment', 'note'].includes(String(value.kind)) &&
     ['id', 'recordId', 'recordName', 'action', 'reason', 'before', 'after'].every(
       (key) => typeof value[key] === 'string',
     ) &&
@@ -36,7 +39,7 @@ function isActivity(value: unknown): value is Activity {
 export function isDemoState(value: unknown): value is DemoState {
   if (
     !object(value) ||
-    value.schemaVersion !== 1 ||
+    value.schemaVersion !== 2 ||
     !object(value.records) ||
     !Array.isArray(value.activity) ||
     !value.activity.every(isActivity)
@@ -60,9 +63,25 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) return { data: createFixtures(), warning: '', blocked: false };
-    const value: unknown = JSON.parse(raw);
+    let value: unknown = JSON.parse(raw);
+    const legacy = object(value) && value.schemaVersion === 1;
+    if (legacy && object(value) && Array.isArray(value.activity)) {
+      value = {
+        ...value,
+        schemaVersion: 2,
+        activity: value.activity.map((event: unknown) =>
+          object(event) ? { ...event, kind: 'action' } : event,
+        ),
+      };
+    }
     if (!isDemoState(value)) throw new Error('Unsupported demo data');
-    return { data: value, warning: '', blocked: false };
+    return {
+      data: value,
+      warning: legacy
+        ? 'Saved work preserved in the updated format. Reset demo data only if you want the richer sample records; resetting removes your local changes.'
+        : '',
+      blocked: false,
+    };
   } catch {
     return {
       data: createFixtures(),

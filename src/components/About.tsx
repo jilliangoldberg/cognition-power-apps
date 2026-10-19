@@ -5,7 +5,7 @@ export function About() {
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">PROTOTYPE / V0.1</p>
+          <p className="eyebrow">PROTOTYPE / V0.2</p>
           <h1>A foundation, not a framework.</h1>
           <p>A small starting point for engineers building internal tools with Devin.</p>
         </div>
@@ -21,6 +21,7 @@ export function About() {
             <li>Searchable, filterable, sortable tables</li>
             <li>Record details and reason-required actions</li>
             <li>Local persistence and activity history</li>
+            <li>Local assignment, notes, and saved queue views</li>
           </ul>
         </section>
         <section className="panel about-panel">
@@ -33,11 +34,18 @@ export function About() {
             <li>Statuses and allowed transitions</li>
             <li>Action labels and domain-specific checks</li>
             <li>Synthetic fixtures and regression tests</li>
+            <li>Demo owner choices and open-work definitions</li>
           </ul>
         </section>
       </div>
       <section className="panel about-panel boundaries">
         <h2>What this prototype does not do</h2>
+        <p>
+          The 14 KYC cases, 10 refund requests, and 7 staging flags are curated,
+          business-model-neutral screen samples, not client volumes or policies. USD is a display
+          limitation, not an assumption about the client. Age since opening is not a service-level
+          target.
+        </p>
         <p>
           This is intentionally a browser-only product sketch. It has no authentication, server-side
           authorization, backend, real integrations, approval workflow, durable jobs, or
@@ -55,11 +63,11 @@ export function About() {
           <Icon name="arrow" size={23} />
         </span>
         <div>
-          <h2>Next: one real vertical slice</h2>
+          <h2>Next: prove reuse beyond queues</h2>
           <p>
-            Refine the KYC workflow first, then add a backend, identity, server-enforced policy, and
-            persistent events before connecting any sandbox service. Let actual needs drive the
-            extension contract.
+            Validate the workflows and try a fourth, materially different synthetic tool before
+            growing the framework. Add a backend, identity, server-enforced policy, and persistent
+            events before any operational pilot or sandbox write integration.
           </p>
         </div>
       </section>
