@@ -13,6 +13,7 @@ function mockWorkspace(
 ) {
   let authenticated = false;
   let read: (() => Response | Promise<Response>) | undefined;
+  let lookup: (() => Response | Promise<Response>) | undefined;
   const records = createFixtures().records.kyc;
   records[0].owner = 'Alex Morgan';
   const data = { records, activity: [], owners: ['Unassigned', 'Alex Morgan', 'Jamie Brooks'] };
@@ -25,7 +26,7 @@ function mockWorkspace(
     if (!authenticated) return Response.json({ error: 'Sign in' }, { status: 401 });
     if (path === '/api/kyc') return read ? read() : Response.json(data);
     if (path.startsWith('/api/sandbox/'))
-      return Response.json({ error: 'Session expired' }, { status: 401 });
+      return lookup ? lookup() : Response.json({ error: 'Session expired' }, { status: 401 });
     if (path === '/api/kyc/changes') return onSave(JSON.parse(String(init?.body)));
     return Response.json({ user: operator });
   });
@@ -34,6 +35,9 @@ function mockWorkspace(
     fetcher,
     setRead: (next: typeof read) => {
       read = next;
+    },
+    setLookup: (next: typeof lookup) => {
+      lookup = next;
     },
   };
 }
@@ -140,6 +144,39 @@ describe('shared KYC asynchronous saves (mock HTTP)', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Saved on server');
     expect(requestId).toMatch(/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/);
   });
+  it.each(['logout', 'refresh expiry'])(
+    'ignores an old lookup after %s and reauthentication',
+    async (transition) => {
+      const workspace = mockWorkspace(() => Response.json(saved()));
+      const gate = deferred();
+      workspace.setLookup(() => gate.promise);
+      const user = await signInAndAddNote();
+      await user.click(screen.getByRole('button', { name: 'Close dialog' }));
+      await user.type(screen.getByLabelText('Sandbox PaymentIntent ID'), 'pi_example');
+      await user.click(screen.getByRole('button', { name: 'Retrieve sandbox snapshot' }));
+      if (transition === 'logout') {
+        await user.click(screen.getByRole('button', { name: 'Sign out' }));
+      } else {
+        workspace.setRead(() =>
+          Response.json({ error: 'Expired current session' }, { status: 401 }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Refresh shared data' }));
+        await screen.findByRole('heading', { name: 'Sign in to shared KYC' });
+        workspace.setRead(undefined);
+      }
+      await user.type(await screen.findByLabelText('Password'), 'synthetic-test-password-only');
+      await user.click(screen.getByRole('button', { name: 'Sign in' }));
+      await screen.findByRole('table');
+      await act(async () =>
+        gate.resolve(Response.json({ error: 'Expired old session' }, { status: 401 })),
+      );
+      expect(screen.getByRole('table')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Sign out' })).toBeEnabled();
+      expect(
+        screen.queryByRole('heading', { name: 'Sign in to shared KYC' }),
+      ).not.toBeInTheDocument();
+    },
+  );
   it('keeps input on unknown outcomes and retries with the same request ID', async () => {
     const saves: { requestId: string; change: { reason: string; expectedVersion: number } }[] = [];
     const workspace = mockWorkspace(async (body) => {

@@ -26,6 +26,7 @@ export function SharedKyc() {
   const pending = useRef<{ body: string; id: string } | null>(null);
   const working = useRef(true);
   const generation = useRef(0);
+  const sessionGeneration = generation.current;
   function begin() {
     if (working.current) return false;
     working.current = true;
@@ -268,6 +269,7 @@ export function SharedKyc() {
           )}
           <SandboxLookup
             onUnauthorized={() => {
+              if (sessionGeneration !== generation.current) return;
               forgetSession();
               setError('Session expired. Sign in again.');
             }}
