@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getModule, modules } from './modules';
-import { executeAction, type ActionRequest } from './core/actions';
+import { executeAction, type MutationRequest } from './core/actions';
 import { createFixtures } from './core/fixtures';
 import { loadDemo, saveDemo } from './core/storage';
 import type { Page, ToolId, ToolRecord } from './core/types';
@@ -88,7 +88,7 @@ export default function App() {
     };
   }, []);
 
-  function onAction(request: ActionRequest) {
+  function onAction(request: MutationRequest) {
     try {
       const next = executeAction(dataRef.current, request);
       dataRef.current = next;
@@ -170,7 +170,7 @@ export default function App() {
             <strong>Demo workspace</strong>
             <span>Internal operations</span>
           </div>
-          <Badge label="v0.1" dot={false} />
+          <Badge label="v0.2" dot={false} />
         </div>
         <nav aria-label="Workspace">
           <p className="nav-label">WORKSPACE</p>
@@ -252,7 +252,7 @@ export default function App() {
           {page === 'about' && <About />}
           <footer className="workspace-footer">
             <span>
-              WORKBENCH <span className="footer-dot">/</span> PROTOTYPE 0.1
+              WORKBENCH <span className="footer-dot">/</span> PROTOTYPE 0.2
             </span>
             <span>Built to start small. Designed to grow.</span>
           </footer>
@@ -278,8 +278,8 @@ export default function App() {
         >
           <div className="reset-body">
             <p>
-              This restores the starting synthetic records and clears all local activity. Changes in
-              this browser will be lost.
+              This restores the current synthetic sample and clears local assignments, notes, and
+              activity. Saved views are kept. Record changes in this browser will be lost.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setResetOpen(false)}>

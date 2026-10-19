@@ -69,11 +69,13 @@ export function ActivityView({ activity }: { activity: Activity[] }) {
                   <p>
                     {event.recordName} <span className="subtle">· {event.recordId}</span>
                   </p>
-                  <div className="state-change">
-                    {event.before}
-                    <Icon name="arrow" size={13} />
-                    {event.after}
-                  </div>
+                  {event.kind !== 'note' && (
+                    <div className="state-change">
+                      {event.before}
+                      <Icon name="arrow" size={13} />
+                      {event.after}
+                    </div>
+                  )}
                   <blockquote>{event.reason}</blockquote>
                   <small>Demo operator · {dateTime(event.at)}</small>
                 </div>

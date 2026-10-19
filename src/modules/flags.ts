@@ -13,6 +13,7 @@ export const flags: ToolModule = {
   secondaryColumn: 'Environment',
   secondaryValue: (r) => String(r.fields.environment),
   statuses: { Enabled: 'green', Disabled: 'neutral' },
+  owners: ['Unassigned', 'You', 'Payments', 'Growth', 'Platform', 'Operations'],
   details: [
     { label: 'Flag key', value: (r) => r.subtitle },
     { label: 'Environment', value: (r) => String(r.fields.environment) },
@@ -40,7 +41,7 @@ export const flags: ToolModule = {
     },
   ],
   metrics: (records) => [
-    { label: 'Total flags', value: String(records.length), hint: 'Managed in this workspace' },
+    { label: 'Sample flags', value: String(records.length), hint: 'Curated staging examples' },
     {
       label: 'Enabled',
       value: String(countStatus(records, 'Enabled')),
