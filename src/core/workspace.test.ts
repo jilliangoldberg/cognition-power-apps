@@ -3,12 +3,23 @@ import { createFixtures } from './fixtures';
 import { workspaceItems, workItemsForView } from './workspace';
 
 describe('browser-local My work', () => {
+  it('uses the local evidence rule rather than the separate Shared KYC command list', () => {
+    const data = createFixtures();
+    data.records.kyc[0].fields.evidenceReviewed = false;
+    const item = workspaceItems(data).find(({ record }) => record.id === 'KYC-1042')!;
+    expect(item.waiting).toBe(true);
+    expect(item.reason).toContain('Assess the fictional evidence before approving');
+    expect(workItemsForView([item], 'mine')).toEqual([]);
+    data.records.kyc[0].fields.evidenceReviewed = true;
+    expect(workspaceItems(data).find(({ record }) => record.id === 'KYC-1042')!.waiting).toBe(
+      false,
+    );
+  });
   it('excludes configurations/resolved records, honors guarded decisions, and does not mutate data', () => {
     const data = createFixtures();
     const original = JSON.stringify(data);
     const items = workspaceItems(data);
     expect(workItemsForView(items, 'mine').map(({ record }) => record.id)).toEqual([
-      'KYC-1039',
       'KYC-1042',
       'KYC-1032',
       'REF-0204',

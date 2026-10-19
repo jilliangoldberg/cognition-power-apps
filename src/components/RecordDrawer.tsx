@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { Activity, RecordAction, ToolModule, ToolRecord } from '../core/types';
 import type { MutationRequest } from '../core/actions';
+import { actionBlock } from '../core/eligibility';
 import { ageLabel, dateTime, initials } from '../core/format';
 import { Badge } from './Badge';
 import { Dialog } from './Dialog';
@@ -19,6 +20,7 @@ const draftKey = (form: FormChoice) => (form.kind === 'action' ? form.action.id 
 export function RecordDrawer({
   module,
   record,
+  records,
   activity,
   onClose,
   onAction,
@@ -28,6 +30,7 @@ export function RecordDrawer({
 }: {
   module: ToolModule;
   record: ToolRecord;
+  records?: ToolRecord[];
   activity: (Activity & { actorName?: string })[];
   onClose: () => void;
   onAction: (request: MutationRequest) => string | null | Promise<string | null>;
@@ -49,7 +52,7 @@ export function RecordDrawer({
   const blocked =
     action && !action.available(record)
       ? 'This action no longer applies to the displayed case. Your draft is retained for review or copying; choose another action.'
-      : action?.blockedReason?.(record);
+      : action && actionBlock(action, record, records);
   const label = action?.label ?? (form?.kind === 'assignment' ? 'Reassign owner' : 'Add note');
   const notes = activity.filter((event) => event.kind === 'note');
   const changes = activity.filter((event) => event.kind !== 'note');
@@ -362,13 +365,13 @@ export function RecordDrawer({
                     onClick={() =>
                       openForm({ kind: 'action', action: candidate, version: record.version })
                     }
-                    disabled={Boolean(candidate.blockedReason?.(record))}
+                    disabled={Boolean(actionBlock(candidate, record, records))}
                     aria-describedby={`eligibility-${candidate.id}`}
                   >
                     {candidate.label}
                   </button>
                   <p id={`eligibility-${candidate.id}`} className="workflow-eligibility">
-                    {candidate.blockedReason?.(record) ??
+                    {actionBlock(candidate, record, records) ??
                       candidate.eligibility?.(record) ??
                       'Available in this case state. Add a reason before confirming.'}
                   </p>

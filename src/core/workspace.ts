@@ -1,5 +1,6 @@
 import { modules } from '../modules';
 import type { DemoState, ToolModule, ToolRecord } from './types';
+import { actionBlock } from './eligibility';
 
 export const workViews = {
   mine: {
@@ -34,19 +35,12 @@ export function workspaceItems(data: DemoState): WorkItem[] {
       data.records[module.id]
         .filter((record) => module.isOpen?.(record))
         .map((record) => {
-          const available = module.actions.filter((action) => action.available(record));
-          let blockedReason = '';
-          for (const action of available) {
-            try {
-              action.validate?.(record, data.records[module.id]);
-            } catch (error) {
-              blockedReason =
-                error instanceof Error
-                  ? error.message
-                  : 'A module decision guard is blocking this item.';
-              break;
-            }
-          }
+          const available = (module.localActions ?? module.actions).filter((action) =>
+            action.available(record),
+          );
+          const blockedReason = available
+            .map((action) => actionBlock(action, record, data.records[module.id]))
+            .find(Boolean);
           const waiting =
             record.status === 'Waiting for information' ||
             record.status === 'Escalated' ||

@@ -30,6 +30,27 @@ function KycStory() {
 }
 
 describe('narrow workflow drawer components (jsdom, not browser validation)', () => {
+  it('explains a current shared-payment guard before reason entry in older saved local work', () => {
+    const records = createFixtures().records.refunds;
+    const record = records.find((item) => item.id === 'REF-0199')!;
+    record.fields.sharedPaymentContext = false;
+    const onAction = vi.fn();
+    render(
+      <RecordDrawer
+        module={refunds}
+        record={record}
+        records={records}
+        activity={[]}
+        onClose={() => undefined}
+        onAction={onAction}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Approve for simulation' })).toBeDisabled();
+    expect(screen.getByText(/Multiple requests share this payment/)).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Decline request' })).toBeEnabled();
+    expect(onAction).not.toHaveBeenCalled();
+  });
   it('shows KYC gaps and eligibility before reason entry, then completes the explicit local story', async () => {
     const user = userEvent.setup();
     render(<KycStory />);

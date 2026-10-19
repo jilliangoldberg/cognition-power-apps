@@ -383,6 +383,7 @@ export default function App() {
           key={`${selection.moduleId}-${selection.id}`}
           module={getModule(selection.moduleId)}
           record={record}
+          records={data.records[selection.moduleId]}
           activity={data.activity.filter(
             (event) => event.moduleId === selection.moduleId && event.recordId === record.id,
           )}

@@ -14,6 +14,32 @@ beforeEach(() => {
 });
 
 describe('task-first local workspace and references (jsdom)', () => {
+  it('returns an evidence-assessed local case to assigned work without weakening Shared KYC rules', async () => {
+    const user = userEvent.setup();
+    const data = createFixtures();
+    data.records.kyc[0].fields.evidenceReviewed = false;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    window.history.replaceState(null, '', '#overview?work=waiting');
+    render(<App />);
+    await user.click(within(screen.getByRole('table')).getByRole('link', { name: /KYC-1042/ }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('button', { name: 'Approve case' })).toBeDisabled();
+    await user.click(within(dialog).getByRole('button', { name: 'Assess fictional evidence' }));
+    await user.type(within(dialog).getByRole('textbox'), 'Assess the consistent fictional sample.');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Confirm assess fictional evidence' }),
+    );
+    expect(within(dialog).getByRole('button', { name: 'Approve case' })).toBeEnabled();
+    await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
+    await screen.findByRole('heading', { name: /Waiting \/ blocked/ });
+    expect(
+      within(screen.getByRole('table')).queryByRole('link', { name: /KYC-1042/ }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: /^Assigned actionable/ }));
+    expect(
+      within(screen.getByRole('table')).getByRole('link', { name: /KYC-1042/ }),
+    ).toBeInTheDocument();
+  });
   it('opens an encoded saved record ID without confusing it with a custom page or path', () => {
     const data = createFixtures();
     const id = 'case / # ? % & + ü';
@@ -38,7 +64,7 @@ describe('task-first local workspace and references (jsdom)', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Confirm approve case' }));
     await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
     await screen.findByRole('heading', { name: 'My work', level: 1 });
-    expect(screen.getByRole('heading', { name: 'Assigned actionable 3' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Assigned actionable 2' })).toBeInTheDocument();
     expect(
       within(screen.getByRole('table')).queryByRole('link', { name: /KYC-1042/ }),
     ).not.toBeInTheDocument();
@@ -49,12 +75,12 @@ describe('task-first local workspace and references (jsdom)', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'My work', level: 1 })).toBeInTheDocument();
     expect(screen.getByText(/not an authenticated identity/)).toBeInTheDocument();
-    expect(screen.getByText(/No actionable approval workflow is modeled/)).toBeInTheDocument();
+    expect(screen.getByText(/No separate approver queue/)).toBeInTheDocument();
     const views = screen.getByRole('navigation', { name: 'Local work views' });
     for (const [name, count] of [
-      ['Assigned actionable', 4],
+      ['Assigned actionable', 3],
       ['Unassigned backlog', 5],
-      ['Waiting / blocked', 8],
+      ['Waiting / blocked', 11],
     ] as const) {
       const link = within(views).getByRole('link', {
         name: new RegExp(`^${name.replace('/', '\\/')} ${count} Local records`),
@@ -72,13 +98,13 @@ describe('task-first local workspace and references (jsdom)', () => {
     const user = userEvent.setup();
     render(<App />);
     const link = within(screen.getByRole('table')).getAllByRole('link')[0];
-    expect(link).toHaveTextContent('Liam Patel');
+    expect(link).toHaveTextContent('Olivia Chen');
     const reference = link.getAttribute('href');
-    expect(reference).toContain('#kyc/KYC-1039');
+    expect(reference).toContain('#kyc/KYC-1042');
     link.focus();
     await user.keyboard('{Enter}');
     expect(window.location.hash).toBe(reference);
-    expect(within(screen.getByRole('dialog')).getByText('Liam Patel')).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog')).getByText('Olivia Chen')).toBeInTheDocument();
     await user.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Close dialog' }),
     );
@@ -103,7 +129,7 @@ describe('task-first local workspace and references (jsdom)', () => {
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Close dialog' }),
     );
     expect(window.location.hash).toBe('#overview?work=waiting');
-    expect(screen.getByRole('heading', { name: /Waiting \/ blocked 8/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Waiting \/ blocked 11/ })).toBeInTheDocument();
   });
   it('preserves all queue filters, sorting and matching rows when a record opens, reloads and closes', async () => {
     const user = userEvent.setup();

@@ -62,7 +62,8 @@ export function Overview({
       <p className="work-scope">
         “You” is the current demo owner label, not an authenticated identity. Counts use only this
         browser’s KYC and refund queues; Shared KYC and Investigation are independent. Flags are
-        configurations, not pending tasks. No actionable approval workflow is modeled.
+        configurations, not pending tasks. No separate approver queue or independent-review
+        permission is modeled.
       </p>
       <nav className="work-counts" aria-label="Local work views">
         {(Object.keys(workViews) as WorkView[]).map((key) => (
