@@ -1,0 +1,50 @@
+.workflow-context,
+.workflow-draft-warning {
+  margin-block: 20px;
+  padding: 16px;
+  border: 1px solid #ddd9ec;
+  border-radius: 10px;
+  background: #f8f7fc;
+}
+
+.workflow-context-list {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.workflow-context-list dt {
+  color: #625d72;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.workflow-context-list dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.workflow-action {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.workflow-eligibility,
+.workflow-diff {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #625d72;
+  overflow-wrap: anywhere;
+}
+
+.workflow-diff {
+  padding: 10px;
+  border-left: 3px solid #a394d5;
+  background: #f8f7fc;
+  color: #403b50;
+}
+
+.workflow-draft-warning p {
+  line-height: 1.6;
+}

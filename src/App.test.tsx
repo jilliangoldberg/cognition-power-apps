@@ -302,7 +302,9 @@ describe('workspace components (jsdom)', () => {
     );
     await user.click(confirm);
     expect(within(dialog).getByText('Approved', { selector: '.badge' })).toBeInTheDocument();
-    expect(within(dialog).getByText('Synthetic evidence checked.')).toBeInTheDocument();
+    expect(
+      within(dialog).getByText('Synthetic evidence checked.', { selector: '.record-activity p' }),
+    ).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).activity).toHaveLength(1);
     view.unmount();
     render(<App />);
@@ -318,6 +320,17 @@ describe('workspace components (jsdom)', () => {
     await user.click(screen.getByRole('button', { name: 'Open Olivia Chen' }));
     let dialog = screen.getByRole('dialog');
     expect(within(dialog).getByText(/No payment provider is connected/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Approve for simulation' }));
+    await user.type(
+      within(dialog).getByLabelText(/Decision reason/),
+      'Approve this fictional request for simulation.',
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Confirm approve for simulation' }),
+    );
+    expect(
+      within(dialog).getByText('Approved for simulation', { selector: '.badge' }),
+    ).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Simulate refund' }));
     await user.type(
       within(dialog).getByLabelText(/Decision reason/),
@@ -443,9 +456,13 @@ describe('workspace components (jsdom)', () => {
     );
     await user.click(within(dialog).getByRole('button', { name: 'Confirm return to review' }));
     expect(within(dialog).getByRole('button', { name: 'Approve case' })).toBeInTheDocument();
-    expect(within(dialog).getByText('Please supply dated evidence.')).toBeInTheDocument();
     expect(
-      within(dialog).getByText('Dated evidence received in this local demo.'),
+      within(dialog).getByText('Please supply dated evidence.', { selector: '.record-activity p' }),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText('Dated evidence received in this local demo.', {
+        selector: '.record-activity p',
+      }),
     ).toBeInTheDocument();
   });
   it('saves and deletes named local views, restores filters after remount, and keeps tools isolated', async () => {
@@ -487,15 +504,9 @@ describe('workspace components (jsdom)', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
     await user.click(within(screen.getByText('REF-0199').closest('tr')!).getByRole('button'));
     dialog = screen.getByRole('dialog');
-    await user.click(within(dialog).getByRole('button', { name: 'Simulate refund' }));
-    await user.type(
-      within(dialog).getByLabelText(/Decision reason/),
-      'Attempt the local simulation.',
-    );
-    await user.click(within(dialog).getByRole('button', { name: 'Confirm simulate refund' }));
-    expect(within(dialog).getByRole('alert')).toHaveTextContent(
-      'Multiple requests share this payment',
-    );
+    expect(within(dialog).getByRole('button', { name: 'Approve for simulation' })).toBeDisabled();
+    expect(within(dialog).getByText(/Multiple requests share this payment/)).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Decision reason/)).not.toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).activity).toHaveLength(0);
   });
   it('preserves invalid view storage until explicitly cleared', async () => {
