@@ -51,6 +51,7 @@ export function filterRecords(
           record.subtitle,
           record.status,
           record.owner,
+          module.secondaryValue(record),
           ...Object.values(record.fields),
         ]
           .join(' ')
