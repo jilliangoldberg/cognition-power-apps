@@ -5,7 +5,7 @@ export function About() {
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">PROTOTYPE / V0.2</p>
+          <p className="eyebrow">PROTOTYPE / V0.3</p>
           <h1>A foundation, not a framework.</h1>
           <p>A small starting point for engineers building internal tools with Devin.</p>
         </div>
@@ -15,13 +15,13 @@ export function About() {
           <span className="app-icon app-icon-purple">
             <Icon name="box" size={24} />
           </span>
-          <h2>Shared by every tool</h2>
+          <h2>Small, explicit reuse boundaries</h2>
           <ul className="check-list">
             <li>Workspace shell and navigation</li>
-            <li>Searchable, filterable, sortable tables</li>
-            <li>Record details and reason-required actions</li>
-            <li>Local persistence and activity history</li>
-            <li>Local assignment, notes, and saved queue views</li>
+            <li>Queue tables and drawers where they fit</li>
+            <li>Custom page registry for non-queue screens</li>
+            <li>Local demo state kept separate from shared server data</li>
+            <li>Async saves and account-scoped local view preferences</li>
           </ul>
         </section>
         <section className="panel about-panel">
@@ -47,15 +47,19 @@ export function About() {
           target.
         </p>
         <p>
-          This is intentionally a browser-only product sketch. It has no authentication, server-side
-          authorization, backend, real integrations, approval workflow, durable jobs, or
-          tamper-resistant audit trail. All names and records are fictional. Refunds are simulated;
-          flags do not affect any running product.
+          The original three tools remain browser-local. Investigation is a read-only synthetic
+          custom screen, not a provider. Shared KYC separately adds password demo accounts, SQLite,
+          server-enforced operator/viewer permissions, optimistic concurrency, and attributable
+          transactional event history. There is no enterprise SSO, tenant isolation, approval
+          engine, durable external execution, or tamper-resistant audit trail. Refunds remain
+          simulated; flags do not affect a running product.
         </p>
         <p>
-          Local storage is for one demo browser, not a shared source of truth. Tabs and other users
-          are not synchronized. Do not enter real customer data, documents, payment information, or
-          credentials.
+          Local storage is not shared. Shared KYC users must refresh to see one another’s changes;
+          local resets cannot erase server history. Its optional protected Stripe test-mode lookup
+          is read-only and reports “not connected” without a server key. A sandbox snapshot does not
+          prove reconciliation, settlement, or production readiness. Do not enter real customer data
+          or production credentials.
         </p>
       </section>
       <section className="next-step">
@@ -63,11 +67,12 @@ export function About() {
           <Icon name="arrow" size={23} />
         </span>
         <div>
-          <h2>Next: prove reuse beyond queues</h2>
+          <h2>Next: validate the gates, not a replacement claim</h2>
           <p>
-            Validate the workflows and try a fourth, materially different synthetic tool before
-            growing the framework. Add a backend, identity, server-enforced policy, and persistent
-            events before any operational pilot or sandbox write integration.
+            Review the custom extension, multi-user controls, and read-only sandbox behavior before
+            expanding scope. Measure core edits, regressions, human review, and operating costs.
+            External writes are deferred; these gates do not establish a Power Apps replacement or
+            $250K in savings.
           </p>
         </div>
       </section>

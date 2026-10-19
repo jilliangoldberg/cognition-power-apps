@@ -19,6 +19,63 @@
   --bg: #f8f9fc;
   --sidebar: 244px;
 }
+.custom-page {
+  display: grid;
+  gap: 18px;
+}
+.custom-page h1 {
+  font-size: 30px;
+  margin: 0;
+}
+.custom-page h2,
+.custom-page h3 {
+  margin: 0 0 12px;
+}
+.custom-page p {
+  line-height: 1.6;
+  margin: 0;
+}
+.custom-page .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.custom-page input {
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.evidence-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  background: white;
+  display: grid;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+.evidence-timeline {
+  display: grid;
+  gap: 16px;
+  padding-left: 24px;
+}
+.evidence-timeline summary {
+  cursor: pointer;
+  padding: 10px 0;
+}
+.shared-login {
+  display: grid;
+  gap: 12px;
+  max-width: 380px;
+}
 * {
   box-sizing: border-box;
 }

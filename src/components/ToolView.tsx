@@ -15,13 +15,17 @@ export function ToolView({
   module,
   records,
   onSelect,
+  currentOwner = 'You',
+  viewNamespace,
 }: {
   module: ToolModule;
   records: ToolRecord[];
   onSelect: (record: ToolRecord) => void;
+  currentOwner?: string;
+  viewNamespace?: string;
 }) {
   const [filters, setFilters] = useState(defaultFilters);
-  const [localViews, setLocalViews] = useState(() => loadViews(module));
+  const [localViews, setLocalViews] = useState(() => loadViews(module, viewNamespace));
   const [viewName, setViewName] = useState('');
   const [viewError, setViewError] = useState('');
   const { search, status, owner, sort, agingOnly } = filters;
@@ -30,7 +34,7 @@ export function ToolView({
   const owners = Array.from(new Set([...module.owners, ...records.map((record) => record.owner)]));
   const visible = filterRecords(records, module, filters);
   function storeViews(views: typeof localViews.views) {
-    const saved = saveViews(module.id, views);
+    const saved = saveViews(module.id, views, viewNamespace);
     setLocalViews({
       views,
       blocked: false,
@@ -133,8 +137,8 @@ export function ToolView({
             </button>
             <button
               className="button button-secondary"
-              aria-pressed={owner === 'You'}
-              onClick={() => setFilters({ ...defaultFilters, owner: 'You' })}
+              aria-pressed={owner === currentOwner}
+              onClick={() => setFilters({ ...defaultFilters, owner: currentOwner })}
             >
               My records
             </button>
@@ -195,7 +199,10 @@ export function ToolView({
             </button>
           </form>
           <p className="view-help">
-            Views save filters and sorting, not record snapshots. “You” is a demo label.
+            Views save filters and sorting, not record snapshots.{' '}
+            {viewNamespace
+              ? 'Local to this browser and account; not shared.'
+              : '“You” is a demo label.'}
           </p>
           {viewError && (
             <p className="form-error" role="alert">
