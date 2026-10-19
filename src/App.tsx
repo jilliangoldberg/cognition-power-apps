@@ -116,7 +116,7 @@ export default function App() {
     setWarning('');
     setSelection(null);
     setResetOpen(false);
-    notify('Demo reset. You’re back to the starting dataset.');
+    notify('Original local tools reset. Vendor demo and shared KYC are unchanged.');
   }
 
   function navItem(id: Page, label: string, icon: IconName, count?: number) {
@@ -297,7 +297,8 @@ export default function App() {
             <p>
               This restores the current synthetic sample and clears local assignments, notes, and
               activity. Saved views are kept. Record changes in this browser will be lost. Shared
-              KYC records and server history are not affected.
+              KYC records and server history are not affected. Vendor requests have their own reset
+              on the Vendor approvals page and are not affected here.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setResetOpen(false)}>

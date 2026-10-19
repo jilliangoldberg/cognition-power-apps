@@ -76,6 +76,137 @@
   gap: 12px;
   max-width: 380px;
 }
+.vendor-notice {
+  padding: 18px 20px;
+  border: 1px solid #dcd5f1;
+  border-radius: 10px;
+  background: #f4f0fc;
+  line-height: 1.7;
+}
+.vendor-notice strong {
+  display: block;
+  margin-bottom: 5px;
+}
+.vendor-filters label,
+.vendor-form label {
+  display: grid;
+  gap: 7px;
+}
+.vendor-filters {
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.vendor-filters input {
+  width: 310px;
+}
+.vendor-page select,
+.vendor-form input,
+.vendor-form select,
+.vendor-form textarea,
+.vendor-reviews textarea {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: white;
+  color: inherit;
+  max-width: 100%;
+}
+.vendor-page td,
+.vendor-page th {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.vendor-selected {
+  background: #f7f4fd;
+}
+.vendor-detail {
+  padding: 24px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  min-width: 0;
+}
+.vendor-detail .section-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.vendor-progress {
+  margin: 22px 0;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.vendor-card-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.vendor-reviews .evidence-card {
+  align-content: start;
+}
+.vendor-reviews textarea,
+.vendor-form textarea {
+  min-height: 85px;
+  resize: vertical;
+  width: 100%;
+}
+.vendor-blocker {
+  color: #8b530f;
+  background: #fff8e7;
+  padding: 10px;
+  border-radius: 6px;
+}
+.vendor-form {
+  display: grid;
+  gap: 17px;
+  padding: 24px;
+}
+.vendor-form p {
+  line-height: 1.7;
+  margin: 0;
+}
+.vendor-form fieldset {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+}
+.vendor-form .vendor-check {
+  display: flex;
+  align-items: center;
+}
+.vendor-reset {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: start;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+.vendor-reset p {
+  max-width: 750px;
+}
+.vendor-empty {
+  padding: 24px;
+}
+@media (max-width: 600px) {
+  .vendor-detail,
+  .vendor-form {
+    padding: 16px;
+  }
+  .vendor-detail .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .vendor-page h1 {
+    font-size: 25px;
+  }
+}
 * {
   box-sizing: border-box;
 }

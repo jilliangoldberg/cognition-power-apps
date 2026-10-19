@@ -4,6 +4,7 @@ import { countStatus, dateTime, money } from '../core/format';
 import { openKyc } from '../modules/kyc';
 import { Icon } from './Icon';
 import { Badge } from './Badge';
+import { customPages } from '../features/pages';
 
 export function Overview({ data, navigate }: { data: DemoState; navigate: (page: Page) => void }) {
   const metrics = [
@@ -27,9 +28,9 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
       hint: 'Local staging configuration',
     },
     {
-      label: 'Workspace tools',
-      value: String(modules.length),
-      hint: 'Built on one shared foundation',
+      label: 'Workspace pages',
+      value: String(modules.length + customPages.length),
+      hint: 'Original tools + extension experiences',
     },
   ];
   return (
@@ -56,7 +57,8 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
       <section className="tools-section">
         <div className="section-heading">
           <h2>
-            Your tools <span className="count-pill">{modules.length}</span>
+            Explore workspace{' '}
+            <span className="count-pill">{modules.length + customPages.length}</span>
           </h2>
           <span className="subtle">One workspace. Shared building blocks.</span>
         </div>
@@ -76,6 +78,22 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
                   {data.records[module.id].length} sample {module.recordLabel}
                 </span>
                 <Badge label="Local demo" dot={false} />
+              </div>
+            </button>
+          ))}
+          {customPages.map((page) => (
+            <button className="tool-card" key={page.id} onClick={() => navigate(page.id)}>
+              <div className="tool-card-top">
+                <span className={`app-icon app-icon-${page.color}`}>
+                  <Icon name={page.icon} size={23} />
+                </span>
+                <Icon name="arrow" size={18} />
+              </div>
+              <h3>{page.title}</h3>
+              <p>{page.description}</p>
+              <div className="tool-card-footer">
+                <span>Custom-page extension</span>
+                <Badge label={page.scope} dot={false} />
               </div>
             </button>
           ))}
@@ -127,10 +145,10 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
           <Icon name="box" size={23} />
         </div>
         <div>
-          <strong>Three tools. One small foundation.</strong>
+          <strong>From financial operations to company-wide workflows.</strong>
           <p>
-            Shared tables, record details, actions, and local activity. Tool-specific rules stay in
-            their modules.
+            Original queues, an investigation timeline, and departmental vendor reviews. Shared
+            building blocks; distinct domain rules. Shared KYC is a separate collaboration slice.
           </p>
         </div>
         <button className="text-button" onClick={() => navigate('about')}>
