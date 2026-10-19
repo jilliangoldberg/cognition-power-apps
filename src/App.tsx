@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getModule, modules } from './modules';
-import { executeAction, type ActionRequest } from './core/actions';
+import { executeAction, type MutationRequest } from './core/actions';
 import { createFixtures } from './core/fixtures';
 import { loadDemo, saveDemo } from './core/storage';
 import type { Page, ToolId, ToolRecord } from './core/types';
@@ -12,9 +12,16 @@ import { RecordDrawer } from './components/RecordDrawer';
 import { ActivityView } from './components/ActivityView';
 import { About } from './components/About';
 import { Dialog } from './components/Dialog';
+import { customPages } from './features/pages';
 
 const isTool = (page: Page): page is ToolId => modules.some((module) => module.id === page);
-const pages: Page[] = ['overview', ...modules.map((module) => module.id), 'activity', 'about'];
+const pages: Page[] = [
+  'overview',
+  ...modules.map((module) => module.id),
+  ...customPages.map((item) => item.id),
+  'activity',
+  'about',
+];
 const readPage = (): Page =>
   pages.find((page) => `#${page}` === window.location.hash) ?? 'overview';
 
@@ -30,8 +37,10 @@ export default function App() {
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
   const module = isTool(page) ? getModule(page) : null;
+  const customPage = customPages.find((item) => item.id === page);
   const title =
     module?.shortTitle ??
+    customPage?.title ??
     (page === 'overview' ? 'Overview' : page === 'activity' ? 'Activity' : 'About prototype');
   const record = selection
     ? data.records[selection.moduleId].find((row) => row.id === selection.id)
@@ -88,7 +97,7 @@ export default function App() {
     };
   }, []);
 
-  function onAction(request: ActionRequest) {
+  function onAction(request: MutationRequest) {
     try {
       const next = executeAction(dataRef.current, request);
       dataRef.current = next;
@@ -170,7 +179,7 @@ export default function App() {
             <strong>Demo workspace</strong>
             <span>Internal operations</span>
           </div>
-          <Badge label="v0.1" dot={false} />
+          <Badge label="v0.2" dot={false} />
         </div>
         <nav aria-label="Workspace">
           <p className="nav-label">WORKSPACE</p>
@@ -179,6 +188,8 @@ export default function App() {
           {modules.map((item) =>
             navItem(item.id, item.shortTitle, item.icon, data.records[item.id].length),
           )}
+          <p className="nav-label nav-label-tools">EXTENSION PROOFS</p>
+          {customPages.map((item) => navItem(item.id, item.title, item.icon))}
           <p className="nav-label nav-label-tools">MANAGE</p>
           {navItem('activity', 'Activity', 'activity')}
           {navItem('about', 'About prototype', 'code')}
@@ -223,7 +234,12 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="local-indicator">
-              <span /> Local demo
+              <span />{' '}
+              {page === 'shared-kyc'
+                ? 'Shared synthetic workspace'
+                : page === 'investigation'
+                  ? 'Synthetic evidence'
+                  : 'Local demo'}
             </span>
             <span className="topbar-divider" />
             <span className="subtle">Synthetic data only</span>
@@ -240,6 +256,7 @@ export default function App() {
             </div>
           )}
           {page === 'overview' && <Overview data={data} navigate={navigate} />}
+          {customPage && <customPage.View />}
           {module && (
             <ToolView
               key={module.id}
@@ -252,7 +269,7 @@ export default function App() {
           {page === 'about' && <About />}
           <footer className="workspace-footer">
             <span>
-              WORKBENCH <span className="footer-dot">/</span> PROTOTYPE 0.1
+              WORKBENCH <span className="footer-dot">/</span> PROTOTYPE 0.3
             </span>
             <span>Built to start small. Designed to grow.</span>
           </footer>
@@ -278,8 +295,9 @@ export default function App() {
         >
           <div className="reset-body">
             <p>
-              This restores the starting synthetic records and clears all local activity. Changes in
-              this browser will be lost.
+              This restores the current synthetic sample and clears local assignments, notes, and
+              activity. Saved views are kept. Record changes in this browser will be lost. Shared
+              KYC records and server history are not affected.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setResetOpen(false)}>

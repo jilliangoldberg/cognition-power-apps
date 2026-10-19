@@ -3,6 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { STORAGE_KEY } from './core/storage';
+import { createFixtures } from './core/fixtures';
+import { viewsKey } from './core/views';
+import { RecordDrawer } from './components/RecordDrawer';
+import { kyc } from './modules/kyc';
 
 beforeEach(() => {
   localStorage.clear();
@@ -92,7 +96,7 @@ describe('workspace components (jsdom)', () => {
     await user.click(
       within(screen.getByRole('navigation')).getByRole('link', { name: /Feature flags/ }),
     );
-    await user.click(screen.getByRole('button', { name: 'Open Instant payout preview' }));
+    await user.click(screen.getByRole('button', { name: 'Open Payment confirmation preview' }));
     dialog = screen.getByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Enable flag' }));
     await user.type(
@@ -127,7 +131,7 @@ describe('workspace components (jsdom)', () => {
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Reset demo data' }),
     );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).schemaVersion).toBe(1);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).schemaVersion).toBe(2);
   });
   it('shows an honest warning when persistence is unavailable', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
@@ -146,5 +150,213 @@ describe('workspace components (jsdom)', () => {
     expect(screen.getByRole('searchbox')).toHaveFocus();
     await user.type(screen.getByRole('searchbox'), '/');
     expect(screen.getByRole('searchbox')).toHaveValue('/');
+  });
+  it('reassigns a case, adds a local note, filters by its new owner, and restores both after reload', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    const app = render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Open Olivia Chen' }));
+    let dialog = screen.getByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Reassign owner' }));
+    expect(within(dialog).getByRole('button', { name: 'Confirm reassign owner' })).toBeDisabled();
+    await user.selectOptions(within(dialog).getByLabelText('New owner'), 'Jamie Brooks');
+    await user.type(
+      within(dialog).getByLabelText(/Decision reason/),
+      'Hand over the fictional resubmission.',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm reassign owner' }));
+    expect(within(dialog).getByText('Owner: Jamie Brooks')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Add note' }));
+    await user.type(
+      within(dialog).getByLabelText(/^Note/),
+      'Fictional evidence arrived.\nReview the missing date.',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm add note' }));
+    expect(within(dialog).getByText(/Fictional evidence arrived/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
+    await user.selectOptions(screen.getByLabelText('Filter by owner'), 'Jamie Brooks');
+    expect(screen.getByRole('button', { name: 'Open Olivia Chen' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open James Wilson' })).not.toBeInTheDocument();
+    app.unmount();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Open Olivia Chen' }));
+    dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Owner: Jamie Brooks')).toBeInTheDocument();
+    expect(within(dialog).getByText(/Fictional evidence arrived/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Version 3/)).toBeInTheDocument();
+  });
+  it('requests information, treats waiting as open, and returns to review without losing request context', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Open Olivia Chen' }));
+    const dialog = screen.getByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Request information' }));
+    expect(within(dialog).getByText(/No message is sent/)).toBeInTheDocument();
+    await user.type(
+      within(dialog).getByLabelText(/Decision reason/),
+      'Please supply dated evidence.',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm request information' }));
+    expect(
+      within(dialog).getByText('Waiting for information', { selector: '.badge' }),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Approve case' })).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Return to review' }));
+    expect(within(dialog).getByLabelText(/Decision reason/)).toHaveValue('');
+    await user.type(
+      within(dialog).getByLabelText(/Decision reason/),
+      'Dated evidence received in this local demo.',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm return to review' }));
+    expect(within(dialog).getByRole('button', { name: 'Approve case' })).toBeInTheDocument();
+    expect(within(dialog).getByText('Please supply dated evidence.')).toBeInTheDocument();
+    expect(
+      within(dialog).getByText('Dated evidence received in this local demo.'),
+    ).toBeInTheDocument();
+  });
+  it('saves and deletes named local views, restores filters after remount, and keeps tools isolated', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    const app = render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Unassigned' }));
+    await user.selectOptions(screen.getByLabelText('Sort records'), 'opened');
+    await user.type(screen.getByLabelText('View name'), 'Unassigned oldest');
+    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    await user.click(screen.getByRole('button', { name: 'My records' }));
+    expect(screen.getByLabelText('Filter by owner')).toHaveValue('You');
+    await user.click(within(screen.getByRole('navigation')).getByRole('link', { name: /Refunds/ }));
+    expect(screen.queryByRole('button', { name: 'Unassigned oldest' })).not.toBeInTheDocument();
+    app.unmount();
+    window.location.hash = '#kyc';
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Unassigned oldest' }));
+    expect(screen.getByLabelText('Filter by owner')).toHaveValue('Unassigned');
+    expect(screen.getByLabelText('Sort records')).toHaveValue('opened');
+    expect(screen.queryByRole('button', { name: 'Open Olivia Chen' })).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('View name'), 'unassigned oldest');
+    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('unique view name');
+    await user.click(screen.getByRole('button', { name: 'Delete view Unassigned oldest' }));
+    expect(JSON.parse(localStorage.getItem(viewsKey('kyc'))!)).toEqual([]);
+  });
+  it('shows read-only refund examples honestly and blocks simulation of a shared payment', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#refunds';
+    render(<App />);
+    await user.click(within(screen.getByText('REF-0195').closest('tr')!).getByRole('button'));
+    let dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText(/Read-only scenario/)).toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole('button', { name: 'Simulate refund' }),
+    ).not.toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Add note' })).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
+    await user.click(within(screen.getByText('REF-0199').closest('tr')!).getByRole('button'));
+    dialog = screen.getByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Simulate refund' }));
+    await user.type(
+      within(dialog).getByLabelText(/Decision reason/),
+      'Attempt the local simulation.',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm simulate refund' }));
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'Multiple requests share this payment',
+    );
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).activity).toHaveLength(0);
+  });
+  it('preserves invalid view storage until explicitly cleared', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    localStorage.setItem(viewsKey('kyc'), 'bad views');
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Save view locally' })).toBeDisabled();
+    expect(localStorage.getItem(viewsKey('kyc'))).toBe('bad views');
+    await user.click(screen.getByRole('button', { name: 'Clear saved views' }));
+    expect(localStorage.getItem(viewsKey('kyc'))).toBe('[]');
+    expect(screen.getByRole('button', { name: 'Save view locally' })).toBeEnabled();
+  });
+  it('resets assignments, notes and workflow changes while retaining saved views and unrelated data', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    const data = createFixtures();
+    data.records.kyc[0].owner = 'Jamie Brooks';
+    data.records.kyc[0].status = 'Waiting for information';
+    data.activity = [
+      {
+        id: 'note-to-clear',
+        kind: 'note',
+        moduleId: 'kyc',
+        recordId: 'KYC-1042',
+        recordName: 'Olivia Chen',
+        action: 'Note added',
+        reason: 'Fictional context to clear.',
+        before: 'Waiting for information',
+        after: 'Waiting for information',
+        at: new Date().toISOString(),
+      },
+    ];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(viewsKey('kyc'), '[]');
+    localStorage.setItem('unrelated', 'keep');
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Reset demo data' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Reset demo data' }),
+    );
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    expect(saved.records.kyc[0]).toMatchObject({
+      status: 'Needs review',
+      owner: 'You',
+      version: 1,
+    });
+    expect(saved.activity).toEqual([]);
+    expect(localStorage.getItem(viewsKey('kyc'))).toBe('[]');
+    expect(localStorage.getItem('unrelated')).toBe('keep');
+  });
+  it('migrates older saved work without adding fixture rows or inventing an opening date', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    const data = createFixtures();
+    data.records.kyc = data.records.kyc.slice(0, 8);
+    delete data.records.kyc[0].openedAt;
+    data.records.kyc[0].owner = 'Saved demo owner';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, schemaVersion: 1 }));
+    render(<App />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Saved work preserved');
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).records.kyc).toHaveLength(8);
+    await user.click(screen.getByRole('button', { name: 'Open Olivia Chen' }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Owner: Saved demo owner')).toBeInTheDocument();
+    expect(within(dialog).getByText('Not recorded in older demo data')).toBeInTheDocument();
+  });
+  it('warns when a local view cannot be persisted without losing the in-memory definition', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#kyc';
+    render(<App />);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    await user.type(screen.getByLabelText('View name'), 'Session-only view');
+    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('this visit only');
+    expect(screen.getByRole('button', { name: 'Session-only view' })).toBeInTheDocument();
+    expect(localStorage.getItem(viewsKey('kyc'))).toBeNull();
+  });
+  it('keeps a form bound to the version opened and preserves its text on stale rejection', async () => {
+    const user = userEvent.setup();
+    const record = createFixtures().records.kyc[0];
+    const onAction = vi.fn(() => 'This record changed. Close it and open the latest version.');
+    const props = { module: kyc, record, activity: [], onAction, onClose: vi.fn() };
+    const drawer = render(<RecordDrawer {...props} />);
+    await user.click(screen.getByRole('button', { name: 'Add note' }));
+    await user.type(screen.getByLabelText(/^Note/), 'Preserve this local note draft.');
+    drawer.rerender(<RecordDrawer {...props} record={{ ...record, version: 2 }} />);
+    await user.click(screen.getByRole('button', { name: 'Confirm add note' }));
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'note', expectedVersion: 1 }),
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('record changed');
+    expect(screen.getByLabelText(/^Note/)).toHaveValue('Preserve this local note draft.');
   });
 });

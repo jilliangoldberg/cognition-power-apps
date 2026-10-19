@@ -1,19 +1,29 @@
 import { getModule } from '../modules';
 import type { DemoState, ToolId } from './types';
 
-export interface ActionRequest {
+interface ChangeTarget {
   moduleId: ToolId;
   recordId: string;
-  actionId: string;
   expectedVersion: number;
   reason: string;
 }
 
-// This shared path is a UI prototype boundary, not server-side authorization.
+export interface ActionRequest extends ChangeTarget {
+  kind?: 'action';
+  actionId: string;
+}
+
+export type MutationRequest =
+  | ActionRequest
+  | (ChangeTarget & { kind: 'assignment'; owner: string })
+  | (ChangeTarget & { kind: 'note' });
+
+// Domain validation only. The API separately authenticates and authorizes callers.
 export function executeAction(
   state: DemoState,
-  request: ActionRequest,
+  request: MutationRequest,
   now = new Date(),
+  owners?: string[],
 ): DemoState {
   const module = getModule(request.moduleId);
   if (!module) throw new Error('Unknown tool.');
@@ -21,12 +31,30 @@ export function executeAction(
   if (!record) throw new Error('This record no longer exists.');
   if (record.version !== request.expectedVersion)
     throw new Error('This record changed. Close it and open the latest version.');
-  const action = module.actions.find((a) => a.id === request.actionId);
-  if (!action || !action.available(record)) throw new Error('This action is no longer available.');
   const reason = request.reason.trim();
   if (reason.length < 5 || reason.length > 500)
     throw new Error('Add a reason between 5 and 500 characters.');
-  const result = action.apply(record);
+  let result = record;
+  let label = 'Note added';
+  let before = record.status;
+  let after = record.status;
+  if (request.kind === 'assignment') {
+    if (!(owners ?? module.owners).includes(request.owner))
+      throw new Error('Choose a listed owner.');
+    if (request.owner === record.owner) throw new Error('Choose a different owner.');
+    result = { ...record, owner: request.owner };
+    label = 'Owner reassigned';
+    before = record.owner;
+    after = request.owner;
+  } else if (request.kind !== 'note') {
+    const action = module.actions.find((a) => a.id === request.actionId);
+    if (!action || !action.available(record))
+      throw new Error('This action is no longer available.');
+    action.validate?.(record, state.records[module.id]);
+    result = action.apply(record);
+    label = action.label;
+    after = result.status;
+  }
   const updated = { ...result, version: record.version + 1, updatedAt: now.toISOString() };
   return {
     ...state,
@@ -37,13 +65,14 @@ export function executeAction(
     activity: [
       {
         id: crypto.randomUUID(),
+        kind: request.kind ?? 'action',
         moduleId: module.id,
         recordId: record.id,
         recordName: record.name,
-        action: action.label,
+        action: label,
         reason,
-        before: record.status,
-        after: updated.status,
+        before,
+        after,
         at: now.toISOString(),
       },
       ...state.activity,

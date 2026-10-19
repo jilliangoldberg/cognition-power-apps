@@ -1,5 +1,5 @@
 export type ToolId = 'kyc' | 'refunds' | 'flags';
-export type Page = 'overview' | ToolId | 'activity' | 'about';
+export type Page = 'overview' | ToolId | 'activity' | 'about' | 'investigation' | 'shared-kyc';
 export type Tone = 'neutral' | 'purple' | 'green' | 'amber' | 'red' | 'blue';
 
 export interface ToolRecord {
@@ -8,6 +8,7 @@ export interface ToolRecord {
   subtitle: string;
   status: string;
   owner: string;
+  openedAt?: string;
   updatedAt: string;
   version: number;
   fields: Record<string, string | number | boolean>;
@@ -15,6 +16,7 @@ export interface ToolRecord {
 
 export interface Activity {
   id: string;
+  kind: 'action' | 'assignment' | 'note';
   moduleId: ToolId;
   recordId: string;
   recordName: string;
@@ -26,7 +28,7 @@ export interface Activity {
 }
 
 export interface DemoState {
-  schemaVersion: 1;
+  schemaVersion: 2;
   records: Record<ToolId, ToolRecord[]>;
   activity: Activity[];
 }
@@ -37,6 +39,7 @@ export interface RecordAction {
   confirmation: string;
   tone?: 'danger' | 'primary';
   available: (record: ToolRecord) => boolean;
+  validate?: (record: ToolRecord, records: ToolRecord[]) => void;
   apply: (record: ToolRecord) => ToolRecord;
 }
 
@@ -57,6 +60,9 @@ export interface ToolModule {
   secondaryColumn: string;
   secondaryValue: (record: ToolRecord) => string;
   statuses: Record<string, Tone>;
+  owners: string[];
+  isOpen?: (record: ToolRecord) => boolean;
+  noActionMessage?: (record: ToolRecord) => string;
   details: DetailField[];
   notice: string;
   actions: RecordAction[];
