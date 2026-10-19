@@ -79,9 +79,79 @@ These fluctuate with VM contention, tsx runtime, disk, queue/history size, and c
 
 Use: **annual TCO = 12 × (hosting + disk + backups + network + identity + monitoring + provider costs) + ongoing engineering/support hours × loaded rate**, with migration/security rollout as separate one-time cost. Compare to the **verified avoidable** license portion, not automatically $250K. No cloud services were provisioned, no bill was inspected, and no savings amount is claimed.
 
-## Remaining decision / validation log
+## Potential next steps — validate the current prototype
 
-1. Configure unique preview demo passwords securely if Shared KYC should be exercised interactively. There are no default passwords and no production identities.
-2. Confirm Stripe or select the client's actual relevant sandbox. Supply a restricted test read credential and known test PaymentIntent before marking 5a live connectivity validated. Skip credentials, supply session-only, or save for future Devin sessions; never paste a key into chat.
-3. Approve real-browser UI testing separately if desired. Do not interpret jsdom/HTTP coverage as a recorded two-user browser test.
-4. Independent engineer/reviewer validates extension and operating effort before expanding the shared architecture or claiming licensing replacement.
+**Status: scoped proposals, not executed or authorized by this planning update.** The code paths exist; credential provisioning, real sandbox validation, and browser evidence are separate remaining work. Keep synthetic data, the engineer-with-Devin reuse boundary, and step 5b's external-write deferral.
+
+### Sequence and decisions
+
+| Package                                       | Dependency / decision                                                                                                                       | Relative complexity                                                                         | Proposed responsibility                                                    | Completion evidence                                                                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| A. Enable secure Shared KYC demo login        | Choose approved demo environment, data path, credential custodian, and session-only vs future secret storage                                | Small configuration task with existing scripts; account recovery/SSO would be separate work | Demo owner supplies/approves secrets; engineer/Devin provisions and checks | Two operators and one viewer sign in; separate sessions, persistence, and logout confirmed without leaking credentials          |
+| B. Validate one real read-only sandbox lookup | Confirm Stripe or a different provider; obtain a restricted test read key and an existing matching test object ID; authenticated API from A | Small–medium if using current Stripe adapter; re-scope if provider changes                  | Sandbox account owner grants access; engineer/Devin verifies               | Sanitized provider response matches expected test snapshot; errors are not mistaken for success; live-call limitations recorded |
+| C. Record real-browser validation             | Explicit UI-testing approval; A for shared flows. B only for the real-provider portion                                                      | Medium, driven by multi-profile and failure-state checks; fixes not yet estimated           | Engineer/Devin testing agent executes; demo owner reviews evidence         | Annotated recording + pass/fail/untested matrix tied to a revision, environment, and starting state                             |
+
+**Recommended order: A → C (core workflows), with B → C (provider checks) when credentials are available.** Do not block useful browser validation on a provider decision: without B, test the explicit **not-connected** state and leave actual connectivity marked **untested**. No hosting migration or new platform abstraction is needed just to run these checks.
+
+### A. Secure demo-password setup
+
+**Scope / inputs**
+
+- Use the existing identities: `alex@example.test` and `jamie@example.test` are operators; `viewer@example.test` is read-only. These remain fictional demo accounts, not enterprise identity or segregation-of-duties policy.
+- Before changing anything, establish whether the selected database is already provisioned, using non-sensitive account metadata only. Preserve existing records and history. Use an explicitly approved disposable database for destructive/isolated testing, never a silent reset of someone's saved work.
+- Choose **skip for now**, **session-only secure provision**, or **save for future Devin sessions**. If saving, choose access scope deliberately: a repository-scoped secret is not automatically injected into shells; bind it explicitly when running setup. Do not put passwords in chat, committed files, command arguments/history, logs, screenshots, or the blueprint.
+- Supply unique, unpredictable 12–128 character values for `DEMO_ALEX_PASSWORD`, `DEMO_JAMIE_PASSWORD`, and `DEMO_VIEWER_PASSWORD` through the secure secret flow. Run existing `npm run server:setup` once against the intended database; unset setup-only variables afterward. Configure exact `APP_ORIGIN`, HTTPS preview access, and persistent private database storage; keep the API loopback-only.
+
+**Acceptance**
+
+1. Each identity signs in with its own credentials; invalid passwords fail and no default credentials are accepted.
+2. Independent browser profiles hold Alex and Jamie concurrently. A saved assignment/note is visible to the other operator after refresh, with correct actor and version.
+3. Viewer can inspect authorized cases/history but cannot mutate, including via a direct authenticated request; unauthenticated access is denied.
+4. Logout invalidates that session; reload/restart preserves shared records/history. HTTPS cookies have the intended HttpOnly/Secure/SameSite policy.
+5. Browser-local work is unchanged and no credential appears in the frontend bundle, captured evidence, or logs.
+
+**Tradeoffs / edge cases:** session-only secret storage does **not** remove the SQLite password hashes or invalidate sessions automatically. Setup leaves existing accounts unchanged: rerunning it with new values is **not password rotation or recovery**. If credentials are lost, stop and agree on an explicit recovery/rotation follow-up; do not overwrite the database. End-of-demo session revocation, test-account handling, and secret retention/revocation need an owner. SSO/MFA, self-service recovery, and an account-management UI are outside this package.
+
+### B. Real sandbox connectivity, still read-only
+
+**Scope / inputs**
+
+- Confirm that the useful question is “what status and amount does this test PaymentIntent report?” Stripe remains illustrative, not evidence of the client's provider. Another provider requires a new capability/permission review and adapter estimate, not just swapping a URL.
+- The sandbox owner supplies a restricted **test-mode read** credential, the intended account/environment, one existing synthetic `pi_…` object, and expected amount, currency, and provider status. Prefer least privilege; do not automatically broaden permissions when access fails. Creating provider objects or changing provider configuration is not an action exposed by Workbench.
+- Offer the same skip/session-only/future-secret choices as A. Bind `STRIPE_TEST_KEY` to the server only, never a `VITE_` variable. Restart the API securely and make a small number of manual authenticated GET lookups. Do not create/confirm/refund/cancel payments or stress the provider to provoke rate limits.
+
+**Acceptance**
+
+1. A real test-account lookup returns the expected ID, original provider status, amount in currency minor units, provider-created time, source, and retrieval timestamp. It remains a **single-object snapshot**, not full history, settlement, or reconciliation.
+2. Invalid input is rejected locally; a known missing test object is clearly not-found **in the configured test account**, not proof the object is absent everywhere. Rejected/revoked credentials or missing read permission are unavailable, never a successful fallback; check account/environment before changing permissions.
+3. Missing credentials, invalid/live key classes, timeouts, 429/5xx, malformed/incomplete responses, and unknown statuses retain honest UI meanings. Use existing mocked contracts or controlled test faults for failures that cannot safely be produced live; label their evidence **mocked**, not provider-validated.
+4. A later failed refresh marks an earlier good snapshot stale; it is not silently merged into the synthetic investigation timeline or presented as current. Unknown provider status is visibly unmapped, not a confirmed business outcome.
+5. Record only sanitized expected/actual fields, revision, timestamp, request count, and which checks were real vs mocked/untested. No API keys, cookies, Authorization headers, or unredacted network exports in evidence.
+
+**Tradeoffs / exit:** if no provider/key/object is supplied, keep **not-connected / live validation untested**; do not substitute fixture success. A broad test secret key is not equivalent to read-only credentials even though this adapter issues only GETs. Account owners handle key rotation/revocation and scope review. Stop/clear the runtime key after a session-only exercise; agree separately whether saved secrets remain. No external-write design or approval is implied.
+
+### C. Real-browser UI validation
+
+**Scope / prerequisites**
+
+- Obtain explicit approval before handing off to the testing agent. This request scopes testing; it is **not** permission to execute it. The agent owns server/browser/login setup and recording when approved.
+- Test a named commit against the intended exact-origin preview/local environment. Start with known synthetic cases, pre-action versions, isolated operator/viewer profiles, a protected disposable shared database or explicitly approved test records, and captured local-state expectations. Stop if those preconditions cannot be established.
+- Pre-authenticate recording profiles without capturing passwords or tokens. Use only fictional notes and test provider objects. Do not reset the user's browser data, silently replace a shared database, or expose the raw API port.
+
+**Required matrix**
+
+1. **Shared operation:** two operators edit the same case; refresh exposes the first change, the stale second change is rejected, draft text survives, and an explicit refresh/review/version choice is required before retry.
+2. **Save ambiguity:** duplicate clicks are blocked while saving. With a controlled lost-response simulation, unchanged retry within the mounted page resolves once; after reload/close, inspect history/version rather than assuming the old request ID survives. If the fault cannot be simulated, mark that browser scenario untested rather than inferring it from unit tests.
+3. **Identity and failure UX:** viewer remains read-only; logout/controlled expired session clears trusted state; API outage and save failure do not announce success. Do not wait eight hours or modify active shared sessions just to force expiry; use a disposable test setup.
+4. **Synthetic Investigation:** all six examples, per-source provenance, conflicting/stale/incomplete/unavailable/no-match distinctions, and a targeted simulated retry. No claim that retry tested real provider reliability.
+5. **Original tools / saved work:** KYC waiting/resume, local assignment/notes/views, refund simulation guards/read-only examples, staging flags, and unchanged older saved data. Any reset is limited to an explicitly disposable browser profile.
+6. **Browser behavior:** keyboard navigation, modal focus/escape/return focus, scroll/drawer layout at desktop and a narrow viewport, cookie/session behavior, and clear separation of local vs shared data. This is a bounded usability/accessibility check, not a compliance certification.
+7. **Sandbox:** always cover not-connected. If B is completed, record the real test snapshot and distinguish actual provider results from controlled stale/error demonstrations. Otherwise leave real-provider checks untested.
+
+**Acceptance / output:** one primary annotated recording plus a concise pass/fail/untested report with revision, environment, test starting state, and any reproducible defects. Blocking identity/data-loss/permission/concurrency defects must be fixed and rechecked before calling the tested slice passed; prioritize other findings explicitly. Keep unit/API/mock evidence separate from browser observations. Browser success is not a production, capacity, compliance, or license-savings gate.
+
+### Measurements and scope boundaries
+
+For each package, log setup time, human review/supervision time (unmeasured until captured), remediation time, module vs core edits, regressions, and operator handoff burden. For B record observed lookup latency and provider usage; these are not provider reliability or throughput estimates. Use actual approved infrastructure/provider quotes before pricing operating cost. The independent next-tool extension exercise and human review measurement remain outstanding; these three validation packages do not replace them.
+
+**No action authorized by this document:** no secret requests/provisioning, live provider calls, browser testing, production data, external writes, additional tools, automatic DB resets, or PR merge. Choose which package to execute in a follow-up.
