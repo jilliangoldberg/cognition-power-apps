@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../App';
@@ -65,6 +65,75 @@ describe('fourth-tool custom view', () => {
 });
 
 describe('sandbox snapshots (mock transport)', () => {
+  it('sends only one lookup for same-tick duplicate submissions', async () => {
+    const user = userEvent.setup();
+    let finish!: (response: Response) => void;
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    render(<SandboxLookup />);
+    await user.type(screen.getByLabelText('Sandbox PaymentIntent ID'), 'pi_example');
+    const form = screen.getByLabelText('Sandbox PaymentIntent ID').closest('form')!;
+    act(() => {
+      fireEvent.submit(form);
+      fireEvent.submit(form);
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    await act(async () =>
+      finish(
+        Response.json({
+          source: 'Stripe test mode',
+          outcome: 'not-found',
+          attemptedAt: new Date().toISOString(),
+          message: 'No snapshot',
+        }),
+      ),
+    );
+    expect(screen.getByText('not-found')).toBeInTheDocument();
+  });
+  it.each(['not-found', 'not-connected'])(
+    'clears an older successful snapshot after %s',
+    async (outcome) => {
+      const user = userEvent.setup();
+      const fetcher = vi.spyOn(globalThis, 'fetch');
+      fetcher.mockResolvedValueOnce(
+        Response.json({
+          source: 'Stripe test mode',
+          outcome: 'found',
+          attemptedAt: new Date().toISOString(),
+          retrievedAt: new Date().toISOString(),
+          message: 'Single snapshot',
+          record: {
+            id: 'pi_example',
+            originalStatus: 'processing',
+            normalizedStatus: 'Reported in progress',
+            amount: 1000,
+            currency: 'usd',
+            createdAt: new Date().toISOString(),
+          },
+        }),
+      );
+      render(<SandboxLookup />);
+      await user.type(screen.getByLabelText('Sandbox PaymentIntent ID'), 'pi_example');
+      await user.click(screen.getByRole('button', { name: 'Retrieve sandbox snapshot' }));
+      expect(await screen.findByText('processing')).toBeInTheDocument();
+      fetcher.mockResolvedValueOnce(
+        Response.json({
+          source: 'Stripe test mode',
+          outcome,
+          attemptedAt: new Date().toISOString(),
+          message: 'No current evidence',
+        }),
+      );
+      await user.click(screen.getByRole('button', { name: 'Retrieve sandbox snapshot' }));
+      expect(await screen.findByText(outcome)).toBeInTheDocument();
+      expect(screen.queryByText('processing')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Stale \/ unverified/)).not.toBeInTheDocument();
+    },
+  );
   it('retains a prior snapshot as stale after a failed refresh, not as current evidence', async () => {
     const user = userEvent.setup();
     const fetcher = vi.spyOn(globalThis, 'fetch');

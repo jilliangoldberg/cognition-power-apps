@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { randomBytes, randomUUID } from 'node:crypto';
-import type { Server } from 'node:http';
+import { request as httpRequest, type Server } from 'node:http';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -53,7 +53,10 @@ beforeEach(async () => {
     ['viewer', 'Demo Viewer', 'viewer'],
   ] as const)
     store.addUser({ id, name, email: `${id}@example.test`, role }, password);
-  server = createApp(store, { origin: 'http://localhost:5173' }).listen(0, '127.0.0.1');
+  server = createApp(store, {
+    origin: 'http://localhost:5173',
+    allowInsecureLocalhost: true,
+  }).listen(0, '127.0.0.1');
   await new Promise<void>((resolve) => server.on('listening', resolve));
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('No test address');
@@ -65,6 +68,82 @@ afterEach(async () => {
 });
 
 describe('authenticated shared synthetic API', () => {
+  it('requires HTTPS by default, even for a localhost origin', () => {
+    for (const origin of ['http://localhost:5173', 'http://192.0.2.1:5173', 'ftp://localhost']) {
+      expect(() => createApp(store, { origin })).toThrow('HTTPS is required');
+    }
+    expect(() =>
+      createApp(store, { origin: 'http://public.example', allowInsecureLocalhost: true }),
+    ).toThrow('HTTPS is required');
+  });
+  it('rejects public HTTP hosts and forwarded-host spoofing before creating a session', async () => {
+    for (const Host of ['public.example', 'localhost.attacker.example', '192.0.2.1:5173']) {
+      const response = await new Promise<{ status: number; cookie?: string[] }>(
+        (resolve, reject) => {
+          const req = httpRequest(
+            `${base}/api/login`,
+            {
+              method: 'POST',
+              headers: { ...headers, Host, 'X-Forwarded-Host': 'localhost:5173' },
+            },
+            (res) => {
+              res.resume();
+              res.on('end', () =>
+                resolve({ status: res.statusCode!, cookie: res.headers['set-cookie'] }),
+              );
+            },
+          );
+          req.on('error', reject);
+          req.end(JSON.stringify({ email: 'alex@example.test', password }));
+        },
+      );
+      expect(response.status).toBe(403);
+      expect(response.cookie).toBeUndefined();
+    }
+    expect(
+      (await request('/kyc', undefined, '', { Origin: 'http://untrusted.example' })).status,
+    ).toBe(403);
+  });
+  it('refuses the development HTTP opt-in in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      expect(() =>
+        createApp(store, { origin: 'http://localhost:5173', allowInsecureLocalhost: true }),
+      ).toThrow('HTTPS is required');
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+  it('sets Secure cookies for HTTPS preview origins and clears the same cookie on logout', async () => {
+    const tlsOrigin = 'https://preview.example';
+    const preview = createApp(store, { origin: tlsOrigin }).listen(0, '127.0.0.1');
+    await new Promise<void>((resolve) => preview.on('listening', resolve));
+    try {
+      const address = preview.address();
+      if (!address || typeof address === 'string') throw new Error('Missing preview address');
+      const endpoint = `http://127.0.0.1:${address.port}/api`;
+      const response = await fetch(`${endpoint}/login`, {
+        method: 'POST',
+        headers: { ...headers, Origin: tlsOrigin },
+        body: JSON.stringify({ email: 'alex@example.test', password }),
+      });
+      expect(response.status).toBe(200);
+      const cookie = response.headers.get('set-cookie')!;
+      expect(cookie).toMatch(/; Secure(?:;|$)/);
+      expect(cookie).toContain('HttpOnly');
+      expect(cookie).toContain('SameSite=Strict');
+      const logout = await fetch(`${endpoint}/logout`, {
+        method: 'POST',
+        headers: { ...headers, Origin: tlsOrigin, Cookie: cookie.split(';')[0] },
+        body: '{}',
+      });
+      expect(logout.status).toBe(200);
+      expect(logout.headers.get('set-cookie')).toMatch(/; Secure(?:;|$)/);
+      expect(() => store.session(cookie.split(';')[0].split('=')[1])).toThrow();
+    } finally {
+      await new Promise<void>((resolve) => preview.close(() => resolve()));
+    }
+  });
   it('rejects unauthenticated reads, changes, and sandbox lookups', async () => {
     for (const path of ['/kyc', '/session', '/sandbox/payment-intents/pi_example'])
       expect((await request(path)).status).toBe(401);

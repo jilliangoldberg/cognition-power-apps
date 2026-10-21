@@ -15,7 +15,14 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
     headers: { 'Content-Type': 'application/json', 'X-Workbench-Request': '1' },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  const data = await response.json();
-  if (!response.ok) throw new HttpError(response.status, data.error ?? 'Request failed.');
+  const data = await response.json().catch(() => {
+    if (!response.ok) throw new HttpError(response.status, 'Request failed.');
+    throw new Error('Invalid API response. No success is implied.');
+  });
+  if (!response.ok)
+    throw new HttpError(
+      response.status,
+      typeof data?.error === 'string' ? data.error : 'Request failed.',
+    );
   return data as T;
 }
