@@ -5,7 +5,13 @@ import { describe, expect, it } from 'vitest';
 import { addToRegistry, createTool, validateArgs } from './new-tool';
 import { contractProblems } from '../src/modules/contract';
 
-const registry = readFileSync('src/modules/index.ts', 'utf8');
+// Fixed registry so these tests don't depend on which tools are registered in the repo.
+const registry = `import { kyc } from './kyc';
+import { refunds } from './refunds';
+import type { ToolId, ToolModule } from '../core/types';
+
+export const modules: ToolModule[] = [kyc, refunds];
+`;
 function fakeRoot() {
   const root = mkdtempSync(join(tmpdir(), 'new-tool-'));
   mkdirSync(join(root, 'src/modules/kyc'), { recursive: true });
@@ -34,9 +40,7 @@ describe('new-tool scaffold', () => {
   it('adds exactly one import and registry entry', () => {
     const next = addToRegistry(registry, 'vendor-requests');
     expect(next).toContain("import { vendorRequests } from './vendor-requests';");
-    expect(next).toMatch(
-      /modules: ToolModule\[\] = \[kyc, refunds, flags(, \w+)*, vendorRequests\];/,
-    );
+    expect(next).toContain('modules: ToolModule[] = [kyc, refunds, vendorRequests];');
     expect(() => addToRegistry(next, 'vendor-requests')).toThrow('already registered');
     expect(() => addToRegistry('export const modules = [];', 'x')).toThrow('registry shape');
   });

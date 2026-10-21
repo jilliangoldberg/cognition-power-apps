@@ -18,7 +18,7 @@ describe('curated operational sample', () => {
     expect(data.records.refunds).toHaveLength(10);
     expect(data.records.flags).toHaveLength(7);
     expect(data.activity).toEqual([]);
-    for (const records of Object.values(data.records)) {
+    for (const records of [data.records.kyc, data.records.refunds, data.records.flags]) {
       expect(new Set(records.map((record) => record.updatedAt)).size).toBeGreaterThan(3);
       for (const record of records) {
         expect(Date.parse(record.openedAt!)).toBeLessThan(Date.parse(record.updatedAt));

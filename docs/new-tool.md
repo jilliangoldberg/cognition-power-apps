@@ -36,14 +36,43 @@ Edit only the two generated files:
 | `owners`                                 | Assignable people/teams (must include `Unassigned`)       |
 | `metrics`                                | Summary cards above the table                             |
 | `validateFields`                         | Required `fields` shape; saved data failing it is refused |
-| `icon`, `color`, `recordIcon`            | Existing icon names; `purple`, `blue` or `green`          |
+| `recordLabel`, `notice`                  | Singular record noun; banner saying what is simulated     |
+| `icon`, `color`, `recordIcon`            | Icon names below; `purple`, `blue` or `green`             |
 
-`samples.ts` holds deterministic fictional records relative to `now`. Keep them synthetic.
+Each entry in `actions`:
+
+| Field          | Controls                                                                       |
+| -------------- | ------------------------------------------------------------------------------ |
+| `label`        | Button text                                                                    |
+| `confirmation` | Text in the confirm step (required: every action confirms and needs a reason)  |
+| `tone`         | Optional `primary` or `danger` button style                                    |
+| `available`    | `(record) => boolean`: which records show the button                           |
+| `validate`     | Optional `(record, records) => void`; throw an `Error` to block with a message |
+| `apply`        | `(record) => record`: the new status/fields (keep the same `id`)               |
+
+Preconditions on fields go in `available`, for example approve only with a receipt:
+
+```ts
+available: (r) => r.status === 'Submitted' && r.fields.receipt === true,
+```
+
+Every action asks for confirmation and a reason of at least 5 characters, so the activity history
+always says why. There is no per-action opt-out; that would be a shared-shell change.
+
+Reference values:
+
+- `fields` values: `string`, `number` or `boolean`. Store money as integer cents.
+- Status tones: `neutral`, `purple`, `green`, `amber`, `red`, `blue`.
+- Icons: `grid identity refund flag activity search arrow chevron down close check info reset box code shield clock menu bolt`.
+
+`samples.ts` holds deterministic fictional records relative to `now`. Keep them synthetic. Each
+record needs `openedAt` earlier than `updatedAt`, and `updatedAt` no later than `now`; vary
+`updatedAt` so age filters have something to show.
 
 ## 4. Check it
 
 ```sh
-npm test          # src/modules/modules.test.ts checks every registered tool automatically
+npm test          # frontend + server/scaffold tests; src/modules/modules.test.ts checks every tool
 npm run dev       # open http://localhost:5173/#vendor-requests
 ```
 

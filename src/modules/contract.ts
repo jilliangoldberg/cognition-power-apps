@@ -31,6 +31,11 @@ export function contractProblems(module: ToolModule, now = new Date('2026-01-15T
     if (!module.validateFields(record)) problems.push(`${record.id}: fails validateFields`);
     if (!module.owners.includes(record.owner))
       problems.push(`${record.id}: owner "${record.owner}" is not listed`);
+    const updated = Date.parse(record.updatedAt);
+    if (!(updated <= now.getTime()))
+      problems.push(`${record.id}: updatedAt must be a valid time no later than now`);
+    if (!record.openedAt || !(Date.parse(record.openedAt) < updated))
+      problems.push(`${record.id}: openedAt must be set and earlier than updatedAt`);
     if (module.details.some((detail) => typeof detail.value(record) !== 'string'))
       problems.push(`${record.id}: details must render strings`);
   }
