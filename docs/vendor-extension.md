@@ -24,7 +24,7 @@ valuable extensions with acceptable engineering, review, and operating cost.
 
 ## Demo walkthrough
 
-Open **Vendor approvals** from the sidebar or its Overview card (`#vendors`).
+Open **Vendor approvals** from the sidebar or the Overview tool directory (`#vendors`).
 
 1. **Juniper Demo Analytics:** a Product request accessing synthetic customer
    data. Security approval is blocked until its synthetic assessment is reviewed.
@@ -52,7 +52,7 @@ are deliberately explicit examples, not configurable company policy.
 | Reused unchanged                                    | Owned by the extension                                              | Shared integration changes                              |
 | --------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- |
 | Workspace shell, hash navigation, mobile navigation | Request schema, fictional fixtures, review prerequisites            | Register one custom page; add its `Page` identifier     |
-| `Badge`, `Dialog`, `Icon`                           | Required teams, derived readiness, immutable decisions per revision | Registry metadata exposes all custom pages on Overview  |
+| `Badge`, `Dialog`, `Icon`                           | Required teams, derived readiness, immutable decisions per revision | Typed page summaries list it in the Overview directory  |
 | `money`, `dateTime`                                 | Edit/resubmit resets, reasoned decisions, revision history          | Clarify reset scope and About's expansion narrative     |
 | Metrics, panels, table, detail and timeline styling | Independent versioned browser storage and explicit vendor reset     | Feature-specific CSS; no global workflow-engine changes |
 
@@ -65,7 +65,7 @@ are deliberately explicit examples, not configurable company policy.
   footprint can be inspected against this PR's base; it is not zero-core-edit
   or configuration-only extensibility.
 - Source footprint against this PR's foundation base: **2 feature implementation
-  files (+899 lines)** and **6 shared integration/style files (+208/−17 lines)**.
+  files (+928 lines)** and **6 shared integration/style files (+177/−20 lines)**.
   Tests and documentation are excluded from these source totals. This is a
   changed-line inventory, not a measurement of independent extension effort.
 - Original Activity remains scoped to the original three local tools. Vendor
@@ -98,7 +98,7 @@ document access controls, retention, notifications, and validated procurement
 policy. Do not reuse this local history as trusted approval history.
 
 Local validation on hardened `main` passed: formatting, lint, strict typecheck,
-**162 automated tests** (128 frontend/domain/component + 34 server), production
+**288 automated tests** (254 frontend/domain/component + 34 server), production
 build, and whitespace check. The extension adds 36 tests to the 126-test hardened
 foundation. Vendor IDs use the shared `randomId` helper, so they do not require
 secure-context `crypto.randomUUID`. No browser or live-provider
