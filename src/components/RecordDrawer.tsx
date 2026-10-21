@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { Activity, RecordAction, ToolModule, ToolRecord } from '../core/types';
 import type { MutationRequest } from '../core/actions';
 import { actionBlock } from '../core/eligibility';
 import { ageLabel, dateTime, initials } from '../core/format';
+import { useNow } from '../core/useNow';
 import { Badge } from './Badge';
 import { Dialog } from './Dialog';
 import { Icon } from './Icon';
@@ -45,6 +46,8 @@ export function RecordDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [closePrompt, setClosePrompt] = useState(false);
+  const saving = useRef(false);
+  const now = useNow();
   const available = (
     persistence === 'local' ? (module.localActions ?? module.actions) : module.actions
   ).filter((candidate) => candidate.available(record));
@@ -98,7 +101,8 @@ export function RecordDrawer({
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!form || submitting || readOnly || blocked || closePrompt) return;
+    if (!form || saving.current || readOnly || blocked || closePrompt) return;
+    saving.current = true;
     setSubmitting(true);
     const target = {
       moduleId: module.id,
@@ -121,6 +125,7 @@ export function RecordDrawer({
         'Save response unavailable. Your input is retained; retry the same change to check its outcome.',
       );
     } finally {
+      saving.current = false;
       setSubmitting(false);
     }
   }
@@ -178,7 +183,7 @@ export function RecordDrawer({
           </div>
           <div>
             <dt>Age since opening</dt>
-            <dd>{ageLabel(record.openedAt)} · not an SLA</dd>
+            <dd>{ageLabel(record.openedAt, now)} · not an SLA</dd>
           </div>
           {module.details.map((detail) => (
             <div key={detail.label}>

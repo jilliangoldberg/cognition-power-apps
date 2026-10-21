@@ -10,6 +10,7 @@ import {
 import type { ToolModule, ToolRecord } from '../core/types';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
+import { useNow } from '../core/useNow';
 
 export function ToolView({
   module,
@@ -39,6 +40,7 @@ export function ToolView({
   const [localViews, setLocalViews] = useState(() => loadViews(module, viewNamespace));
   const [viewName, setViewName] = useState('');
   const [viewError, setViewError] = useState('');
+  const now = useNow();
   const { search, status, owner, sort, agingOnly } = filters;
   const updateFilters = (change: Partial<RecordFilters>) => setFilters({ ...filters, ...change });
   const owners = Array.from(
@@ -48,7 +50,7 @@ export function ToolView({
       ...(owner === 'all' ? [] : [owner]),
     ]),
   );
-  const visible = filterRecords(records, module, filters);
+  const visible = filterRecords(records, module, filters, now);
   function storeViews(views: typeof localViews.views) {
     const saved = saveViews(module.id, views, viewNamespace);
     setLocalViews({
@@ -368,7 +370,7 @@ export function ToolView({
                         : 'Not recorded in older demo data'
                     }
                   >
-                    {ageLabel(record.openedAt)}
+                    {ageLabel(record.openedAt, now)}
                   </td>
                   <td className="date-cell">{shortDate(record.updatedAt)}</td>
                   <td className="row-arrow">
@@ -407,7 +409,11 @@ export function ToolView({
       </section>
       <div className="page-note">
         <Icon name="info" size={16} />
-        <span>Local demo only. Changes are saved in this browser, not shared with a team.</span>
+        <span>
+          {viewNamespace
+            ? 'Shared records are saved on the server. View preferences stay in this browser.'
+            : 'Local demo only. Changes are saved in this browser, not shared with a team.'}
+        </span>
       </div>
     </>
   );

@@ -40,6 +40,7 @@ if (process.argv.includes('--setup')) {
   const app = createApp(store, {
     origin: process.env.APP_ORIGIN ?? 'http://localhost:5173',
     sandboxKey: process.env.STRIPE_TEST_KEY,
+    allowInsecureLocalhost: process.env.ALLOW_INSECURE_LOCALHOST === '1',
   });
   app.use(express.static(resolve('dist')));
   const server = app.listen(3001, '127.0.0.1', () =>

@@ -1,5 +1,6 @@
 import { getModule } from '../modules';
 import type { DemoState, ToolId } from './types';
+import { randomId } from './id';
 
 interface ChangeTarget {
   moduleId: ToolId;
@@ -71,7 +72,7 @@ export function executeAction(
     },
     activity: [
       {
-        id: crypto.randomUUID(),
+        id: randomId(),
         kind: request.kind ?? 'action',
         moduleId: module.id,
         recordId: record.id,
