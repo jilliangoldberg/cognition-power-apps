@@ -268,11 +268,9 @@ export function ToolView({
                       onClick={() => onSelect(record)}
                       aria-label={`Open ${record.name}`}
                     >
-                      <span
-                        className={`avatar avatar-${module.id === 'flags' ? 'flag' : index % 4}`}
-                      >
-                        {module.id === 'flags' ? (
-                          <Icon name="flag" size={18} />
+                      <span className={`avatar avatar-${module.recordIcon ? 'icon' : index % 4}`}>
+                        {module.recordIcon ? (
+                          <Icon name={module.recordIcon} size={18} />
                         ) : (
                           initials(record.name)
                         )}

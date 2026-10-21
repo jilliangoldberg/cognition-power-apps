@@ -63,13 +63,13 @@ Investigation is a stateless custom page, **not a fourth persisted queue array**
 
 | Reused core                                                                 | Domain / custom-view code                                                |
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `src/App.tsx`: shell, navigation, original demo state                       | `src/modules/{kyc,refunds,flags}.ts`: fields, metrics, states, actions   |
+| `src/App.tsx`: shell, navigation, original demo state                       | `src/modules/<id>/`: fields, metrics, states, actions, sample records    |
 | `ToolView`: queue search/filter/sort/views                                  | `src/features/pages.tsx`: tiny custom-page registry                      |
 | `RecordDrawer`: details, notes, assignment, async saves/conflicts           | `Investigation` + `evidence`: read-only non-queue UI and source fixtures |
 | `executeAction`: domain version/reason/transition checks, not authorization | `SharedKyc`: authenticated client, server-owned records                  |
 | `server/app.ts`: strict API schemas, session policy, read-only proxy        | `server/store.ts`: cases, atomic history, per-actor command results      |
 
-For an ordinary queue, add `ToolId`, `ToolModule`, registry entry, fixtures, tests, and an **additive persisted-state migration**. Metadata defines owners, allowed actions, details, and optional open-work/related-record guards. Assignment/notes increment version and update time, not opening time or domain status.
+For an ordinary queue, add a `src/modules/<id>/` folder (`index.ts` definition + `samples.ts` synthetic records) and one line in `src/modules/index.ts`. `src/modules/modules.test.ts` checks every registered tool automatically: unique route-safe ID, valid deterministic samples, declared owners/statuses, and actions that stay inside declared statuses. Saved browser work gains the new tool's samples on next load instead of being discarded; removing or renaming a tool is still not migrated. Metadata defines owners, allowed actions, details, and optional open-work/related-record guards. Assignment/notes increment version and update time, not opening time or domain status.
 
 For a custom page, add its `Page` ID and `{id,title,icon,View}` entry in `src/features/pages.tsx`. Its React code need not fake table columns/actions/statuses or enter the local queue schema. Both registries are **build-time TypeScript**, not a runtime plugin loader. App routing still has a typed-ID edit; this is an explicit small seam, not zero-core-change extensibility. Reviewed code is allowed; no visual/formula/workflow engine is being built.
 

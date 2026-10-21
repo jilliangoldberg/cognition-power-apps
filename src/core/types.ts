@@ -1,5 +1,8 @@
-export type ToolId = 'kyc' | 'refunds' | 'flags';
-export type Page = 'overview' | ToolId | 'activity' | 'about' | 'investigation' | 'shared-kyc';
+import type { IconName } from '../components/Icon';
+
+// Tool and page IDs come from the build-time registries and are validated at runtime.
+export type ToolId = string;
+export type Page = string;
 export type Tone = 'neutral' | 'purple' | 'green' | 'amber' | 'red' | 'blue';
 
 export interface ToolRecord {
@@ -53,8 +56,10 @@ export interface ToolModule {
   title: string;
   shortTitle: string;
   description: string;
-  icon: 'identity' | 'refund' | 'flag';
-  color: string;
+  icon: IconName;
+  color: 'purple' | 'blue' | 'green';
+  /** Show this icon instead of name initials beside each record. */
+  recordIcon?: IconName;
   recordLabel: string;
   primaryColumn: string;
   secondaryColumn: string;
@@ -68,4 +73,6 @@ export interface ToolModule {
   actions: RecordAction[];
   metrics: (records: ToolRecord[]) => { label: string; value: string; hint: string }[];
   validateFields: (record: ToolRecord) => boolean;
+  /** Deterministic synthetic records relative to `now`; used for first load and reset. */
+  samples: (now: Date) => ToolRecord[];
 }

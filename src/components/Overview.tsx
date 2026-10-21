@@ -128,7 +128,7 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
           <Icon name="box" size={23} />
         </div>
         <div>
-          <strong>Three tools. One small foundation.</strong>
+          <strong>{modules.length} tools. One small foundation.</strong>
           <p>
             Shared tables, record details, actions, and local activity. Tool-specific rules stay in
             their modules.

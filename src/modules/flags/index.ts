@@ -1,11 +1,13 @@
-import { countStatus } from '../core/format';
-import type { ToolModule } from '../core/types';
+import { countStatus } from '../../core/format';
+import type { ToolModule } from '../../core/types';
+import { flagSamples } from './samples';
 
 export const flags: ToolModule = {
   id: 'flags',
   title: 'Feature flags',
   shortTitle: 'Feature flags',
   icon: 'flag',
+  recordIcon: 'flag',
   color: 'green',
   description: 'Explore a small staging configuration panel. Changes stay in this browser.',
   recordLabel: 'flags',
@@ -54,6 +56,7 @@ export const flags: ToolModule = {
     },
     { label: 'Environment', value: 'Staging', hint: 'No production connection' },
   ],
+  samples: flagSamples,
   validateFields: (r) =>
     r.fields.environment === 'Staging' &&
     ['description', 'audience'].every((key) => typeof r.fields[key] === 'string'),

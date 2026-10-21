@@ -1,5 +1,6 @@
-import { countStatus, dateTime, money } from '../core/format';
-import type { ToolModule } from '../core/types';
+import { countStatus, dateTime, money } from '../../core/format';
+import type { ToolModule } from '../../core/types';
+import { refundSamples } from './samples';
 
 export const refunds: ToolModule = {
   id: 'refunds',
@@ -120,6 +121,7 @@ export const refunds: ToolModule = {
       hint: 'Curated examples, not company volume',
     },
   ],
+  samples: refundSamples,
   validateFields: (r) =>
     ['amountCents', 'paymentCents', 'refundedCents'].every(
       (key) => Number.isSafeInteger(r.fields[key]) && Number(r.fields[key]) >= 0,

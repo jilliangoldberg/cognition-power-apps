@@ -39,6 +39,28 @@ describe('versioned local demo data', () => {
     invalid.records.refunds[0].fields.amountCents = 'not money';
     expect(isDemoState(invalid)).toBe(false);
   });
+  it('adds sample records for a newly registered tool without touching saved work', () => {
+    const saved = createFixtures();
+    saved.records.kyc[0].status = 'Approved';
+    saved.records.kyc[0].version = 3;
+    const { flags, ...withoutFlags } = saved.records;
+    const raw = JSON.stringify({ ...saved, records: withoutFlags });
+    localStorage.setItem(STORAGE_KEY, raw);
+    const result = loadDemo();
+    expect(result.blocked).toBe(false);
+    expect(result.warning).toContain('Added sample records for new tools: Feature flags');
+    expect(result.data.records.kyc).toEqual(saved.records.kyc);
+    expect(result.data.records.flags.map((record) => record.id)).toEqual(flags.map((r) => r.id));
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
+  });
+  it('still refuses saved data whose existing tool records are invalid', () => {
+    const saved = createFixtures();
+    saved.records.flags[0].status = 'Production';
+    const partial: Record<string, unknown> = { ...saved.records };
+    delete partial.kyc;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, records: partial }));
+    expect(loadDemo().blocked).toBe(true);
+  });
   it('rejects malformed activity entries', () => {
     const data = { ...createFixtures(), activity: [{ id: 'bad', moduleId: 'unknown' }] };
     expect(isDemoState(data)).toBe(false);
