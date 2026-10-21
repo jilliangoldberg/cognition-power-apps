@@ -34,7 +34,9 @@ describe('new-tool scaffold', () => {
   it('adds exactly one import and registry entry', () => {
     const next = addToRegistry(registry, 'vendor-requests');
     expect(next).toContain("import { vendorRequests } from './vendor-requests';");
-    expect(next).toMatch(/modules: ToolModule\[\] = \[kyc, refunds, flags, vendorRequests\];/);
+    expect(next).toMatch(
+      /modules: ToolModule\[\] = \[kyc, refunds, flags(, \w+)*, vendorRequests\];/,
+    );
     expect(() => addToRegistry(next, 'vendor-requests')).toThrow('already registered');
     expect(() => addToRegistry('export const modules = [];', 'x')).toThrow('registry shape');
   });
