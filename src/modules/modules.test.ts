@@ -32,6 +32,21 @@ describe('contract checks', () => {
       'deterministic',
     ],
     [
+      'future updatedAt',
+      {
+        samples: (now: Date) =>
+          base
+            .samples(now)
+            .map((r) => ({ ...r, updatedAt: new Date(now.getTime() + 1).toISOString() })),
+      },
+      'no later than now',
+    ],
+    [
+      'openedAt not before updatedAt',
+      { samples: (now: Date) => base.samples(now).map((r) => ({ ...r, openedAt: r.updatedAt })) },
+      'openedAt must be set',
+    ],
+    [
       'action to undeclared status',
       { actions: [{ ...base.actions[0], apply: (r) => ({ ...r, status: 'Gone' }) }] },
       'undeclared "Gone"',
