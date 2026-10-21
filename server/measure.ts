@@ -13,7 +13,7 @@ store.addUser(
   { id: 'alex', name: 'Alex Morgan', email: 'alex@example.test', role: 'operator' },
   password,
 );
-const app = createApp(store, { origin: 'http://localhost:5173' });
+const app = createApp(store, { origin: 'http://localhost:5173', allowInsecureLocalhost: true });
 const server = app.listen(0, '127.0.0.1');
 await new Promise<void>((resolve) => server.on('listening', resolve));
 const address = server.address();

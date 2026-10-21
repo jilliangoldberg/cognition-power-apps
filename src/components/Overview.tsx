@@ -131,7 +131,8 @@ export function Overview({ data, navigate }: { data: DemoState; navigate: (page:
                 <p>
                   <strong>{event.action}</strong>
                   <span>
-                    {event.recordName} · {event.before} → {event.after}
+                    {event.recordName}
+                    {event.kind !== 'note' && ` · ${event.before} → ${event.after}`}
                   </span>
                 </p>
                 <time dateTime={event.at}>{dateTime(event.at)}</time>

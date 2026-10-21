@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+import { clearViewSession } from './core/views';
 
 Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
   value: function (this: HTMLDialogElement) {
@@ -16,6 +17,9 @@ Object.defineProperty(HTMLDialogElement.prototype, 'close', {
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  clearViewSession();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
   window.location.hash = '';
 });

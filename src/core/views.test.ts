@@ -50,6 +50,35 @@ describe('curated operational sample', () => {
 });
 
 describe('shared local queue views', () => {
+  it.each([
+    { amountCents: 4900, formatted: '$49.00' },
+    { amountCents: 24995, formatted: '$249.95' },
+    { amountCents: 75000, formatted: '$750.00' },
+    { amountCents: 125000, formatted: '$1,250.00' },
+  ])('finds displayed amount $formatted as well as raw cents', ({ amountCents, formatted }) => {
+    const sample = createFixtures(now).records.refunds[0];
+    const record: ToolRecord = {
+      ...sample,
+      fields: { ...sample.fields, amountCents, paymentCents: amountCents * 2, refundedCents: 0 },
+    };
+    expect(refunds.secondaryValue(record)).toBe(formatted);
+    for (const search of [formatted, formatted.slice(1), ` ${formatted} `, String(amountCents)]) {
+      expect(filterRecords([record], refunds, { ...defaultFilters, search }, now)).toEqual([
+        record,
+      ]);
+    }
+    expect(filterRecords([record], refunds, { ...defaultFilters, search: '$0.01' }, now)).toEqual(
+      [],
+    );
+    expect(
+      filterRecords(
+        [record],
+        refunds,
+        { ...defaultFilters, search: formatted, owner: 'Not this owner' },
+        now,
+      ),
+    ).toEqual([]);
+  });
   it('combines owner, status, search and sorting without mutating records', () => {
     const records = createFixtures(now).records.kyc;
     const originalIds = records.map((record) => record.id);
