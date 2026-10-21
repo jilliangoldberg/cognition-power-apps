@@ -1109,6 +1109,8 @@ tbody tr:focus-within {
   font-size: 11px;
 }
 .record-id {
+  max-width: 360px;
+  white-space: normal;
   overflow-wrap: anywhere;
   font-size: 8px;
   margin-top: 5px;
@@ -1731,6 +1733,9 @@ tbody tr:focus-within {
 }
 .work-record-link span {
   display: block;
+  max-width: 360px;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 11px;
   margin-top: 4px;
 }
