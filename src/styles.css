@@ -131,6 +131,10 @@
   flex-wrap: wrap;
   gap: 16px;
 }
+.vendor-detail .evidence-timeline li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .vendor-progress {
   margin: 22px 0;
   padding: 16px;
