@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { randomId } from '../core/id';
 
 export const reviewTeams = ['Finance', 'Security', 'Legal'] as const;
 export type ReviewTeam = (typeof reviewTeams)[number];
@@ -86,7 +87,7 @@ export function vendorStatus(request: VendorRequest) {
 }
 
 function historyEvent(actor: string, action: string, reason: string, at: string) {
-  return { id: crypto.randomUUID(), actor, action, reason, at };
+  return { id: randomId(), actor, action, reason, at };
 }
 
 export function newVendorRequest(
@@ -96,7 +97,7 @@ export function newVendorRequest(
   const parsed = detailsSchema.safeParse(details);
   if (!parsed.success) throw new Error(parsed.error.issues[0].message);
   return {
-    id: `VND-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+    id: `VND-${randomId().slice(0, 8).toUpperCase()}`,
     revision: 1,
     details: parsed.data,
     reviews: pendingReviews(),

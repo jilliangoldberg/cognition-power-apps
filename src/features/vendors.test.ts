@@ -132,6 +132,15 @@ describe('vendor review policy (local simulation)', () => {
     },
   );
 
+  it('creates and reviews requests without secure-context randomUUID', () => {
+    vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) });
+    const details = createVendorFixtures().requests[2].details;
+    const request = newVendorRequest(details, '2026-01-01T00:00:00.000Z');
+    expect(request.id).toMatch(/^VND-[0-9A-F]{8}$/);
+    const reviewed = reviewVendorRequest(request, 'Finance', 'Approved', 'Budget owner confirmed.');
+    expect(new Set(reviewed.history.map((event) => event.id)).size).toBe(2);
+  });
+
   it('validates required fields and trims accepted details', () => {
     const details = createVendorFixtures().requests[0].details;
     expect(() => newVendorRequest({ ...details, vendor: ' ' })).toThrow(/vendor name/);
