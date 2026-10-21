@@ -1,57 +1,42 @@
 import { describe, expect, it } from 'vitest';
 import { modules } from '.';
+import { contractProblems } from './contract';
 import { customPages } from '../features/pages';
-import { createFixtures } from '../core/fixtures';
-import { isDemoState } from '../core/storage';
+import type { ToolModule } from '../core/types';
 
 // Every registered tool must pass these checks; a new tool gets them without writing extra tests.
-const now = new Date('2026-01-15T12:00:00Z');
-const reserved = ['overview', 'activity', 'about', ...customPages.map((page) => page.id)];
-
 describe.each(modules.map((module) => [module.id, module] as const))(
   '%s tool contract',
   (_, module) => {
-    const records = module.samples(now);
-
-    it('uses a unique, route-safe id', () => {
-      expect(module.id).toMatch(/^[a-z][a-z0-9-]*$/);
-      expect(reserved).not.toContain(module.id);
+    it('fits the shared shell', () => expect(contractProblems(module)).toEqual([]));
+    it('has an id no other tool or page uses', () => {
       expect(modules.filter((other) => other.id === module.id)).toHaveLength(1);
-    });
-
-    it('ships deterministic, valid sample records', () => {
-      expect(records.length).toBeGreaterThan(0);
-      expect(module.samples(now)).toEqual(records);
-      expect(new Set(records.map((record) => record.id)).size).toBe(records.length);
-      const state = {
-        ...createFixtures(now),
-        records: { ...createFixtures(now).records, [module.id]: records },
-      };
-      expect(isDemoState(state)).toBe(true);
-      for (const record of records) {
-        expect(module.owners).toContain(record.owner);
-        for (const detail of module.details) expect(typeof detail.value(record)).toBe('string');
-      }
-    });
-
-    it('declares owners, statuses, actions and metrics', () => {
-      expect(module.owners).toContain('Unassigned');
-      expect(Object.keys(module.statuses).length).toBeGreaterThan(0);
-      expect(new Set(module.actions.map((action) => action.id)).size).toBe(module.actions.length);
-      expect(module.metrics(records).length).toBeGreaterThan(0);
-    });
-
-    it('only moves records between declared statuses', () => {
-      for (const action of module.actions) {
-        const available = records.filter(action.available);
-        expect(available.length, `${action.id} has no sample record to act on`).toBeGreaterThan(0);
-        for (const record of available) {
-          const next = action.apply(record);
-          expect(Object.hasOwn(module.statuses, next.status)).toBe(true);
-          expect(module.validateFields(next)).toBe(true);
-          expect(next.id).toBe(record.id);
-        }
-      }
+      expect(customPages.map((page) => page.id)).not.toContain(module.id);
     });
   },
 );
+
+describe('contract checks', () => {
+  const base = modules[0];
+  let calls = 0;
+  const broken = (change: Partial<ToolModule>) => contractProblems({ ...base, ...change });
+  it.each([
+    ['bad id', { id: 'New Tool' }, 'lowercase slug'],
+    ['built-in id', { id: 'activity' }, 'built-in page'],
+    ['no samples', { samples: () => [] }, 'at least one sample'],
+    ['undeclared status', { statuses: { Other: 'neutral' as const } }, 'undeclared status'],
+    ['unlisted owner', { owners: ['Unassigned'] }, 'is not listed'],
+    [
+      'nondeterministic samples',
+      { samples: (now: Date) => base.samples(new Date(now.getTime() + calls++ * 60_000)) },
+      'deterministic',
+    ],
+    [
+      'action to undeclared status',
+      { actions: [{ ...base.actions[0], apply: (r) => ({ ...r, status: 'Gone' }) }] },
+      'undeclared "Gone"',
+    ],
+  ] satisfies [string, Partial<ToolModule>, string][])('reports %s', (_, change, message) => {
+    expect(broken(change).join('\n')).toContain(message);
+  });
+});

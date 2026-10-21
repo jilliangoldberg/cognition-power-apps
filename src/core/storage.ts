@@ -8,7 +8,7 @@ const object = (value: unknown): value is Record<string, unknown> =>
 const validDate = (value: unknown): value is string =>
   typeof value === 'string' && Number.isFinite(Date.parse(value));
 
-function isRecord(value: unknown): value is ToolRecord {
+export function isRecord(value: unknown): value is ToolRecord {
   return (
     object(value) &&
     ['id', 'name', 'subtitle', 'status', 'owner'].every((key) => typeof value[key] === 'string') &&
