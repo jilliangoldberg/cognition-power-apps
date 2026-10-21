@@ -28,10 +28,11 @@ export function kycDefaults(record: ToolRecord): ToolRecord {
   };
 }
 
-const gaps = (r: ToolRecord) =>
-  ['identityEvidence', 'addressEvidence', 'consistencyEvidence'].some(
-    (key) => r.fields[key] !== 'Consistent fictional sample',
-  );
+const evidenceKeys = ['identityEvidence', 'addressEvidence', 'consistencyEvidence'];
+const assessedReplacement = 'Fictional replacement assessed · was: ';
+const resolved = (value: ToolRecord['fields'][string]) =>
+  value === 'Consistent fictional sample' || String(value).startsWith(assessedReplacement);
+const gaps = (r: ToolRecord) => evidenceKeys.some((key) => !resolved(kycDefaults(r).fields[key]));
 
 export const kyc: ToolModule = {
   id: 'kyc',
@@ -244,7 +245,7 @@ kyc.localActions = [
     blockedReason:
       action.id === 'approve'
         ? (r: ToolRecord) =>
-            r.fields.evidenceReviewed === true
+            r.fields.evidenceReviewed === true && !gaps(r)
               ? undefined
               : 'Assess the fictional evidence before approving. Missing, expired or inconsistent samples need a recorded fictional replacement first.'
         : undefined,
@@ -301,9 +302,17 @@ kyc.localActions = [
         ? 'Request the missing information and record a fictional replacement before assessing these evidence gaps.'
         : undefined,
     apply: (r) => r,
-    applyWithContext: (r, reason) => ({
-      ...r,
-      fields: { ...kycDefaults(r).fields, evidenceReviewed: true, evidenceReviewContext: reason },
-    }),
+    applyWithContext: (r, reason) => {
+      const fields = kycDefaults(r).fields;
+      const replaced = Object.fromEntries(
+        evidenceKeys
+          .filter((key) => !resolved(fields[key]))
+          .map((key) => [key, `${assessedReplacement}${fields[key]}`]),
+      );
+      return {
+        ...r,
+        fields: { ...fields, ...replaced, evidenceReviewed: true, evidenceReviewContext: reason },
+      };
+    },
   },
 ];

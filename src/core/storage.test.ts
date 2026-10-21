@@ -39,6 +39,16 @@ describe('versioned local demo data', () => {
     invalid.records.refunds[0].fields.amountCents = 'not money';
     expect(isDemoState(invalid)).toBe(false);
   });
+  it.each(['', 'A'.repeat(501)])(
+    'rejects saved record IDs that a record link cannot open (length %#)',
+    (id) => {
+      const data = createFixtures();
+      data.records.kyc[0].id = id;
+      expect(isDemoState(data)).toBe(false);
+      data.records.kyc[0].id = 'A'.repeat(500);
+      expect(isDemoState(data)).toBe(true);
+    },
+  );
   it('rejects malformed activity entries', () => {
     const data = { ...createFixtures(), activity: [{ id: 'bad', moduleId: 'unknown' }] };
     expect(isDemoState(data)).toBe(false);

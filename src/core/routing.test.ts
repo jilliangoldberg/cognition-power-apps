@@ -39,6 +39,13 @@ describe('workspace hash routes', () => {
     expect(parsed.returnHash).toBe(routeHash(queue));
     expect(routeHash(parsed)).toBe(link);
   });
+  it('opens and reloads the longest saved record ID but rejects one character more', () => {
+    const queue = readRoute('#kyc', pages);
+    const id = 'A'.repeat(500);
+    const parsed = readRoute(routeHash(recordRoute(queue, 'kyc', id, queue.filters)), pages);
+    expect(parsed.selection).toEqual({ moduleId: 'kyc', id });
+    expect(readRoute(`#kyc/${'A'.repeat(501)}`, pages).error).toBeTruthy();
+  });
   it('retains a My work return view independently from the underlying tool filter', () => {
     const home = readRoute('#overview?work=waiting', pages);
     const parsed = readRoute(

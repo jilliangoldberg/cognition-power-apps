@@ -5,3 +5,7 @@ export function randomId(): string {
   const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
+
+export const MAX_RECORD_ID_LENGTH = 500;
+export const isRecordId = (value: unknown): value is string =>
+  typeof value === 'string' && value.length > 0 && value.length <= MAX_RECORD_ID_LENGTH;

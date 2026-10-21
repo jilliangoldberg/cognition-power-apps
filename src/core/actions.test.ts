@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { executeAction, type ActionRequest } from './actions';
 import { createFixtures } from './fixtures';
 import { modules } from '../modules';
+import { kyc } from '../modules/kyc';
 
 const request: ActionRequest = {
   moduleId: 'kyc',
@@ -362,9 +363,23 @@ describe('narrow browser-local workflow stories', () => {
       decisionContext: 'Approve this synthetic case after the separate assessment.',
       responseRecorded: true,
       evidenceReviewed: true,
+      addressEvidence:
+        'Fictional replacement assessed · was: Missing dated fictional address evidence',
     });
+    const address = kyc.localDetails!.find((detail) => detail.label.startsWith('Address'))!;
+    expect(address.value(decided.records.kyc[1])).not.toMatch(/^Missing/);
+    expect(address.value(decided.records.kyc[1])).toContain('replacement assessed');
     expect(decided.activity).toHaveLength(6);
     expect(initial.records.kyc[1].status).toBe('Needs review');
+  });
+
+  it('blocks approval while a checklist gap remains, even if saved data claims an assessment', () => {
+    const tampered = createFixtures();
+    tampered.records.kyc[1].fields.evidenceReviewed = true;
+    expect(tampered.records.kyc[1].id).toBe('KYC-1041');
+    expect(() => executeAction(tampered, { ...request, recordId: 'KYC-1041' })).toThrow(
+      'Assess the fictional evidence',
+    );
   });
 
   it('does not infer response receipt from resume or carry an old response into a new request', () => {
