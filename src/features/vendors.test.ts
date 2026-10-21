@@ -184,7 +184,11 @@ describe('isolated vendor storage', () => {
       ...state,
       requests: state.requests.map((request) => ({
         ...request,
-        history: request.history.map(({ snapshot: _snapshot, ...event }) => event),
+        history: request.history.map((event) => {
+          const legacyEvent = { ...event };
+          delete legacyEvent.snapshot;
+          return legacyEvent;
+        }),
       })),
     };
     localStorage.setItem(VENDOR_STORAGE_KEY, JSON.stringify(legacy));
