@@ -1,0 +1,47 @@
+.investigation .investigation-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.investigation .investigation-notice {
+  background: #f2effb;
+  border-left: 3px solid var(--purple);
+  border-radius: 4px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.investigation .investigation-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 8px;
+}
+
+.investigation .investigation-filter select {
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: white;
+}
+
+.investigation .investigation-references {
+  display: grid;
+  gap: 10px;
+}
+
+.investigation .investigation-references dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.investigation .evidence-timeline li {
+  overflow-wrap: anywhere;
+}
+
+.investigation details summary {
+  cursor: pointer;
+}

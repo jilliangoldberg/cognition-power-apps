@@ -1,8 +1,37 @@
 import { countStatus } from '../core/format';
-import type { ToolModule } from '../core/types';
+import type { ToolModule, ToolRecord } from '../core/types';
 
 const pending = (status: string) => ['Needs review', 'Escalated'].includes(status);
 export const openKyc = (status: string) => pending(status) || status === 'Waiting for information';
+
+export function kycDefaults(record: ToolRecord): ToolRecord {
+  return {
+    ...record,
+    fields: {
+      workflowVersion: 1,
+      identityEvidence: 'Not recorded in saved demo',
+      addressEvidence: 'Not recorded in saved demo',
+      consistencyEvidence: 'Not recorded in saved demo',
+      evidenceReviewed: false,
+      informationNeeded:
+        'Identify the missing or inconsistent fictional evidence before follow-up.',
+      informationRequest: 'No information request recorded in this demo.',
+      communicationState: 'Unsent · no customer messaging integration',
+      responseRecorded: false,
+      responseContext: 'No fictional response recorded.',
+      evidenceReviewContext: 'No evidence assessment recorded.',
+      handoffContext:
+        'Inspect owner assignment activity for handoffs; escalation and resume context appears here.',
+      decisionContext: 'No reason recorded here; inspect existing activity for saved decisions.',
+      ...record.fields,
+    },
+  };
+}
+
+const gaps = (r: ToolRecord) =>
+  ['identityEvidence', 'addressEvidence', 'consistencyEvidence'].some(
+    (key) => r.fields[key] !== 'Consistent fictional sample',
+  );
 
 export const kyc: ToolModule = {
   id: 'kyc',
@@ -112,6 +141,50 @@ export const kyc: ToolModule = {
       }),
     },
   ],
+  withDefaults: kycDefaults,
+  localDetails: [
+    {
+      label: 'Identity checklist · fictional',
+      value: (r) => String(kycDefaults(r).fields.identityEvidence),
+    },
+    {
+      label: 'Address checklist · fictional',
+      value: (r) => String(kycDefaults(r).fields.addressEvidence),
+    },
+    {
+      label: 'Consistency checklist · fictional',
+      value: (r) => String(kycDefaults(r).fields.consistencyEvidence),
+    },
+    {
+      label: 'Evidence assessment',
+      value: (r) =>
+        r.fields.evidenceReviewed === true
+          ? 'Reviewed locally · not provider verification'
+          : 'Needs a local evidence assessment before approval',
+    },
+    {
+      label: 'Assessment context',
+      value: (r) => String(kycDefaults(r).fields.evidenceReviewContext),
+    },
+    { label: 'Information needed', value: (r) => String(kycDefaults(r).fields.informationNeeded) },
+    {
+      label: 'Recorded request context',
+      value: (r) => String(kycDefaults(r).fields.informationRequest),
+    },
+    {
+      label: 'Communication delivery',
+      value: (r) => String(kycDefaults(r).fields.communicationState),
+    },
+    {
+      label: 'Fictional response context',
+      value: (r) => String(kycDefaults(r).fields.responseContext),
+    },
+    {
+      label: 'Handoff / escalation context',
+      value: (r) => String(kycDefaults(r).fields.handoffContext),
+    },
+    { label: 'Case decision context', value: (r) => String(kycDefaults(r).fields.decisionContext) },
+  ],
   metrics: (records) => [
     {
       label: 'Ready for review',
@@ -137,5 +210,100 @@ export const kyc: ToolModule = {
   validateFields: (r) =>
     ['customerId', 'country', 'accountType', 'risk', 'reviewReason', 'summary'].every(
       (key) => typeof r.fields[key] === 'string',
+    ) &&
+    (r.fields.workflowVersion === undefined || r.fields.workflowVersion === 1) &&
+    [
+      'identityEvidence',
+      'addressEvidence',
+      'consistencyEvidence',
+      'informationNeeded',
+      'informationRequest',
+      'communicationState',
+      'responseContext',
+      'evidenceReviewContext',
+      'handoffContext',
+      'decisionContext',
+    ].every((key) => r.fields[key] === undefined || typeof r.fields[key] === 'string') &&
+    ['evidenceReviewed', 'responseRecorded'].every(
+      (key) => r.fields[key] === undefined || typeof r.fields[key] === 'boolean',
     ),
 };
+
+// These browser-local extensions are not commands supported by the Shared KYC API.
+kyc.localActions = [
+  ...kyc.actions.map((action) => ({
+    ...action,
+    eligibility: (r: ToolRecord) =>
+      action.id === 'approve'
+        ? 'Illustrative local rule: return to review and assess fictional evidence before approval. No independent-review or client-policy claim.'
+        : action.id === 'resume'
+          ? 'Return to review does not record delivery, receipt, or verification. Assess the evidence separately.'
+          : action.id === 'request-information'
+            ? `Information needed: ${kycDefaults(r).fields.informationNeeded}. The recorded request stays unsent.`
+            : 'Record a reasoned local case transition; no account or provider is changed.',
+    blockedReason:
+      action.id === 'approve'
+        ? (r: ToolRecord) =>
+            r.fields.evidenceReviewed === true
+              ? undefined
+              : 'Assess the fictional evidence before approving. Missing, expired or inconsistent samples need a recorded fictional replacement first.'
+        : undefined,
+    reasonLabel:
+      action.id === 'request-information' ? 'Information needed and follow-up reason' : undefined,
+    applyWithContext: (r: ToolRecord, reason: string) => {
+      const next = action.apply(kycDefaults(r));
+      const context: ToolRecord['fields'] =
+        action.id === 'request-information'
+          ? {
+              informationRequest: reason,
+              communicationState: 'Unsent · no customer messaging integration',
+              responseRecorded: false,
+              responseContext: 'No fictional response recorded for this request.',
+              evidenceReviewed: false,
+            }
+          : action.id === 'resume' || action.id === 'escalate'
+            ? { handoffContext: reason }
+            : { decisionContext: reason };
+      return { ...next, fields: { ...next.fields, ...context } };
+    },
+  })),
+  {
+    id: 'record-response',
+    label: 'Record fictional response',
+    confirmation:
+      'Manually describe a fictional replacement or explanation. This is not a received message or a provider check; the request remains unsent.',
+    eligibility: () =>
+      'Only waiting cases accept fictional response context. Recording it does not resume or approve the case.',
+    reasonLabel: 'Fictional replacement / explanation',
+    available: (r) => r.status === 'Waiting for information',
+    apply: (r) => r,
+    applyWithContext: (r, reason) => ({
+      ...r,
+      fields: {
+        ...kycDefaults(r).fields,
+        responseRecorded: true,
+        responseContext: reason,
+        evidenceReviewed: false,
+      },
+    }),
+  },
+  {
+    id: 'review-evidence',
+    label: 'Assess fictional evidence',
+    confirmation:
+      'Record your assessment of the fictional checklist and any replacement. This illustrative local rule is not identity verification, second review, or client policy.',
+    eligibility: () =>
+      'In review only. Missing, expired, inconsistent or older unknown evidence requires fictional response context, then a separate assessment.',
+    reasonLabel: 'Evidence assessment reason',
+    available: (r) => r.status === 'Needs review' && r.fields.evidenceReviewed !== true,
+    blockedReason: (r) =>
+      gaps(r) && r.fields.responseRecorded !== true
+        ? 'Request the missing information and record a fictional replacement before assessing these evidence gaps.'
+        : undefined,
+    apply: (r) => r,
+    applyWithContext: (r, reason) => ({
+      ...r,
+      fields: { ...kycDefaults(r).fields, evidenceReviewed: true, evidenceReviewContext: reason },
+    }),
+  },
+];
