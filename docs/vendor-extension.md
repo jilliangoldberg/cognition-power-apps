@@ -65,7 +65,7 @@ are deliberately explicit examples, not configurable company policy.
   footprint can be inspected against this PR's base; it is not zero-core-edit
   or configuration-only extensibility.
 - Source footprint against this PR's foundation base: **2 feature implementation
-  files (+898 lines)** and **6 shared integration/style files (+208/−17 lines)**.
+  files (+899 lines)** and **6 shared integration/style files (+208/−17 lines)**.
   Tests and documentation are excluded from these source totals. This is a
   changed-line inventory, not a measurement of independent extension effort.
 - Original Activity remains scoped to the original three local tools. Vendor
@@ -97,9 +97,11 @@ department permissions and separation of duties, server-owned state/concurrency,
 document access controls, retention, notifications, and validated procurement
 policy. Do not reuse this local history as trusted approval history.
 
-Local validation passed: formatting, lint, strict typecheck, **129 automated tests**
-(99 frontend/domain/component + 30 server), production build, and whitespace check.
-The extension adds 33 tests over the 96-test foundation. No browser or live-provider
+Local validation on hardened `main` passed: formatting, lint, strict typecheck,
+**160 automated tests** (126 frontend/domain/component + 34 server), production
+build, and whitespace check. The extension adds 34 tests to the 126-test hardened
+foundation. Vendor IDs use the shared `randomId` helper, so they do not require
+secure-context `crypto.randomUUID`. No browser or live-provider
 test is implied by these automated results.
 
 To support an expansion proposal, measure a second team's real workflow outcome
