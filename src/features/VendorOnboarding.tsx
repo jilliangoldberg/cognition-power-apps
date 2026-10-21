@@ -572,6 +572,7 @@ export function VendorOnboarding() {
                   {event.actor} · <time dateTime={event.at}>{dateTime(event.at)}</time>
                 </p>
                 <p>{event.reason}</p>
+                {event.snapshot && <p>Reviewed details: {event.snapshot}</p>}
               </li>
             ))}
           </ol>

@@ -114,6 +114,32 @@ describe('vendor review policy (local simulation)', () => {
     expect(vendorStatus(next)).toBe('In review');
   });
 
+  it('records the reviewed spend, data access, and prerequisites for each revision', () => {
+    const first = newVendorRequest({
+      ...createVendorFixtures().requests[0].details,
+      annualCents: 4_800_000,
+      dataAccess: 'Customer data',
+      budgetOwner: '',
+      securityReviewed: false,
+    });
+    const approved = reviewVendorRequest(first, 'Legal', 'Approved', 'Contract terms reviewed.');
+    const second = reviseVendorRequest(approved, {
+      ...first.details,
+      annualCents: 9_600_000,
+      dataAccess: 'Internal business data',
+      budgetOwner: 'Demo Finance Lead',
+      securityReviewed: true,
+    });
+    const [submitted, , resubmitted] = second.history;
+    expect(submitted.snapshot).toMatch(
+      /^\$48,000\.00\/yr · Customer data · Budget owner: missing · Security assessment not reviewed/,
+    );
+    expect(resubmitted.snapshot).toMatch(
+      /^\$96,000\.00\/yr · Internal business data · Budget owner: Demo Finance Lead · Security assessment reviewed/,
+    );
+    expect(second.history[1].snapshot).toBeUndefined();
+  });
+
   it.each(['', '    ', 'tiny', 'x'.repeat(1001)])(
     'requires a meaningful bounded review reason',
     (reason) => {
@@ -152,6 +178,21 @@ describe('vendor review policy (local simulation)', () => {
 });
 
 describe('isolated vendor storage', () => {
+  it('loads history saved before revision snapshots were recorded', () => {
+    const state = createVendorFixtures();
+    const legacy = {
+      ...state,
+      requests: state.requests.map((request) => ({
+        ...request,
+        history: request.history.map(({ snapshot: _snapshot, ...event }) => event),
+      })),
+    };
+    localStorage.setItem(VENDOR_STORAGE_KEY, JSON.stringify(legacy));
+    const loaded = loadVendors();
+    expect(loaded.blocked).toBe(false);
+    expect(loaded.data).toEqual(legacy);
+  });
+
   it('round-trips revisions, reviews, and history without touching unrelated state', () => {
     localStorage.setItem('unrelated', 'preserve');
     const data = createVendorFixtures();

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { money } from '../core/format';
 import { randomId } from '../core/id';
 
 export const reviewTeams = ['Finance', 'Security', 'Legal'] as const;
@@ -42,6 +43,7 @@ const requestSchema = z.object({
       actor: z.string(),
       action: z.string(),
       reason: z.string(),
+      snapshot: z.string().optional(),
     }),
   ),
 });
@@ -86,8 +88,24 @@ export function vendorStatus(request: VendorRequest) {
   return 'In review';
 }
 
-function historyEvent(actor: string, action: string, reason: string, at: string) {
-  return { id: randomId(), actor, action, reason, at };
+function historyEvent(
+  actor: string,
+  action: string,
+  reason: string,
+  at: string,
+  snapshot?: string,
+) {
+  return { id: randomId(), actor, action, reason, at, ...(snapshot && { snapshot }) };
+}
+
+export function revisionSnapshot(details: VendorDetails): string {
+  return [
+    `${money(details.annualCents)}/yr`,
+    details.dataAccess,
+    `Budget owner: ${details.budgetOwner || 'missing'}`,
+    `Security assessment ${details.securityReviewed ? 'reviewed' : 'not reviewed'}`,
+    `Contract ${details.contractReviewed ? 'reviewed' : 'not reviewed'}`,
+  ].join(' · ');
 }
 
 export function newVendorRequest(
@@ -101,7 +119,15 @@ export function newVendorRequest(
     revision: 1,
     details: parsed.data,
     reviews: pendingReviews(),
-    history: [historyEvent('Demo requester', 'Submitted revision 1', parsed.data.purpose, at)],
+    history: [
+      historyEvent(
+        'Demo requester',
+        'Submitted revision 1',
+        parsed.data.purpose,
+        at,
+        revisionSnapshot(parsed.data),
+      ),
+    ],
   };
 }
 
@@ -123,6 +149,7 @@ export function reviseVendorRequest(
         `Resubmitted revision ${revision}; all reviews reset`,
         'Review the updated request again. Prior decisions apply only to earlier revisions.',
         at,
+        revisionSnapshot(next.details),
       ),
     ],
   };
@@ -176,6 +203,7 @@ export function createVendorFixtures(): VendorState {
         actor: 'Demo requester',
         action: 'Submitted revision 1',
         reason: details.purpose,
+        snapshot: revisionSnapshot(details),
       },
     ],
   });
