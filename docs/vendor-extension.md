@@ -84,7 +84,7 @@ are deliberately explicit examples, not configurable company policy.
 ## Validation and next commercial proof
 
 Automated tests cover required teams, blockers, review reasons, readiness,
-resubmission invalidation/history, malformed storage, persistence failures,
+resubmission invalidation/history with per-revision reviewed-detail snapshots, malformed storage, persistence failures,
 forms/filters, custom-page registration, independent resets, original saved-work
 compatibility, Investigation navigation, and the absence of client fetches in the
 vendor demo. Component tests use jsdom with a mocked native dialog API; they do
@@ -98,8 +98,8 @@ document access controls, retention, notifications, and validated procurement
 policy. Do not reuse this local history as trusted approval history.
 
 Local validation on hardened `main` passed: formatting, lint, strict typecheck,
-**160 automated tests** (126 frontend/domain/component + 34 server), production
-build, and whitespace check. The extension adds 34 tests to the 126-test hardened
+**162 automated tests** (128 frontend/domain/component + 34 server), production
+build, and whitespace check. The extension adds 36 tests to the 126-test hardened
 foundation. Vendor IDs use the shared `randomId` helper, so they do not require
 secure-context `crypto.randomUUID`. No browser or live-provider
 test is implied by these automated results.
