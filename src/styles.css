@@ -1109,6 +1109,7 @@ tbody tr:focus-within {
   font-size: 11px;
 }
 .record-id {
+  overflow-wrap: anywhere;
   font-size: 8px;
   margin-top: 5px;
   display: block;
@@ -1233,7 +1234,14 @@ tbody tr:focus-within {
   font-size: 18px;
   letter-spacing: -0.4px;
 }
+.dialog-header > div {
+  min-width: 0;
+}
+.dialog-header .icon-button {
+  flex-shrink: 0;
+}
 .dialog-header .eyebrow {
+  overflow-wrap: anywhere;
   font-size: 9px;
   letter-spacing: 1px;
   margin-bottom: 8px;
@@ -1777,6 +1785,7 @@ tbody tr:focus-within {
 .workspace-record-reference {
   font-size: 11px;
   width: fit-content;
+  max-width: 100%;
   text-decoration: underline;
   color: #654592;
 }
