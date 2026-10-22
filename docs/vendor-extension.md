@@ -53,7 +53,7 @@ are deliberately explicit examples, not configurable company policy.
 | --------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- |
 | Workspace shell, hash navigation, mobile navigation | Request schema, fictional fixtures, review prerequisites            | Register one custom page; add its `Page` identifier     |
 | `Badge`, `Dialog`, `Icon`                           | Required teams, derived readiness, immutable decisions per revision | Typed page summaries list it in the Overview directory  |
-| `money`, `dateTime`                                 | Edit/resubmit resets, reasoned decisions, revision history          | Clarify reset scope and About's expansion narrative     |
+| `money`, `dateTime`                                 | Edit/resubmit resets, reasoned decisions, revision history          | Clarify reset scope                                     |
 | Metrics, panels, table, detail and timeline styling | Independent versioned browser storage and explicit vendor reset     | Feature-specific CSS; no global workflow-engine changes |
 
 - No changes to `ToolModule`, queue record schemas, v1/v2 migrations, original

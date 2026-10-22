@@ -206,10 +206,6 @@ export function Overview({
           Local notes and actions are demo activity, not authenticated audit history.{' '}
           <button className="text-button" onClick={() => navigate('activity')}>
             View local activity
-          </button>{' '}
-          ·{' '}
-          <button className="text-button" onClick={() => navigate('about')}>
-            About prototype
           </button>
         </span>
       </div>

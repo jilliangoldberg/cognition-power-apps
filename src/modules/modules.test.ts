@@ -6,7 +6,7 @@ import { isDemoState } from '../core/storage';
 
 // Every registered tool must pass these checks; a new tool gets them without writing extra tests.
 const now = new Date('2026-01-15T12:00:00Z');
-const reserved = ['overview', 'activity', 'about', ...customPages.map((page) => page.id)];
+const reserved = ['overview', 'activity', ...customPages.map((page) => page.id)];
 
 describe.each(modules.map((module) => [module.id, module] as const))(
   '%s tool contract',
