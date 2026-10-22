@@ -36,6 +36,7 @@ export default function App() {
   const [writeWarning, setWriteWarning] = useState('');
   const warning = writeWarning || snapshot.warning;
   const [resetOpen, setResetOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -303,6 +304,11 @@ export default function App() {
             </span>
             <span className="topbar-divider" />
             <span className="subtle">Synthetic data only</span>
+            <span className="topbar-divider" />
+            <button className="text-button" onClick={() => setSignInOpen(true)}>
+              <Icon name="identity" size={14} />
+              Sign in
+            </button>
           </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
@@ -412,6 +418,27 @@ export default function App() {
               </button>
               <button className="button button-danger" onClick={reset}>
                 Reset demo data
+              </button>
+            </div>
+          </div>
+        </Dialog>
+      )}
+      {signInOpen && (
+        <Dialog
+          title="Sign-in isn't part of this demo"
+          subtitle="ACCESS"
+          onClose={() => setSignInOpen(false)}
+        >
+          <div className="reset-body">
+            <p>
+              This prototype has no sign-in. Everyone uses it as the demo operator and can see every
+              tool. In production, everyone would sign in through your identity provider (SSO), with
+              access set per tool and enforced on the server. That is planned for the pilot. Shared
+              KYC shows an early version of server-enforced roles using demo passwords.
+            </p>
+            <div className="action-buttons">
+              <button className="button button-secondary" onClick={() => setSignInOpen(false)}>
+                Got it
               </button>
             </div>
           </div>

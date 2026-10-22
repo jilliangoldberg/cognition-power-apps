@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from '../App';
@@ -26,6 +26,14 @@ describe('vendor onboarding extension', () => {
     expect(screen.getByText('Saved owner', { selector: 'span.owner' })).toBeInTheDocument();
     expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
     expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it('selects a request from anywhere on its row', () => {
+    render(<VendorOnboarding />);
+    const button = screen.getByRole('button', { name: 'Open Harbor Demo Recruiting' });
+    fireEvent.click(button.closest('tr')!.querySelectorAll('td')[1]);
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('heading', { name: 'Harbor Demo Recruiting' })).toBeInTheDocument();
   });
 
   it('submits a request, simulates required reviews, and persists a handoff marker without external writes', async () => {
