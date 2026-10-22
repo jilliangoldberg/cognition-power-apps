@@ -24,16 +24,16 @@ export function kycSamples(now: Date): ToolRecord[] {
       'Request the missing information and place the case in the waiting queue.',
     ],
     'KYC-1037': [
-      'Example resolved review: the address discrepancy was explained in a resubmission.',
-      'No further case decision; approval here is not provider verification.',
+      'Address discrepancy explained in a resubmission.',
+      'Case closed. No further action needed.',
     ],
     'KYC-1036': [
-      'Example resolved review: the customer supplied consistent replacement information.',
-      'No further case decision in this sample.',
+      'The customer supplied consistent replacement documents.',
+      'Case closed. No further action needed.',
     ],
     'KYC-1035': [
-      'Example closed review: inconsistent information remained unresolved after follow-up.',
-      'This illustrative case decision is not a statement about an actual customer.',
+      'Identity details remained inconsistent after follow-up.',
+      'Case closed. No further action needed.',
     ],
     'KYC-1034': [
       'The first submission was unreadable; clearer evidence has been requested.',
@@ -45,7 +45,7 @@ export function kycSamples(now: Date): ToolRecord[] {
     ],
     'KYC-1032': [
       'A resubmission arrived after missing identity information was requested.',
-      'Review the new information rather than treating receipt as approval.',
+      'Review the resubmitted documents before deciding.',
     ],
     'KYC-1031': [
       'Two supplied identity fields conflict; the case needs another reviewer.',
@@ -56,9 +56,164 @@ export function kycSamples(now: Date): ToolRecord[] {
       'Check the explanation and record a reasoned case decision.',
     ],
     'KYC-1029': [
-      'Example completed refresh: the requested information was supplied and reviewed.',
-      'No further decision is needed in this local sample.',
+      'Periodic refresh completed; the requested information was supplied.',
+      'Case closed. No further action needed.',
     ],
+  };
+  // DOB, phone, address, customer since, identity document, address document, match note.
+  const profile = (...values: string[]) =>
+    Object.fromEntries(
+      [
+        'dateOfBirth',
+        'phone',
+        'address',
+        'customerSince',
+        'identityDocument',
+        'addressDocument',
+        'consistencyNote',
+      ].map((key, index) => [key, values[index]]),
+    );
+  const profiles: Record<string, ToolRecord['fields']> = {
+    'KYC-1042': profile(
+      '14 Mar 1989',
+      '+1 415 555 0142',
+      '218 Alder Street, Apt 4B, Portland, OR 97205',
+      'Jun 2021',
+      'Passport · expires Mar 2031',
+      'Bank statement · Sep 2026',
+      'Surname on passport differs from profile; name-change certificate on file',
+    ),
+    'KYC-1041': profile(
+      '2 Nov 1994',
+      '+44 20 7946 0141',
+      '17 Kingsley Road, Leeds LS6 2AB',
+      'Oct 2026',
+      'Driving licence · expires Jul 2033',
+      'Utility bill',
+      'Name, date of birth and address match',
+    ),
+    'KYC-1040': profile(
+      '23 Jul 1986',
+      '+34 912 555 140',
+      'Calle de Serrano 41, 3º, 28001 Madrid',
+      'Feb 2022',
+      'National ID card · expires Jan 2030',
+      'Bank statement · Aug 2026',
+      'Date of birth on ID differs from profile',
+    ),
+    'KYC-1039': profile(
+      '9 May 1991',
+      '+1 416 555 0139',
+      '88 Harbord Street, Toronto, ON M5S 1G6',
+      'Mar 2020',
+      'Driving licence · expiry Aug 2026',
+      'Utility bill · Sep 2026',
+      'Name, date of birth and address match',
+    ),
+    'KYC-1038': profile(
+      '30 Jan 1998',
+      '+1 312 555 0138',
+      '1450 N Dearborn Street, Chicago, IL 60610',
+      'Oct 2026',
+      'Passport',
+      'Bank statement · Oct 2026',
+      'Name and address match',
+    ),
+    'KYC-1037': profile(
+      '11 Dec 1990',
+      '+82 2 555 0137',
+      '25 Sejong-daero, Jung-gu, Seoul 04519',
+      'Oct 2026',
+      'Passport · expires Apr 2032',
+      'Lease agreement · Oct 2026',
+      'Name, date of birth and address match',
+    ),
+    'KYC-1036': profile(
+      '6 Aug 1987',
+      '+61 2 5550 1036',
+      '9 Bondi Road, Bondi NSW 2026',
+      'Jan 2019',
+      'Passport · expires Nov 2029',
+      'Utility bill · Sep 2026',
+      'Name, date of birth and address match',
+    ),
+    'KYC-1035': profile(
+      '19 Apr 1983',
+      '+55 11 5555 1035',
+      'Rua Augusta 1508, São Paulo, SP 01304-001',
+      'Oct 2026',
+      'National ID card · expires Jun 2031',
+      'Bank statement · Sep 2026',
+      'Name and date of birth differ across ID and profile',
+    ),
+    'KYC-1034': profile(
+      '27 Sep 1996',
+      '+1 646 555 0134',
+      '310 W 94th Street, New York, NY 10025',
+      'Oct 2026',
+      'Passport · expires Feb 2034',
+      'Utility bill photo',
+      'Name and date of birth match',
+    ),
+    'KYC-1033': profile(
+      '15 Feb 1979',
+      '+44 161 496 0133',
+      '4 Beech Grove, Manchester M14 6RZ',
+      'May 2017',
+      'Passport · expires Sep 2028',
+      'Utility bill · new address',
+      'Name and date of birth match',
+    ),
+    'KYC-1032': profile(
+      '3 Jun 1993',
+      '+1 604 555 0132',
+      '1221 Robson Street, Vancouver, BC V6E 1C3',
+      'Aug 2024',
+      'Passport · expires Oct 2030 · resubmitted',
+      'Bank statement · Oct 2026',
+      'Name, date of birth and address match',
+    ),
+    'KYC-1031': profile(
+      '21 Oct 1988',
+      '+33 1 55 55 10 31',
+      '12 Rue de Charonne, 75011 Paris',
+      'Apr 2023',
+      'National ID card · expires Mar 2029',
+      'Utility bill · Sep 2026',
+      'Surname and date of birth on ID conflict with profile',
+    ),
+    'KYC-1030': profile(
+      '8 Jan 2000',
+      '+1 713 555 0130',
+      '5100 San Felipe Street, Houston, TX 77056',
+      'Oct 2026',
+      'Driving licence · expires Jan 2031',
+      'Bank statement · Oct 2026',
+      'First name spelled "Zahra" on licence; customer explained the transliteration',
+    ),
+    'KYC-1029': profile(
+      '29 Mar 1985',
+      '+1 902 555 0129',
+      '1580 Barrington Street, Halifax, NS B3J 1Z7',
+      'Sep 2018',
+      'Passport · expires Dec 2030',
+      'Utility bill · Sep 2026',
+      'Name, date of birth and address match',
+    ),
+  };
+  const assessments: Record<string, string> = {
+    'KYC-1042': 'Name-change certificate explains the surname difference.',
+    'KYC-1037': 'Resubmitted lease confirms the address on the profile.',
+    'KYC-1036': 'Replacement documents are consistent with the profile.',
+    'KYC-1032': 'Resubmitted passport is legible and matches the profile.',
+    'KYC-1030': 'Licence spelling is a transliteration of the profile name.',
+    'KYC-1029': 'Refreshed documents match the profile.',
+  };
+  const requests: Record<string, string> = {
+    'KYC-1034':
+      'Asked for a clearer photo of the utility bill showing name, address and issue date.',
+    'KYC-1033':
+      'Asked the customer to confirm their new address with a dated utility bill or bank statement.',
   };
   const customer = (
     id: string,
@@ -88,18 +243,18 @@ export function kycSamples(now: Date): ToolRecord[] {
       nextStep: contexts[id][1],
       identityEvidence:
         id === 'KYC-1039'
-          ? 'Expired fictional document'
+          ? 'Expired document'
           : id === 'KYC-1038'
-            ? 'Missing fictional identity field'
-            : 'Consistent fictional sample',
+            ? 'Missing required field'
+            : 'Clear',
       addressEvidence: ['KYC-1041', 'KYC-1033'].includes(id)
-        ? 'Missing dated fictional address evidence'
+        ? 'Missing issue date'
         : id === 'KYC-1034'
-          ? 'Unreadable fictional submission'
-          : 'Consistent fictional sample',
+          ? 'Unreadable upload'
+          : 'Clear',
       consistencyEvidence: ['KYC-1040', 'KYC-1031', 'KYC-1035'].includes(id)
-        ? 'Inconsistent fictional identity details'
-        : 'Consistent fictional sample',
+        ? "Details don't match"
+        : 'Clear',
       evidenceReviewed: [
         'KYC-1042',
         'KYC-1037',
@@ -108,11 +263,10 @@ export function kycSamples(now: Date): ToolRecord[] {
         'KYC-1030',
         'KYC-1029',
       ].includes(id),
-      evidenceReviewContext:
-        id === 'KYC-1042'
-          ? 'Fixture context: a fictional name-change explanation resolves the original discrepancy; no real review was performed.'
-          : 'Initial synthetic scenario, not an authenticated review event.',
+      evidenceReviewContext: assessments[id] ?? '',
       informationNeeded: contexts[id][1],
+      informationRequest: requests[id] ?? '',
+      ...profiles[id],
     },
   });
   return [

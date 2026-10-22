@@ -20,7 +20,7 @@ describe('browser-local My work', () => {
     data.records.kyc[0].fields.evidenceReviewed = false;
     const item = workspaceItems(data).find(({ record }) => record.id === 'KYC-1042')!;
     expect(item.waiting).toBe(true);
-    expect(item.reason).toContain('Assess the fictional evidence before approving');
+    expect(item.reason).toContain('Assess the evidence before approving');
     expect(workItemsForView([item], 'mine')).toEqual([]);
     data.records.kyc[0].fields.evidenceReviewed = true;
     expect(workspaceItems(data).find(({ record }) => record.id === 'KYC-1042')!.waiting).toBe(

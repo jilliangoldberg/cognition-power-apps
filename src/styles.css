@@ -1462,6 +1462,40 @@ tbody tr:focus-within {
 .detail-grid > div:last-child {
   grid-column: 1/-1;
 }
+.detail-grid > .detail-wide {
+  grid-column: 1/-1;
+}
+.detail-grid dt .badge,
+.check-list dt .badge {
+  margin-left: 8px;
+}
+.check-list {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.check-list > div {
+  padding: 13px 15px;
+}
+.check-list > div + div {
+  border-top: 1px solid var(--line);
+}
+.check-list dt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #1d1d1f;
+  font-size: 12px;
+  font-weight: 600;
+}
+.check-list dd {
+  margin: 6px 0 0;
+  color: #1d1d1f;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
 .detail-divider {
   border-top: 1px solid var(--line);
   margin-top: 26px;
