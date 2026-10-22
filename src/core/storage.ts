@@ -1,5 +1,6 @@
 import { modules } from '../modules';
 import { createFixtures } from './fixtures';
+import { isRecordId } from './id';
 import type { Activity, DemoState, ToolRecord } from './types';
 
 export const STORAGE_KEY = 'workbench.demo.v1';
@@ -12,6 +13,7 @@ export function isRecord(value: unknown): value is ToolRecord {
   return (
     object(value) &&
     ['id', 'name', 'subtitle', 'status', 'owner'].every((key) => typeof value[key] === 'string') &&
+    isRecordId(value.id) &&
     validDate(value.updatedAt) &&
     (value.openedAt === undefined ||
       (validDate(value.openedAt) && Date.parse(value.openedAt) <= Date.parse(value.updatedAt))) &&

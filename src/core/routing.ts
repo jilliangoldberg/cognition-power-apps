@@ -1,4 +1,5 @@
 import { getModule, modules } from '../modules';
+import { isRecordId } from './id';
 import type { Page, ToolId } from './types';
 import { defaultFilters, queueFilterParams, readQueueFilters, type RecordFilters } from './views';
 import { isWorkView, type WorkView } from './workspace';
@@ -37,7 +38,7 @@ export function readRoute(hash: string, pages: Page[]): WorkspaceRoute {
   if (encodedId !== undefined) {
     try {
       const id = decodeURIComponent(encodedId);
-      if (!isToolPage(page) || !id || id.length > 500 || extra.length > 0)
+      if (!isToolPage(page) || !isRecordId(id) || extra.length > 0)
         throw new Error('Invalid record link');
       route.selection = { moduleId: page, id };
     } catch {
