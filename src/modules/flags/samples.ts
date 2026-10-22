@@ -31,7 +31,7 @@ export function flagSamples(now: Date): ToolRecord[] {
       'Payments',
       'A redesigned checkout flow for internal test accounts.',
       2,
-      'Synthetic checkout test cohort',
+      'Checkout beta testers',
     ),
     flag(
       'FLG-002',
@@ -51,7 +51,7 @@ export function flagSamples(now: Date): ToolRecord[] {
       'Growth',
       'A shorter onboarding flow for staging test accounts.',
       36,
-      'Synthetic onboarding cohort',
+      'New sign-ups on test accounts',
     ),
     flag(
       'FLG-004',
@@ -59,7 +59,7 @@ export function flagSamples(now: Date): ToolRecord[] {
       'transaction_timeline',
       'Disabled',
       'Platform',
-      'A consolidated view of synthetic transaction events.',
+      'A consolidated view of transaction events.',
       72,
       'Platform engineering test accounts',
     ),
