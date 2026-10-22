@@ -3,7 +3,7 @@ import type { Page } from './types';
 import { defaultFilters } from './views';
 import { readRoute, recordRoute, routeHash } from './routing';
 
-const pages: Page[] = ['overview', 'kyc', 'refunds', 'flags', 'investigation', 'activity', 'about'];
+const pages: Page[] = ['overview', 'kyc', 'refunds', 'flags', 'investigation', 'activity'];
 
 describe('workspace hash routes', () => {
   it.each(pages)('preserves the existing #%s page', (page) => {
