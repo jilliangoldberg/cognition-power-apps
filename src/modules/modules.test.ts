@@ -42,16 +42,24 @@ describe.each(modules.map((module) => [module.id, module] as const))(
     });
 
     it('only moves records between declared statuses', () => {
-      for (const action of module.actions) {
-        const available = records.filter(action.available);
-        expect(available.length, `${action.id} has no sample record to act on`).toBeGreaterThan(0);
-        for (const record of available) {
-          const next = action.apply(record);
-          expect(Object.hasOwn(module.statuses, next.status)).toBe(true);
-          expect(module.validateFields(next)).toBe(true);
-          expect(next.id).toBe(record.id);
-        }
+      // Actions may depend on an earlier action (e.g. approve, then simulate), so walk a few steps.
+      let frontier = records.map((record) => module.withDefaults?.(record) ?? record);
+      const used = new Set<string>();
+      for (let step = 0; step < 4 && frontier.length; step++) {
+        const next: typeof frontier = [];
+        for (const action of module.actions)
+          for (const record of frontier.filter(action.available)) {
+            used.add(action.id);
+            const after = action.apply(record);
+            expect(Object.hasOwn(module.statuses, after.status)).toBe(true);
+            expect(module.validateFields(after)).toBe(true);
+            expect(after.id).toBe(record.id);
+            next.push(after);
+          }
+        frontier = next;
       }
+      for (const action of module.actions)
+        expect(used.has(action.id), `${action.id} is unreachable from sample records`).toBe(true);
     });
   },
 );

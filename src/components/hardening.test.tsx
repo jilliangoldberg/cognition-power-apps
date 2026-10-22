@@ -8,7 +8,7 @@ import { randomId } from '../core/id';
 import { STORAGE_KEY } from '../core/storage';
 import { defaultFilters, loadViews, saveViews } from '../core/views';
 import { kyc } from '../modules/kyc';
-import { Overview } from './Overview';
+import { ActivityView } from './ActivityView';
 import { RecordDrawer } from './RecordDrawer';
 import { ToolView } from './ToolView';
 
@@ -185,7 +185,7 @@ describe('local workbench integrity', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('shows notes without inventing a state transition on Overview', () => {
+  it('shows notes without inventing a state transition in local Activity', () => {
     const data = createFixtures();
     const next = executeAction(data, {
       kind: 'note',
@@ -194,9 +194,10 @@ describe('local workbench integrity', () => {
       expectedVersion: 1,
       reason: 'Fictional context only.',
     });
-    render(<Overview data={next} navigate={() => {}} />);
-    const item = screen.getByText('Note added').closest('p')!;
+    render(<ActivityView activity={next.activity} />);
+    const item = screen.getByText('Note added').closest('article')!;
     expect(within(item).getByText(data.records.kyc[0].name)).toBeInTheDocument();
+    expect(item.querySelector('.state-change')).toBeNull();
     expect(item).not.toHaveTextContent('→');
   });
 });

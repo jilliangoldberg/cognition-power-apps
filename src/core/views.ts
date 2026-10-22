@@ -26,6 +26,31 @@ export const defaultFilters: RecordFilters = {
   sort: 'updated',
   agingOnly: false,
 };
+
+export function readQueueFilters(module: ToolModule, params: URLSearchParams): RecordFilters {
+  const status = params.get('status');
+  const sort = params.get('sort');
+  return {
+    search: (params.get('search') ?? '').slice(0, 500),
+    status: status && Object.hasOwn(module.statuses, status) ? status : 'all',
+    owner: (params.get('owner') || 'all').slice(0, 200),
+    sort:
+      sort && ['updated', 'opened', 'name', 'id'].includes(sort)
+        ? (sort as RecordFilters['sort'])
+        : 'updated',
+    agingOnly: params.get('aging') === '1',
+  };
+}
+
+export function queueFilterParams(filters: RecordFilters): URLSearchParams {
+  const params = new URLSearchParams();
+  if (filters.search) params.set('search', filters.search);
+  if (filters.status !== 'all') params.set('status', filters.status);
+  if (filters.owner !== 'all') params.set('owner', filters.owner);
+  if (filters.sort !== 'updated') params.set('sort', filters.sort);
+  if (filters.agingOnly) params.set('aging', '1');
+  return params;
+}
 export const viewsKey = (id: ToolId, namespace?: string) =>
   `workbench.views.v1.${namespace ? `${namespace}.` : ''}${id}`;
 

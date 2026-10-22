@@ -31,6 +31,11 @@ export function refundSamples(now: Date): ToolRecord[] {
       refundedCents,
       reason,
       paymentAt: time(paymentId === 'PAY-8069' ? 200 : hours + 96),
+      sharedPaymentContext: paymentId === 'PAY-8069',
+      relatedRequests:
+        paymentId === 'PAY-8069'
+          ? `${id === 'REF-0199' ? 'REF-0195 · Failed example · 8450 cents' : 'REF-0199 · Requested · 24995 cents'} · initial synthetic snapshot, not reconciliation; current siblings are rechecked before actions`
+          : 'No sibling in the initial synthetic snapshot; current siblings are rechecked before actions.',
       summary:
         paymentId === 'PAY-8069'
           ? 'Two sample requests share this payment. Simulation is blocked: shared refundable capacity and reconciliation are not modeled. Investigate the other request first.'

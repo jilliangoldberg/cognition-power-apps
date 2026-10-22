@@ -86,6 +86,33 @@ export function kycSamples(now: Date): ToolRecord[] {
       reviewReason,
       summary: contexts[id][0],
       nextStep: contexts[id][1],
+      identityEvidence:
+        id === 'KYC-1039'
+          ? 'Expired fictional document'
+          : id === 'KYC-1038'
+            ? 'Missing fictional identity field'
+            : 'Consistent fictional sample',
+      addressEvidence: ['KYC-1041', 'KYC-1033'].includes(id)
+        ? 'Missing dated fictional address evidence'
+        : id === 'KYC-1034'
+          ? 'Unreadable fictional submission'
+          : 'Consistent fictional sample',
+      consistencyEvidence: ['KYC-1040', 'KYC-1031', 'KYC-1035'].includes(id)
+        ? 'Inconsistent fictional identity details'
+        : 'Consistent fictional sample',
+      evidenceReviewed: [
+        'KYC-1042',
+        'KYC-1037',
+        'KYC-1036',
+        'KYC-1032',
+        'KYC-1030',
+        'KYC-1029',
+      ].includes(id),
+      evidenceReviewContext:
+        id === 'KYC-1042'
+          ? 'Fixture context: a fictional name-change explanation resolves the original discrepancy; no real review was performed.'
+          : 'Initial synthetic scenario, not an authenticated review event.',
+      informationNeeded: contexts[id][1],
     },
   });
   return [

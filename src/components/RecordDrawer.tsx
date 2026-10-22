@@ -1,11 +1,13 @@
 import { useRef, useState, type FormEvent } from 'react';
 import type { Activity, RecordAction, ToolModule, ToolRecord } from '../core/types';
 import type { MutationRequest } from '../core/actions';
+import { actionBlock } from '../core/eligibility';
 import { ageLabel, dateTime, initials } from '../core/format';
 import { useNow } from '../core/useNow';
 import { Badge } from './Badge';
 import { Dialog } from './Dialog';
 import { Icon } from './Icon';
+import './domain-workflows.css';
 
 type FormChoice = { version: number } & (
   | { kind: 'action'; action: RecordAction }
@@ -13,9 +15,13 @@ type FormChoice = { version: number } & (
   | { kind: 'note' }
 );
 
+type Draft = { form: FormChoice; reason: string; owner: string };
+const draftKey = (form: FormChoice) => (form.kind === 'action' ? form.action.id : form.kind);
+
 export function RecordDrawer({
   module,
   record,
+  records,
   activity,
   onClose,
   onAction,
@@ -25,6 +31,7 @@ export function RecordDrawer({
 }: {
   module: ToolModule;
   record: ToolRecord;
+  records?: ToolRecord[];
   activity: (Activity & { actorName?: string })[];
   onClose: () => void;
   onAction: (request: MutationRequest) => string | null | Promise<string | null>;
@@ -37,21 +44,64 @@ export function RecordDrawer({
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [closePrompt, setClosePrompt] = useState(false);
   const saving = useRef(false);
   const now = useNow();
-  const available = module.actions.filter((candidate) => candidate.available(record));
+  const available = (
+    persistence === 'local' ? (module.localActions ?? module.actions) : module.actions
+  ).filter((candidate) => candidate.available(record));
   const action = form?.kind === 'action' ? form.action : null;
+  const blocked =
+    action && !action.available(record)
+      ? 'This action no longer applies to the displayed case. Your draft is retained for review or copying; choose another action.'
+      : action && actionBlock(action, record, records);
   const label = action?.label ?? (form?.kind === 'assignment' ? 'Reassign owner' : 'Add note');
   const notes = activity.filter((event) => event.kind === 'note');
   const changes = activity.filter((event) => event.kind !== 'note');
   function clearForm() {
+    if (form)
+      setDrafts((saved) => {
+        const next = { ...saved };
+        delete next[draftKey(form)];
+        return next;
+      });
     setForm(null);
     setReason('');
     setError('');
   }
+  function openForm(choice: FormChoice) {
+    const key = draftKey(choice);
+    const saved = drafts[key];
+    setForm(saved?.form ?? choice);
+    setReason(saved?.reason ?? '');
+    setOwner(saved?.owner ?? record.owner);
+    setError('');
+    setDrafts((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  }
+  function cancelForm() {
+    if (form && (reason || (form.kind === 'assignment' && owner !== record.owner)))
+      setDrafts((saved) => ({ ...saved, [draftKey(form)]: { form, reason, owner } }));
+    setForm(null);
+    setReason('');
+    setError('');
+  }
+  function requestClose() {
+    if (submitting) return;
+    if (
+      (form && (reason || (form.kind === 'assignment' && owner !== record.owner))) ||
+      Object.keys(drafts).length
+    )
+      setClosePrompt(true);
+    else onClose();
+  }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!form || saving.current || readOnly) return;
+    if (!form || saving.current || readOnly || blocked || closePrompt) return;
     saving.current = true;
     setSubmitting(true);
     const target = {
@@ -83,10 +133,27 @@ export function RecordDrawer({
     <Dialog
       title="Record details"
       subtitle={`${module.shortTitle} / ${record.id}`}
-      onClose={onClose}
+      onClose={requestClose}
       drawer
     >
       <div className="drawer-body">
+        {closePrompt && (
+          <div className="workflow-draft-warning" role="alert">
+            <strong>Keep your unsaved draft?</strong>
+            <p>
+              Cancel keeps drafts while this drawer stays open. Closing or reloading discards them;
+              no change has been confirmed by closing.
+            </p>
+            <div className="action-buttons">
+              <button className="button button-primary" onClick={() => setClosePrompt(false)}>
+                Keep editing
+              </button>
+              <button className="button button-secondary" onClick={onClose}>
+                Discard drafts and close
+              </button>
+            </div>
+          </div>
+        )}
         <div className="record-profile">
           <span className={`avatar avatar-large ${module.recordIcon ? 'avatar-icon' : 'avatar-0'}`}>
             {module.recordIcon ? (
@@ -127,6 +194,24 @@ export function RecordDrawer({
             </div>
           ))}
         </dl>
+        {persistence === 'local' && module.localDetails && (
+          <section className="workflow-context" aria-label="Local workflow context">
+            <h4 className="section-label">FICTIONAL EVIDENCE &amp; FOLLOW-UP</h4>
+            <dl className="workflow-context-list">
+              {module.localDetails.map((detail) => (
+                <div key={detail.label}>
+                  <dt>{detail.label}</dt>
+                  <dd>{detail.value(record)}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="input-hint">
+              Checklist items and assessment rules are illustrative—not verified client policy or
+              real identity checks. Reassign owner to record a reasoned handoff; owner labels are
+              not authenticated reviewers.
+            </p>
+          </section>
+        )}
         <div className="detail-divider" />
         <h4 className="section-label">ACTIONS</h4>
         {readOnly ? (
@@ -142,6 +227,22 @@ export function RecordDrawer({
                     ? 'Owners are local demo labels, not authenticated people or permissions. Explain the handoff.'
                     : 'Add fictional operational context only. Notes stay in this browser and are editable local data, not a secure audit log.')}
             </p>
+            {action?.eligibility && (
+              <p className="workflow-eligibility">{action.eligibility(record)}</p>
+            )}
+            {action?.preview && <p className="workflow-diff">{action.preview(record)}</p>}
+            {blocked && (
+              <p className="form-error" role="alert">
+                {blocked}
+              </p>
+            )}
+            {form.version !== record.version && (
+              <p className="workflow-draft-warning">
+                This draft targets version {form.version}; displayed version is {record.version}.
+                Review the changed details before explicitly choosing the newer version. Input is
+                retained.
+              </p>
+            )}
             {form.kind === 'assignment' && (
               <>
                 <label htmlFor="demo-owner">New owner</label>
@@ -158,7 +259,11 @@ export function RecordDrawer({
               </>
             )}
             <label htmlFor="action-reason">
-              {form.kind === 'note' ? 'Note' : 'Decision reason'}{' '}
+              {form.kind === 'note'
+                ? 'Note'
+                : action?.reasonLabel
+                  ? `${action.reasonLabel} · Decision reason`
+                  : 'Decision reason'}{' '}
               <span className="required">*</span>
             </label>
             <textarea
@@ -178,16 +283,18 @@ export function RecordDrawer({
                 {error}
               </p>
             )}
-            {onRefresh && (
+            {(onRefresh || record.version !== form.version) && (
               <div className="action-buttons">
-                <button
-                  type="button"
-                  className="button button-secondary"
-                  disabled={submitting}
-                  onClick={onRefresh}
-                >
-                  Refresh latest case (keep input)
-                </button>
+                {onRefresh && (
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    disabled={submitting}
+                    onClick={onRefresh}
+                  >
+                    Refresh latest case (keep input)
+                  </button>
+                )}
                 {record.version !== form.version && (
                   <button
                     type="button"
@@ -209,7 +316,7 @@ export function RecordDrawer({
               <button
                 type="button"
                 className="button button-secondary"
-                onClick={clearForm}
+                onClick={cancelForm}
                 disabled={submitting}
               >
                 Cancel
@@ -219,6 +326,7 @@ export function RecordDrawer({
                 type="submit"
                 disabled={
                   submitting ||
+                  Boolean(blocked) ||
                   reason.trim().length < 5 ||
                   (form.kind === 'assignment' && owner === record.owner)
                 }
@@ -229,6 +337,27 @@ export function RecordDrawer({
           </form>
         ) : (
           <>
+            {Object.keys(drafts).length > 0 && (
+              <div className="workflow-draft-warning" role="status">
+                <p>
+                  Draft retained in this drawer. Reopen the same action to continue; closing or
+                  reloading discards it.
+                </p>
+                {Object.values(drafts).map((draft) => (
+                  <button
+                    className="button button-secondary"
+                    key={draftKey(draft.form)}
+                    onClick={() => openForm(draft.form)}
+                  >
+                    Resume{' '}
+                    {draft.form.kind === 'action'
+                      ? draft.form.action.label.toLowerCase()
+                      : draft.form.kind}{' '}
+                    draft
+                  </button>
+                ))}
+              </div>
+            )}
             <p className="action-help">
               {available.length
                 ? 'Choose an action, then add a reason to confirm.'
@@ -237,34 +366,36 @@ export function RecordDrawer({
             </p>
             <div className="action-buttons">
               {available.map((candidate) => (
-                <button
-                  key={candidate.id}
-                  className={`button ${candidate.tone === 'primary' ? 'button-primary' : candidate.tone === 'danger' ? 'button-danger-outline' : 'button-secondary'}`}
-                  onClick={() => {
-                    setForm({ kind: 'action', action: candidate, version: record.version });
-                    setReason('');
-                    setError('');
-                  }}
-                >
-                  {candidate.label}
-                </button>
+                <div className="workflow-action" key={candidate.id}>
+                  <button
+                    className={`button ${candidate.tone === 'primary' ? 'button-primary' : candidate.tone === 'danger' ? 'button-danger-outline' : 'button-secondary'}`}
+                    onClick={() =>
+                      openForm({ kind: 'action', action: candidate, version: record.version })
+                    }
+                    disabled={Boolean(actionBlock(candidate, record, records))}
+                    aria-describedby={`eligibility-${candidate.id}`}
+                  >
+                    {candidate.label}
+                  </button>
+                  <p id={`eligibility-${candidate.id}`} className="workflow-eligibility">
+                    {actionBlock(candidate, record, records) ??
+                      candidate.eligibility?.(record) ??
+                      'Available in this case state. Add a reason before confirming.'}
+                  </p>
+                  {candidate.preview && (
+                    <p className="workflow-diff">{candidate.preview(record)}</p>
+                  )}
+                </div>
               ))}
               <button
                 className="button button-secondary"
-                onClick={() => {
-                  clearForm();
-                  setOwner(record.owner);
-                  setForm({ kind: 'assignment', version: record.version });
-                }}
+                onClick={() => openForm({ kind: 'assignment', version: record.version })}
               >
                 Reassign owner
               </button>
               <button
                 className="button button-secondary"
-                onClick={() => {
-                  clearForm();
-                  setForm({ kind: 'note', version: record.version });
-                }}
+                onClick={() => openForm({ kind: 'note', version: record.version })}
               >
                 Add note
               </button>
