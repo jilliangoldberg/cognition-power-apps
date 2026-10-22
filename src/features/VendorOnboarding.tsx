@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Badge } from '../components/Badge';
 import { Dialog } from '../components/Dialog';
 import { Icon } from '../components/Icon';
+import { openFromRow } from '../components/rowClick';
 import { dateTime, money } from '../core/format';
 import {
   approvalBlocker,
@@ -448,7 +449,11 @@ export function VendorOnboarding() {
               {visible.map((request) => (
                 <tr
                   key={request.id}
-                  className={selected?.id === request.id ? 'vendor-selected' : ''}
+                  className={`clickable-row ${selected?.id === request.id ? 'vendor-selected' : ''}`}
+                  onClick={openFromRow(() => {
+                    setSelectedId(request.id);
+                    setError('');
+                  })}
                 >
                   <td>
                     <button

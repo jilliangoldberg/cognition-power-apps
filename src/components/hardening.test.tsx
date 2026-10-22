@@ -9,6 +9,7 @@ import { STORAGE_KEY } from '../core/storage';
 import { defaultFilters, loadViews, saveViews } from '../core/views';
 import { kyc } from '../modules/kyc';
 import { ActivityView } from './ActivityView';
+import { Overview } from './Overview';
 import { RecordDrawer } from './RecordDrawer';
 import { ToolView } from './ToolView';
 
@@ -187,6 +188,28 @@ describe('local workbench integrity', () => {
     fireEvent.click(row.querySelector('.row-arrow')!);
     expect(onSelect).toHaveBeenCalledTimes(3);
     selection.mockRestore();
+  });
+
+  it('opens a My work record from anywhere on its row', () => {
+    const onSelect = vi.fn();
+    const view = render(
+      <Overview
+        data={createFixtures()}
+        navigate={() => {}}
+        view="mine"
+        onViewChange={() => {}}
+        recordHref={() => '#record'}
+        onSelect={onSelect}
+      />,
+    );
+    const link = view.container.querySelector<HTMLElement>('[data-work-record]')!;
+    const [moduleId, recordId] = link.dataset.workRecord!.split(':');
+    fireEvent.click(link.closest('tr')!.querySelector('.work-reason')!);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect.mock.calls[0][0]).toBe(moduleId);
+    expect(onSelect.mock.calls[0][1].id).toBe(recordId);
+    fireEvent.click(link);
+    expect(onSelect).toHaveBeenCalledTimes(2);
   });
 
   it('updates age labels and 48h eligibility without interaction and cleans up timers', () => {

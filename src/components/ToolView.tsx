@@ -10,6 +10,7 @@ import {
 import type { ToolModule, ToolRecord } from '../core/types';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
+import { openFromRow } from './rowClick';
 import { useNow } from '../core/useNow';
 
 export function ToolView({
@@ -305,12 +306,7 @@ export function ToolView({
                 <tr
                   key={record.id}
                   className="clickable-row"
-                  onClick={(event) => {
-                    const target = event.target as Element;
-                    if (target.closest('a, button, input, select, textarea')) return;
-                    if (window.getSelection()?.toString()) return;
-                    onSelect(record);
-                  }}
+                  onClick={openFromRow(() => onSelect(record))}
                 >
                   <td>
                     <button
