@@ -35,6 +35,20 @@ const blankDetails: VendorDetails = {
   contractReviewed: false,
 };
 
+function statusTone(status: ReturnType<typeof vendorStatus>) {
+  return status === 'Ready for onboarding'
+    ? 'green'
+    : status === 'Changes requested'
+      ? 'red'
+      : 'amber';
+}
+
+function reviewProgress(request: VendorRequest) {
+  const teams = requiredTeams(request.details);
+  const approved = teams.filter((team) => request.reviews[team].status === 'Approved').length;
+  return `${approved} of ${teams.length} approved`;
+}
+
 function RequestForm({
   request,
   onSave,
@@ -226,50 +240,49 @@ function ReviewCard({
           }
         />
       </div>
-      <p>
-        {team === 'Finance'
-          ? 'Confirm a budget owner and review the annual spend.'
-          : team === 'Security'
-            ? 'Review the security assessment for internal or customer data access.'
-            : 'Review the contract before onboarding.'}
+      <p className="vendor-card-scope">
+        {!required
+          ? 'Not needed for public-information-only vendors.'
+          : team === 'Finance'
+            ? 'Budget owner and annual spend'
+            : team === 'Security'
+              ? 'Security assessment for data access'
+              : 'Contract terms'}
       </p>
-      {!required && (
-        <p>Skipped by this demo’s public-information-only rule. Real company policy may differ.</p>
-      )}
       {pending && (
         <>
           {blocker && <p className="vendor-blocker">{blocker}</p>}
-          <label htmlFor={`vendor-reason-${team}`}>{team} review reason</label>
+          <label htmlFor={`vendor-reason-${team}`} className="sr-only">
+            {team} review reason
+          </label>
           <textarea
             id={`vendor-reason-${team}`}
             maxLength={1000}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Explain this decision (5–1,000 characters)."
+            placeholder="Reason for your decision"
           />
-          <div className="action-buttons">
+          <div className="vendor-card-actions">
             <button
               className="button button-primary"
+              aria-label={`Approve for ${team}`}
               disabled={blocked || !!blocker || reason.trim().length < 5}
               onClick={() => onReview(team, 'Approved', reason)}
             >
-              Simulate {team} approval
+              Approve
             </button>
             <button
               className="button button-secondary"
+              aria-label={`Request changes from ${team}`}
               disabled={blocked || reason.trim().length < 5}
               onClick={() => onReview(team, 'Changes requested', reason)}
             >
-              Request changes from {team}
+              Request changes
             </button>
           </div>
         </>
       )}
-      {required && !pending && (
-        <p>
-          <strong>Recorded reason:</strong> {review.reason}
-        </p>
-      )}
+      {required && !pending && <blockquote className="vendor-reason">{review.reason}</blockquote>}
     </section>
   );
 }
@@ -472,25 +485,9 @@ export function VendorOnboarding() {
                   <td>{request.details.department}</td>
                   <td>{money(request.details.annualCents)}</td>
                   <td>
-                    <Badge
-                      label={vendorStatus(request)}
-                      tone={
-                        vendorStatus(request) === 'Ready for onboarding'
-                          ? 'green'
-                          : vendorStatus(request) === 'Changes requested'
-                            ? 'red'
-                            : 'amber'
-                      }
-                    />
+                    <Badge label={vendorStatus(request)} tone={statusTone(vendorStatus(request))} />
                   </td>
-                  <td>
-                    {
-                      requiredTeams(request.details).filter(
-                        (team) => request.reviews[team].status === 'Approved',
-                      ).length
-                    }{' '}
-                    / {requiredTeams(request.details).length} complete
-                  </td>
+                  <td>{reviewProgress(request)}</td>
                 </tr>
               ))}
             </tbody>
@@ -504,12 +501,16 @@ export function VendorOnboarding() {
       </section>
       {selected && (
         <section className="vendor-detail" aria-label="Selected vendor request">
-          <div className="section-heading">
+          <div className="vendor-detail-header">
             <div>
-              <p className="eyebrow">
-                {selected.id} · REVISION {selected.revision}
+              <div className="vendor-title">
+                <h2>{selected.details.vendor}</h2>
+                <Badge label={vendorStatus(selected)} tone={statusTone(vendorStatus(selected))} />
+              </div>
+              <p className="vendor-meta">
+                {selected.id} · Revision {selected.revision} · Requested by{' '}
+                {selected.details.requester}, {selected.details.department}
               </p>
-              <h2>{selected.details.vendor}</h2>
             </div>
             <button
               className="button button-secondary"
@@ -519,37 +520,36 @@ export function VendorOnboarding() {
               Edit & resubmit
             </button>
           </div>
-          <dl className="detail-grid">
+          <p className="vendor-purpose">{selected.details.purpose}</p>
+          <dl className="vendor-facts">
             <div>
-              <dt>Requester / department</dt>
-              <dd>
-                {selected.details.requester} · {selected.details.department}
-              </dd>
+              <dt>Annual spend</dt>
+              <dd>{money(selected.details.annualCents)}</dd>
             </div>
             <div>
               <dt>Budget owner</dt>
-              <dd>{selected.details.budgetOwner || 'Missing · Finance approval blocked'}</dd>
-            </div>
-            <div>
-              <dt>Annual spend estimate</dt>
-              <dd>{money(selected.details.annualCents)} USD</dd>
+              <dd>
+                {selected.details.budgetOwner || <span className="vendor-missing">Missing</span>}
+              </dd>
             </div>
             <div>
               <dt>Data access</dt>
               <dd>{selected.details.dataAccess}</dd>
             </div>
             <div>
-              <dt>Business need</dt>
-              <dd>{selected.details.purpose}</dd>
+              <dt>Reviews</dt>
+              <dd>{reviewProgress(selected)}</dd>
             </div>
           </dl>
-          <div className="vendor-progress">
-            <strong>{vendorStatus(selected)}</strong>
-            <p>
-              {vendorStatus(selected) === 'Ready for onboarding'
-                ? 'All required reviews are complete. Ready to hand off for onboarding; no spend is authorized here.'
-                : 'Finance and Legal review every request. Security also reviews requests with internal or customer data access. Any edit resets all reviews.'}
+          {vendorStatus(selected) === 'Ready for onboarding' && (
+            <p className="vendor-ready">
+              All required reviews are complete. Ready to hand off for onboarding; no spend is
+              authorized here.
             </p>
+          )}
+          <div className="vendor-subheading">
+            <h3>Reviews</h3>
+            <span>Editing the request resets all reviews</span>
           </div>
           <div className="evidence-grid vendor-reviews">
             {reviewTeams.map((team) => (
@@ -562,17 +562,20 @@ export function VendorOnboarding() {
               />
             ))}
           </div>
-          <h3>Decision history</h3>
-          <p>Includes earlier revisions. Stored in this browser; not a compliance audit trail.</p>
-          <ol className="evidence-timeline">
+          <div className="vendor-subheading">
+            <h3>History</h3>
+          </div>
+          <ol className="vendor-history">
             {[...selected.history].reverse().map((event) => (
               <li key={event.id}>
-                <strong>{event.action}</strong>
-                <p>
-                  {event.actor} · <time dateTime={event.at}>{dateTime(event.at)}</time>
-                </p>
+                <div className="vendor-history-line">
+                  <strong>{event.action}</strong>
+                  <span>
+                    {event.actor} · <time dateTime={event.at}>{dateTime(event.at)}</time>
+                  </span>
+                </div>
                 <p>{event.reason}</p>
-                {event.snapshot && <p>Reviewed details: {event.snapshot}</p>}
+                {event.snapshot && <p className="vendor-snapshot">{event.snapshot}</p>}
               </li>
             ))}
           </ol>
