@@ -463,28 +463,6 @@ describe('narrow browser-local workflow stories', () => {
     ).toBe(true);
   });
 
-  it('preserves the original Shared KYC commands and never enables local-only commands there', () => {
-    const data = createFixtures();
-    const owners = ['Unassigned', 'Alex Morgan', 'Jamie Brooks'];
-    const target = { ...request, recordId: 'KYC-1041' };
-    const shared = executeAction(data, target, new Date(), owners);
-    expect(shared.records.kyc[1].status).toBe('Approved');
-    expect(shared.records.kyc[1].fields.evidenceReviewed).toBe(false);
-    for (const actionId of ['record-response', 'review-evidence'])
-      expect(() => executeAction(data, { ...target, actionId }, new Date(), owners)).toThrow(
-        'no longer available',
-      );
-    const waiting = executeAction(
-      data,
-      { ...target, actionId: 'request-information' },
-      new Date(),
-      owners,
-    );
-    expect(waiting.records.kyc[1].fields.informationRequest).toBe(
-      data.records.kyc[1].fields.informationRequest,
-    );
-  });
-
   it('cannot simulate a requested refund directly or confuse approval with an execution', () => {
     const target = { ...request, moduleId: 'refunds' as const, recordId: 'REF-0204' };
     const initial = createFixtures();

@@ -108,8 +108,8 @@ change is a signal to review the seam, not something to accept silently.
 
 ## Limits
 
-- Tools are browser-local and synthetic. They do not get Shared KYC's sign-in, server
-  authorization, shared database or conflict handling; that needs a separate design.
+- Tools are browser-local and synthetic. Sign-in, server authorization, a shared database and
+  multi-user conflict handling are pilot work and need a separate design.
 - Actions only change local record status/fields. There is no automation, notification or connector.
 - Icons and colors are limited to the existing sets in `Icon.tsx` and `styles.css`.
 - Renaming or removing a tool is not migrated: saved browser data then refuses to load until reset.

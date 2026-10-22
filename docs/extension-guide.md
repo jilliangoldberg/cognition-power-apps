@@ -11,10 +11,9 @@ ledger and limits are in [extension-proof.md](extension-proof.md).
 | ------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Queue, record details, versioned local decisions | `ToolModule` in `src/modules`                                      | A `src/modules/<id>/` folder (definition + samples) and one registry line; shared contract tests and saved-state additions are automatic. Do not add a queue solely to display a timeline. |
 | Read-only synthetic custom rendering             | `ReadOnlyPageExtension` v1 in `src/features/extension-contract.ts` | Custom React view, deterministic fixture scenarios, explicit synthetic-read actions, proposed/assigned owner and support metadata. No persisted records.                                   |
-| Shared/authenticated operational behavior        | Existing Shared KYC API/policy, separately reviewed                | The synthetic contract does **not** inherit authentication, record/field permissions, history, or concurrency. Server integration requires its own design and checks.                      |
+| Shared/authenticated operational behavior        | None yet; planned for the pilot                                    | The synthetic contract does **not** inherit authentication, record/field permissions, history, or concurrency. Server integration requires its own design and checks.                      |
 
-Shared KYC keeps its existing entry in `customPages`; it is deliberately **not** advertised as a
-read-only/stateless extension. No common interface can turn a client declaration into permission.
+No common interface can turn a client declaration into permission.
 
 ## Small starter and worked example
 
@@ -74,7 +73,7 @@ it is not an assertion that a security reviewer signed it off.
 | `TX-DEMO-006`              | Processing response is incomplete                      | Simulated recovery adds the omitted fictional processing detail; other sources stay unchanged |
 
 Event references and related record/account/counterparty context stay attributed to each source.
-These identifiers are not a join into browser-local decisions or shared KYC. Only the internal
+These identifiers are not a join into browser-local decisions. Only the internal
 source reports the illustrative USD amount. Complete means a complete **fictional lookup response**,
 not complete history. The timeline sorts reported event times, not causality, and filtering it
 never hides source availability cards. Edited input is distinguished from the last searched ID.
@@ -90,8 +89,7 @@ The justified shared upgrade here is `dateTime` in `src/core/format.ts`: explici
 prevents timezone ambiguity in evidence and in all three original tools' shared drawer timestamps.
 Missing/invalid timestamps display `Not recorded`, never `Invalid Date`. Existing string calls
 remain valid; accepting `undefined` is additive. USD formatting and queue short-date formatting
-are unchanged. This intentionally changes displayed absolute timestamps, including Shared KYC and
-sandbox views that already use the helper; it does not migrate source data or affect policies.
+are unchanged. This intentionally changes displayed absolute timestamps wherever the helper is used; it does not migrate source data or affect policies.
 
 Review a shared change separately from domain code. Run:
 
@@ -125,7 +123,7 @@ session-cookie, or end-to-end usability validation. Request approval separately 
    registry-consumer review, compatibility tests and module-owner sign-off, not silent reinterpretation.
    This is a proposed review process, not a proven enterprise upgrade policy or runtime upgrader.
 5. Release through the repository's reviewed integration workflow. Revert reviewed commits to roll
-   back this stateless page/core display change; preserve stored local and shared work. No independent
+   back this stateless page/core display change; preserve stored local work. No independent
    plugin deployment, feature flag, production rollout, or support automation is implemented here.
 6. Investigate a source-display issue by reproducing the fixed-clock fixture tests and recording the
    source ID, lookup, event time, retrieval time, and completeness. Do not request real customer data

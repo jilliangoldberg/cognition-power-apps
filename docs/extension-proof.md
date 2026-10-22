@@ -112,13 +112,13 @@ handoff and release/upgrade effort. Proposed owner metadata is not a confirmed o
 - Parent can cherry-pick this standalone branch. Only existing shared production edits are
   `src/core/format.ts` and `src/features/pages.tsx`; new shared contract/starter files are isolated.
   No App integration is required for the existing Investigation ID. Review timestamp changes in
-  every existing `dateTime` consumer, including Shared KYC/sandbox views, when combining branches.
+  every existing `dateTime` consumer when combining branches.
 - App, Overview, ToolView, RecordDrawer, Dialog, all modules, action/storage/type/view/fixture core,
   server, README, existing gates document, CI, dependencies, and pre-existing PR branches are
   unchanged. No PR, merge, deployment, secrets, real data, external writes or provider calls.
 - **Browser validation and implementation screenshots: pending separate approval**, not performed.
   No testing agent was launched. jsdom dialog mocks are not evidence of actual Chrome behavior.
-- Contract declarations are not a sandbox/auth boundary. Shared KYC remains separate; future
+- Contract declarations are not a sandbox/auth boundary. Future
   operational custom pages need explicit common server-policy integration and adversarial tests.
 - A static proposed upgrade/release/support checklist exists in the guide; no independent human
   review, team ownership handoff, real service load, cost savings or production readiness is proven.

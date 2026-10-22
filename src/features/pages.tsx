@@ -1,5 +1,4 @@
 import { Investigation } from './Investigation';
-import { SharedKyc } from './SharedKyc';
 import { VendorOnboarding } from './VendorOnboarding';
 import { defineReadOnlyPage } from './extension-contract';
 import { readOnlyPageStarter } from './extension-starter';
@@ -27,7 +26,6 @@ export const investigationExtension = defineReadOnlyPage({
 // Custom pages share the shell, not the queue's persisted record schema.
 export const customPages = [
   investigationExtension,
-  { id: 'shared-kyc', title: 'Shared KYC', icon: 'shield', View: SharedKyc },
   // Persists its own local state, so it is not a read-only contract extension.
   { id: 'vendors', title: 'Vendor approvals', icon: 'box', View: VendorOnboarding },
 ] as const;

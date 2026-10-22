@@ -585,9 +585,9 @@ export function VendorOnboarding() {
       )}
       <div className="vendor-reset">
         <p>
-          Stored separately from KYC, refunds, flags, and shared SQLite. Not shared between users;
-          simultaneous browser tabs are not coordinated. Vendor history appears here, not in the
-          original tools’ Activity page.
+          Stored separately from KYC, refunds, and flags. Not shared between users; simultaneous
+          browser tabs are not coordinated. Vendor history appears here, not in the original tools’
+          Activity page.
         </p>
         <button className="text-button" onClick={() => setResetOpen(true)}>
           Reset vendor demo
@@ -605,7 +605,7 @@ export function VendorOnboarding() {
           <div className="vendor-form">
             <p>
               This replaces vendor requests and their local history with three synthetic examples.
-              Other local tools, saved views, and shared KYC are unchanged.
+              Other local tools and saved views are unchanged.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setResetOpen(false)}>

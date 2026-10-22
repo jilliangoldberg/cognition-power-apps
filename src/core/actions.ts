@@ -19,12 +19,11 @@ export type MutationRequest =
   | (ChangeTarget & { kind: 'assignment'; owner: string })
   | (ChangeTarget & { kind: 'note' });
 
-// Domain validation only. The API separately authenticates and authorizes callers.
+// Domain validation only; this prototype has no authentication or authorization.
 export function executeAction(
   state: DemoState,
   request: MutationRequest,
   now = new Date(),
-  owners?: string[],
 ): DemoState {
   const module = getModule(request.moduleId);
   if (!module) throw new Error('Unknown tool.');
@@ -42,16 +41,14 @@ export function executeAction(
   let before = record.status;
   let after = record.status;
   if (request.kind === 'assignment') {
-    if (!(owners ?? module.owners).includes(request.owner))
-      throw new Error('Choose a listed owner.');
+    if (!module.owners.includes(request.owner)) throw new Error('Choose a listed owner.');
     if (request.owner === record.owner) throw new Error('Choose a different owner.');
     result = { ...record, owner: request.owner };
     label = 'Owner reassigned';
     before = record.owner;
     after = request.owner;
   } else if (request.kind !== 'note') {
-    // Shared KYC supplies its server owner list and retains its existing command semantics.
-    const actions = owners === undefined ? (module.localActions ?? module.actions) : module.actions;
+    const actions = module.localActions ?? module.actions;
     const action = actions.find((a) => a.id === request.actionId);
     if (!action || !action.available(record))
       throw new Error('This action is no longer available.');

@@ -156,19 +156,17 @@ describe('local workbench integrity', () => {
     expect(screen.queryByRole('button', { name: 'Temporary queue' })).not.toBeInTheDocument();
   });
 
-  it('isolates temporary view caches by account and persists them on a later successful save', () => {
+  it('keeps a temporary view cache when storage fails and persists it on a later successful save', () => {
     const writes = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('quota');
     });
-    const views = [{ name: 'Alex only', filters: { ...defaultFilters } }];
-    expect(saveViews('kyc', views, 'shared.alex')).toBe(false);
+    const views = [{ name: 'Temporary only', filters: { ...defaultFilters } }];
+    expect(saveViews('kyc', views)).toBe(false);
     views[0].filters.owner = 'Changed after save';
-    expect(loadViews(kyc, 'shared.alex').views[0].filters.owner).toBe('all');
-    expect(loadViews(kyc, 'shared.jamie').views).toEqual([]);
-    expect(loadViews(kyc).views).toEqual([]);
+    expect(loadViews(kyc).views[0].filters.owner).toBe('all');
     writes.mockRestore();
-    expect(saveViews('kyc', loadViews(kyc, 'shared.alex').views, 'shared.alex')).toBe(true);
-    expect(loadViews(kyc, 'shared.alex').warning).toBe('');
+    expect(saveViews('kyc', loadViews(kyc).views)).toBe(true);
+    expect(loadViews(kyc).warning).toBe('');
   });
 
   it('opens a record from anywhere on its row exactly once', () => {

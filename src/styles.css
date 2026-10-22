@@ -65,11 +65,6 @@
   cursor: pointer;
   padding: 10px 0;
 }
-.shared-login {
-  display: grid;
-  gap: 12px;
-  max-width: 380px;
-}
 .vendor-notice {
   padding: 18px 20px;
   border: 1px solid #dcd5f1;

@@ -15,7 +15,7 @@ vi.mock('../modules', async (importOriginal) => {
 });
 
 describe('browser-local My work', () => {
-  it('uses the local evidence rule rather than the separate Shared KYC command list', () => {
+  it('uses the full local KYC workflow evidence rule, not only the base actions', () => {
     const data = createFixtures();
     data.records.kyc[0].fields.evidenceReviewed = false;
     const item = workspaceItems(data).find(({ record }) => record.id === 'KYC-1042')!;

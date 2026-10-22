@@ -28,7 +28,7 @@ describe('new-tool scaffold', () => {
     ['vendor-', 'Vendors'],
     ['', 'Vendors'],
     ['overview', 'Overview'],
-    ['shared-kyc', 'Shared'],
+    ['investigation', 'Investigation'],
     ['vendors', ''],
     ['vendors', "Vendor's queue"],
     ['vendors', 'x'.repeat(41)],

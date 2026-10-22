@@ -252,7 +252,7 @@ export const kyc: ToolModule = {
     ),
 };
 
-// These browser-local extensions are not commands supported by the Shared KYC API.
+// The full local workflow: the base actions plus evidence and response steps.
 kyc.localActions = [
   ...kyc.actions.map((action) => ({
     ...action,

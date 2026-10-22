@@ -51,8 +51,7 @@ export function queueFilterParams(filters: RecordFilters): URLSearchParams {
   if (filters.agingOnly) params.set('aging', '1');
   return params;
 }
-export const viewsKey = (id: ToolId, namespace?: string) =>
-  `workbench.views.v1.${namespace ? `${namespace}.` : ''}${id}`;
+export const viewsKey = (id: ToolId) => `workbench.views.v1.${id}`;
 
 export function filterRecords(
   records: ToolRecord[],
@@ -95,18 +94,15 @@ export function filterRecords(
     );
 }
 
-export function loadViews(
-  module: ToolModule,
-  namespace?: string,
-): {
+export function loadViews(module: ToolModule): {
   views: SavedView[];
   warning: string;
   blocked: boolean;
 } {
-  const cached = temporaryViews.get(viewsKey(module.id, namespace));
+  const cached = temporaryViews.get(viewsKey(module.id));
   if (cached) return { views: copyViews(cached), warning: temporaryWarning, blocked: false };
   try {
-    const raw = localStorage.getItem(viewsKey(module.id, namespace));
+    const raw = localStorage.getItem(viewsKey(module.id));
     if (raw === null) return { views: [], warning: '', blocked: false };
     const value: unknown = JSON.parse(raw);
     if (
@@ -141,8 +137,8 @@ export function loadViews(
   }
 }
 
-export function saveViews(id: ToolId, views: SavedView[], namespace?: string): boolean {
-  const key = viewsKey(id, namespace);
+export function saveViews(id: ToolId, views: SavedView[]): boolean {
+  const key = viewsKey(id);
   try {
     localStorage.setItem(key, JSON.stringify(views));
     temporaryViews.delete(key);

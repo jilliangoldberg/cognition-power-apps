@@ -180,7 +180,7 @@ export default function App() {
         true,
       );
     setResetOpen(false);
-    notify('Original local tools reset. Vendor demo and shared KYC are unchanged.');
+    notify('Original local tools reset. Vendor demo is unchanged.');
   }
 
   function navItem(id: Page, label: string, icon: IconName) {
@@ -295,12 +295,7 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="local-indicator">
-              <span />{' '}
-              {page === 'shared-kyc'
-                ? 'Shared synthetic workspace'
-                : page === 'investigation'
-                  ? 'Synthetic evidence'
-                  : 'Local demo'}
+              <span /> {page === 'investigation' ? 'Synthetic evidence' : 'Local demo'}
             </span>
             <span className="topbar-divider" />
             <span className="subtle">Synthetic data only</span>
@@ -432,8 +427,7 @@ export default function App() {
             <p>
               This prototype has no sign-in. Everyone uses it as the demo operator and can see every
               tool. In production, everyone would sign in through your identity provider (SSO), with
-              access set per tool and enforced on the server. That is planned for the pilot. Shared
-              KYC shows an early version of server-enforced roles using demo passwords.
+              access set per tool and enforced on the server. That is planned for the pilot.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setSignInOpen(false)}>

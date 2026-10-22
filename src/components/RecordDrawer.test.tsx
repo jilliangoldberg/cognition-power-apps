@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { RecordDrawer } from './RecordDrawer';
@@ -220,35 +220,5 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
       screen.getByText('Unknown · no product consumes this configuration'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-  });
-
-  it('never exposes unsupported local evidence actions or request fields in Shared KYC', async () => {
-    const user = userEvent.setup();
-    const onAction = vi.fn(() => null);
-    render(
-      <RecordDrawer
-        module={kyc}
-        record={createFixtures().records.kyc[1]}
-        activity={[]}
-        onClose={vi.fn()}
-        onAction={onAction}
-        persistence="shared"
-      />,
-    );
-    expect(screen.queryByLabelText('Local workflow context')).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Assess fictional evidence' }),
-    ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Approve case' }));
-    await user.type(screen.getByRole('textbox'), 'Original shared reason-only decision contract.');
-    await user.click(screen.getByRole('button', { name: 'Confirm approve case' }));
-    expect(onAction).toHaveBeenCalledWith({
-      moduleId: 'kyc',
-      recordId: 'KYC-1041',
-      actionId: 'approve',
-      expectedVersion: 1,
-      reason: 'Original shared reason-only decision contract.',
-    });
-    expect(within(screen.getByRole('dialog')).queryByText(/Unsent/)).not.toBeInTheDocument();
   });
 });

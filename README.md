@@ -7,7 +7,7 @@ Workbench is a working prototype of a code-first alternative to a licensed low-c
 - **Representative versions of three current Power Apps, built as code:** a KYC review queue, a refunds dashboard and a feature-flag admin. Each covers its main workflow, including exception handling.
 - **A shared foundation, so new tools are mostly business logic.** Navigation, work queues, search, saved views, record detail, assignment, notes and history are written once and reused by every tool.
 - **Extensibility shown with a fourth tool.** Investigation, a transaction lookup across several data sources, was added through a typed extension point. It needed no copy of the shell and no change to the existing tools.
-- **Workflow guardrails on every action.** Each action asks for confirmation and a written reason, eligibility rules block actions that don't apply, and each record keeps its own history. In the three core tools these checks run in the browser and history is stored in editable browser storage, so they guide users rather than enforce permissions. [Shared KYC](docs/reference.md#run-shared-kyc) shows the same rules enforced on a server, with operator and viewer roles.
+- **Workflow guardrails on every action.** Each action asks for confirmation and a written reason, eligibility rules block actions that don't apply, and each record keeps its own history. In the three core tools these checks run in the browser and history is stored in editable browser storage, so they guide users rather than enforce permissions.
 - **Synthetic data that exercises the edge cases:** missing and inconsistent evidence, over-limit refunds, staging rollbacks, and conflicting or unavailable data sources.
 
 ## Why this approach fits a growing engineering team
@@ -89,10 +89,8 @@ A pilot would add:
 
 ## Additional extensions
 
-These were built on the same foundation and aren't required for the core demo:
+This was built on the same foundation and isn't required for the core demo:
 
-- **Shared KYC:** a multi-user version with a Node + SQLite API, demo sign-in, server-enforced operator and viewer roles, and protection against conflicting edits. Setup: [reference guide](docs/reference.md#run-shared-kyc).
-- **Payment-provider lookup:** a read-only Stripe test-mode lookup. The key stays on the server, and the page reports "not connected" when no key is configured.
 - **Vendor onboarding and spend approvals:** a cross-department workflow (Finance, Security, Legal) showing reuse beyond financial operations. [Walkthrough](docs/vendor-extension.md).
 
 ## How it was built

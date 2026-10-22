@@ -48,9 +48,7 @@ export function About() {
         </p>
         <p>
           The original three tools remain browser-local. Investigation is a read-only synthetic
-          custom screen, not a provider. Shared KYC separately adds password demo accounts, SQLite,
-          server-enforced operator/viewer permissions, optimistic concurrency, and attributable
-          transactional event history. There is no enterprise SSO, tenant isolation, approval
+          custom screen, not a provider. There is no sign-in, server, tenant isolation, approval
           engine, durable external execution, or tamper-resistant audit trail. Refunds remain
           simulated; flags do not affect a running product.
         </p>
@@ -62,11 +60,8 @@ export function About() {
           is implemented. Its synthetic policy is illustrative, not a client’s procurement policy.
         </p>
         <p>
-          Local storage is not shared. Shared KYC users must refresh to see one another’s changes;
-          local resets cannot erase server history. Its optional protected Stripe test-mode lookup
-          is read-only and reports “not connected” without a server key. A sandbox snapshot does not
-          prove reconciliation, settlement, or production readiness. Do not enter real customer data
-          or production credentials.
+          Local storage is not shared between users or devices. Do not enter real customer data or
+          production credentials.
         </p>
       </section>
       <section className="next-step">

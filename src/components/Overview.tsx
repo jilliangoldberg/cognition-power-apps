@@ -16,10 +16,6 @@ const pageSummaries: Record<
     description: 'Read-only synthetic evidence, separate from queue records.',
     scope: 'Stateless synthetic evidence',
   },
-  'shared-kyc': {
-    description: 'Independent server dataset; demo password sign-in required.',
-    scope: 'Shared synthetic workspace · excluded from local counts',
-  },
   vendors: {
     description: 'Take a fictional vendor request through Finance, Security, and Legal reviews.',
     scope: 'Separate local simulation · excluded from local counts',
@@ -69,9 +65,8 @@ export function Overview({
       </div>
       <p className="work-scope">
         “You” is the current demo owner label, not an authenticated identity. Counts use only this
-        browser’s KYC and refund queues; Shared KYC and Investigation are independent. Flags are
-        configurations, not pending tasks. No separate approver queue or independent-review
-        permission is modeled.
+        browser’s KYC and refund queues; Investigation is independent. Flags are configurations, not
+        pending tasks. No separate approver queue or independent-review permission is modeled.
       </p>
       <nav className="work-counts" aria-label="Local work views">
         {(Object.keys(workViews) as WorkView[]).map((key) => (
