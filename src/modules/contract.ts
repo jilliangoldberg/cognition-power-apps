@@ -15,12 +15,12 @@ export function contractProblems(module: ToolModule, now = new Date('2026-01-15T
     problems.push('action ids must be unique');
   let records;
   try {
-    records = module.samples(now);
+    records = module.samples(now).map((record) => module.withDefaults?.(record) ?? record);
   } catch {
     return [...problems, 'samples() threw'];
   }
   if (!records.length) problems.push('add at least one sample record');
-  if (JSON.stringify(module.samples(now)) !== JSON.stringify(records))
+  if (JSON.stringify(module.samples(now)) !== JSON.stringify(module.samples(now)))
     problems.push('samples must be deterministic for a given time');
   if (new Set(records.map((record) => record.id)).size !== records.length)
     problems.push('sample record ids must be unique');
@@ -39,17 +39,26 @@ export function contractProblems(module: ToolModule, now = new Date('2026-01-15T
     if (module.details.some((detail) => typeof detail.value(record) !== 'string'))
       problems.push(`${record.id}: details must render strings`);
   }
-  for (const action of module.actions) {
-    const available = records.filter(action.available);
-    if (!available.length) problems.push(`action "${action.id}" has no sample record to act on`);
-    for (const record of available) {
-      const next = action.apply(record);
-      if (!Object.hasOwn(module.statuses, next.status))
-        problems.push(`action "${action.id}" moves ${record.id} to undeclared "${next.status}"`);
-      if (!module.validateFields(next) || next.id !== record.id)
-        problems.push(`action "${action.id}" produces an invalid ${record.id}`);
-    }
+  // An action may only become available after another one (e.g. approve, then simulate).
+  const reached = new Set<string>();
+  let frontier = records;
+  for (let step = 0; step < 4 && frontier.length; step++) {
+    const next: typeof records = [];
+    for (const action of module.actions)
+      for (const record of frontier.filter(action.available)) {
+        reached.add(action.id);
+        const after = action.apply(record);
+        if (!Object.hasOwn(module.statuses, after.status))
+          problems.push(`action "${action.id}" moves ${record.id} to undeclared "${after.status}"`);
+        if (!module.validateFields(after) || after.id !== record.id)
+          problems.push(`action "${action.id}" produces an invalid ${record.id}`);
+        next.push(after);
+      }
+    frontier = next;
   }
+  for (const action of module.actions)
+    if (!reached.has(action.id))
+      problems.push(`action "${action.id}" has no sample record to act on`);
   if (!module.metrics(records).length) problems.push('declare at least one metric');
   return problems;
 }

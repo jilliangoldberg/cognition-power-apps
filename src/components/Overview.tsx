@@ -1,143 +1,206 @@
+import { useState } from 'react';
 import { modules } from '../modules';
-import type { DemoState, Page } from '../core/types';
-import { countStatus, dateTime, money } from '../core/format';
-import { openKyc } from '../modules/kyc';
+import { customPages } from '../features/pages';
+import type { DemoState, Page, ToolId, ToolRecord } from '../core/types';
+import { ageLabel } from '../core/format';
+import { workspaceItems, workItemsForView, workViews, type WorkView } from '../core/workspace';
 import { Icon } from './Icon';
 import { Badge } from './Badge';
 
-export function Overview({ data, navigate }: { data: DemoState; navigate: (page: Page) => void }) {
-  const metrics = [
-    {
-      label: 'Open sample cases',
-      value: String(data.records.kyc.filter((r) => openKyc(r.status)).length),
-      hint: 'Includes waiting and escalated cases',
-    },
-    {
-      label: 'Requested refund value',
-      value: money(
-        data.records.refunds
-          .filter((r) => r.status === 'Requested')
-          .reduce((sum, r) => sum + Number(r.fields.amountCents), 0),
-      ),
-      hint: 'Sample USD · not provider-pending funds',
-    },
-    {
-      label: 'Enabled flags',
-      value: `${countStatus(data.records.flags, 'Enabled')} / ${data.records.flags.length}`,
-      hint: 'Local staging configuration',
-    },
-    {
-      label: 'Workspace tools',
-      value: String(modules.length),
-      hint: 'Built on one shared foundation',
-    },
-  ];
+export function Overview({
+  data,
+  navigate,
+  view,
+  onViewChange,
+  recordHref,
+  onSelect,
+}: {
+  data: DemoState;
+  navigate: (page: Page) => void;
+  view: WorkView;
+  onViewChange: (view: WorkView) => void;
+  recordHref: (moduleId: ToolId, record: ToolRecord) => string;
+  onSelect: (moduleId: ToolId, record: ToolRecord) => void;
+}) {
+  const [directorySearch, setDirectorySearch] = useState('');
+  const items = workspaceItems(data);
+  const visible = workItemsForView(items, view);
+  const directory = [
+    ...modules.map((module) => ({
+      id: module.id,
+      title: module.title,
+      description: module.description,
+      scope: 'Browser-local synthetic records',
+    })),
+    ...customPages.map((page) => ({
+      id: page.id,
+      title: page.title,
+      description:
+        page.id === 'investigation'
+          ? 'Read-only synthetic evidence, separate from queue records.'
+          : 'Independent server dataset; demo password sign-in required.',
+      scope:
+        page.id === 'investigation'
+          ? 'Stateless synthetic evidence'
+          : 'Shared synthetic workspace · excluded from local counts',
+    })),
+  ].filter((item) =>
+    `${item.title} ${item.description}`
+      .toLowerCase()
+      .includes(directorySearch.trim().toLowerCase()),
+  );
   return (
-    <>
+    <div className="work-home">
       <div className="page-heading overview-heading">
         <div>
-          <p className="eyebrow">YOUR OPERATIONS WORKSPACE</p>
-          <h1>A little less busywork.</h1>
-          <p>Your internal tools, together in one simple workspace.</p>
+          <p className="eyebrow">SYNTHETIC · BROWSER-LOCAL WORK</p>
+          <h1>My work</h1>
+          <p>Find a next item, allocate unassigned work, or inspect what is waiting.</p>
         </div>
-        <button className="button button-primary" onClick={() => navigate('kyc')}>
-          Open review queue <Icon name="arrow" size={16} />
-        </button>
+        <Badge label="Local demo · not shared" dot={false} />
       </div>
-      <div className="metrics">
-        {metrics.map((metric) => (
-          <div className="metric" key={metric.label}>
-            <span className="metric-label">{metric.label}</span>
-            <strong>{metric.value}</strong>
-            <span className="metric-hint">{metric.hint}</span>
-          </div>
+      <p className="work-scope">
+        “You” is the current demo owner label, not an authenticated identity. Counts use only this
+        browser’s KYC and refund queues; Shared KYC and Investigation are independent. Flags are
+        configurations, not pending tasks. No separate approver queue or independent-review
+        permission is modeled.
+      </p>
+      <nav className="work-counts" aria-label="Local work views">
+        {(Object.keys(workViews) as WorkView[]).map((key) => (
+          <a
+            className={`work-count ${view === key ? 'selected' : ''}`}
+            href={`#overview?work=${key}`}
+            aria-current={view === key ? 'page' : undefined}
+            key={key}
+            onClick={(event) => {
+              event.preventDefault();
+              onViewChange(key);
+            }}
+          >
+            <span>{workViews[key].title}</span>
+            <strong>{workItemsForView(items, key).length}</strong>
+            <small>Local records · view exact list</small>
+          </a>
         ))}
-      </div>
-      <section className="tools-section">
-        <div className="section-heading">
-          <h2>
-            Your tools <span className="count-pill">{modules.length}</span>
-          </h2>
-          <span className="subtle">One workspace. Shared building blocks.</span>
-        </div>
-        <div className="tool-cards">
-          {modules.map((module) => (
-            <button className="tool-card" key={module.id} onClick={() => navigate(module.id)}>
-              <div className="tool-card-top">
-                <span className={`app-icon app-icon-${module.color}`}>
-                  <Icon name={module.icon} size={23} />
-                </span>
-                <Icon name="arrow" size={18} />
-              </div>
-              <h3>{module.title}</h3>
-              <p>{module.description}</p>
-              <div className="tool-card-footer">
-                <span>
-                  {data.records[module.id].length} sample {module.recordLabel}
-                </span>
-                <Badge label="Local demo" dot={false} />
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-      <section className="panel recent-panel">
+      </nav>
+      <section className="panel work-list" aria-labelledby="work-title">
         <div className="panel-heading">
-          <h2>Recent activity</h2>
-          <button className="text-button" onClick={() => navigate('activity')}>
-            View all <Icon name="arrow" size={14} />
-          </button>
+          <h2 id="work-title">
+            {workViews[view].title} <span className="count-pill">{visible.length}</span>
+          </h2>
+          <span className="subtle">Oldest opened first · not an SLA</span>
         </div>
-        {data.activity.length === 0 ? (
-          <div className="welcome-empty">
-            <span className="empty-icon">
-              <Icon name="activity" size={24} />
-            </span>
-            <div>
-              <h3>A clean slate, ready to explore.</h3>
-              <p>
-                Review a case, simulate a refund, or change a flag. Your activity will show up here.
-              </p>
-            </div>
-            <button className="button button-secondary" onClick={() => navigate('kyc')}>
-              Start with a case <Icon name="arrow" size={15} />
-            </button>
-          </div>
-        ) : (
-          <div className="recent-list">
-            {data.activity.slice(0, 4).map((event) => (
-              <div key={event.id}>
-                <span className="activity-dot">
-                  <Icon name="check" size={12} />
-                </span>
-                <p>
-                  <strong>{event.action}</strong>
-                  <span>
-                    {event.recordName}
-                    {event.kind !== 'note' && ` · ${event.before} → ${event.after}`}
-                  </span>
-                </p>
-                <time dateTime={event.at}>{dateTime(event.at)}</time>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-      <div className="foundation-strip">
-        <div className="foundation-icon">
-          <Icon name="box" size={23} />
-        </div>
-        <div>
-          <strong>{modules.length} tools. One small foundation.</strong>
+        <div className="work-list-help">
+          <p>{workViews[view].description}</p>
           <p>
-            Shared tables, record details, actions, and local activity. Tool-specific rules stay in
-            their modules.
+            Unassigned waiting items appear in both views. Open a record to review its module rules;
+            this list does not authorize a decision.
           </p>
         </div>
-        <button className="text-button" onClick={() => navigate('about')}>
-          About this prototype <Icon name="arrow" size={15} />
-        </button>
+        <div className="table-scroll">
+          <table>
+            <caption className="sr-only">{workViews[view].title} · local synthetic records</caption>
+            <thead>
+              <tr>
+                <th scope="col">Record / tool</th>
+                <th scope="col">Why it needs attention</th>
+                <th scope="col">Status</th>
+                <th scope="col">Local owner</th>
+                <th scope="col">Opened age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map(({ module, record, reason }) => (
+                <tr key={`${module.id}-${record.id}`}>
+                  <td>
+                    <a
+                      className="work-record-link"
+                      data-work-record={`${module.id}:${record.id}`}
+                      href={recordHref(module.id, record)}
+                      onClick={(event) => {
+                        if (
+                          event.button !== 0 ||
+                          event.metaKey ||
+                          event.ctrlKey ||
+                          event.shiftKey ||
+                          event.altKey
+                        )
+                          return;
+                        event.preventDefault();
+                        onSelect(module.id, record);
+                      }}
+                    >
+                      <strong>{record.name}</strong>
+                      <span>
+                        {record.id} · {module.shortTitle}
+                      </span>
+                    </a>
+                  </td>
+                  <td className="work-reason">{reason}</td>
+                  <td>
+                    <Badge label={record.status} tone={module.statuses[record.status]} />
+                  </td>
+                  <td>{record.owner}</td>
+                  <td>{ageLabel(record.openedAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {visible.length === 0 && (
+          <div className="empty-state">
+            <h3>No local items in this view</h3>
+            <p>Try another work view or use the tool directory below.</p>
+          </div>
+        )}
+        <p className="work-list-help">
+          Showing all {visible.length} matching local records. Record names are stable links: copy
+          their link address to send a reference. Another browser needs its own matching local
+          sample; no shared handoff is implemented.
+        </p>
+      </section>
+      <section className="work-directory" aria-labelledby="directory-title">
+        <div className="section-heading">
+          <h2 id="directory-title">Tool directory</h2>
+          <span className="subtle">Open a tool when you need its full queue or custom page</span>
+        </div>
+        <label className="search-input">
+          <Icon name="search" size={17} />
+          <input
+            type="search"
+            aria-label="Search tool directory"
+            placeholder="Find a tool…"
+            value={directorySearch}
+            onChange={(event) => setDirectorySearch(event.target.value)}
+            maxLength={100}
+          />
+        </label>
+        <ul>
+          {directory.map((item) => (
+            <li key={item.id}>
+              <button className="text-button" onClick={() => navigate(item.id)}>
+                {item.title} <Icon name="arrow" size={14} />
+              </button>
+              <p>{item.description}</p>
+              <small>{item.scope}</small>
+            </li>
+          ))}
+        </ul>
+        {directory.length === 0 && <p>No tools match that search.</p>}
+      </section>
+      <div className="page-note">
+        <Icon name="info" size={16} />
+        <span>
+          Local notes and actions are demo activity, not authenticated audit history.{' '}
+          <button className="text-button" onClick={() => navigate('activity')}>
+            View local activity
+          </button>{' '}
+          ·{' '}
+          <button className="text-button" onClick={() => navigate('about')}>
+            About prototype
+          </button>
+        </span>
       </div>
-    </>
+    </div>
   );
 }

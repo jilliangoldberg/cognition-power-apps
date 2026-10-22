@@ -132,4 +132,129 @@ describe('versioned local demo data', () => {
     });
     expect(saveDemo(createFixtures())).toBe(false);
   });
+
+  it.each([1, 2])(
+    'adds conservative workflow defaults to actual older v%s shapes without inventing outcomes',
+    (schemaVersion) => {
+      const data = createFixtures();
+      const baseFields = {
+        kyc: [
+          'customerId',
+          'country',
+          'accountType',
+          'risk',
+          'reviewReason',
+          'summary',
+          'nextStep',
+        ],
+        refunds: [
+          'customerId',
+          'paymentId',
+          'amountCents',
+          'paymentCents',
+          'refundedCents',
+          'reason',
+          'paymentAt',
+          'summary',
+        ],
+        flags: ['environment', 'audience', 'description'],
+      };
+      for (const tool of ['kyc', 'refunds', 'flags'] as const)
+        for (const record of data.records[tool])
+          record.fields = Object.fromEntries(
+            Object.entries(record.fields).filter(([key]) => baseFields[tool].includes(key)),
+          );
+      data.records.kyc[0].version = 8;
+      data.records.kyc[0].status = 'Approved';
+      data.records.kyc[0].fields.summary = 'Preserve a user-edited summary.';
+      data.records.flags[0].status = 'Disabled';
+      localStorage.setItem('unrelated', 'untouched');
+      const raw = JSON.stringify({ ...data, schemaVersion });
+      localStorage.setItem(STORAGE_KEY, raw);
+      const loaded = loadDemo();
+      expect(loaded.blocked).toBe(false);
+      expect(loaded.data.records.kyc[0]).toMatchObject({
+        version: 8,
+        status: 'Approved',
+        fields: {
+          summary: 'Preserve a user-edited summary.',
+          evidenceReviewed: false,
+          responseRecorded: false,
+          identityEvidence: 'Not recorded in saved demo',
+        },
+      });
+      expect(loaded.data.records.kyc).toHaveLength(data.records.kyc.length);
+      expect(loaded.data.records.refunds[0].fields.relatedRequests).toContain(
+        'No related-request snapshot recorded',
+      );
+      expect(loaded.data.records.flags[0]).toMatchObject({
+        status: 'Disabled',
+        fields: { previousStatus: '', previousAudience: '' },
+      });
+      expect(loaded.data.activity).toEqual([]);
+      expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
+      expect(localStorage.getItem('unrelated')).toBe('untouched');
+      expect(saveDemo(loaded.data)).toBe(true);
+      expect(loadDemo().data).toEqual(loaded.data);
+    },
+  );
+
+  it('round-trips response context, decision, assignment and note without losing local history', () => {
+    let data = createFixtures();
+    const target = {
+      moduleId: 'kyc' as const,
+      recordId: 'KYC-1041',
+      reason: 'Fictional operational context.',
+    };
+    for (const [index, change] of [
+      { actionId: 'request-information' },
+      { kind: 'assignment' as const, owner: 'Jamie Brooks' },
+      { actionId: 'record-response' },
+      { kind: 'note' as const },
+      { actionId: 'resume' },
+      { actionId: 'review-evidence' },
+      { actionId: 'approve' },
+    ].entries())
+      data = executeAction(data, { ...target, ...change, expectedVersion: index + 1 });
+    expect(saveDemo(data)).toBe(true);
+    const loaded = loadDemo();
+    expect(loaded.data).toEqual(data);
+    expect(loaded.data.records.kyc[1]).toMatchObject({
+      owner: 'Jamie Brooks',
+      status: 'Approved',
+      version: 8,
+    });
+    expect(loaded.data.activity.map((event) => event.kind)).toContain('note');
+    expect(loaded.data.activity.map((event) => event.kind)).toContain('assignment');
+  });
+
+  it.each(['kyc', 'refunds', 'flags'] as const)(
+    'blocks newer per-tool workflow data in %s without resetting saved work',
+    (tool) => {
+      const data = createFixtures();
+      data.records[tool][0].fields.workflowVersion = 99;
+      const raw = JSON.stringify(data);
+      localStorage.setItem(STORAGE_KEY, raw);
+      expect(loadDemo().blocked).toBe(true);
+      expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
+    },
+  );
+
+  it('rejects malformed optional workflow fields and nested data instead of silently defaulting them', () => {
+    const cases = [
+      ['kyc', 'evidenceReviewed', 'yes'],
+      ['kyc', 'informationRequest', 42],
+      ['refunds', 'sharedPaymentContext', 'false'],
+      ['flags', 'previousStatus', 'Production'],
+      ['flags', 'previousAudience', 42],
+    ] as const;
+    for (const [tool, field, value] of cases) {
+      const data = createFixtures();
+      data.records[tool][0].fields[field] = value;
+      expect(isDemoState(data)).toBe(false);
+    }
+    const nested = createFixtures();
+    Object.assign(nested.records.kyc[0].fields, { checklist: { status: 'missing' } });
+    expect(isDemoState(nested)).toBe(false);
+  });
 });

@@ -18,22 +18,38 @@ export function ToolView({
   onSelect,
   currentOwner = 'You',
   viewNamespace,
+  filters: controlledFilters,
+  onFiltersChange,
+  recordHref,
 }: {
   module: ToolModule;
   records: ToolRecord[];
   onSelect: (record: ToolRecord) => void;
   currentOwner?: string;
   viewNamespace?: string;
+  filters?: RecordFilters;
+  onFiltersChange?: (filters: RecordFilters) => void;
+  recordHref?: (record: ToolRecord) => string;
 }) {
-  const [filters, setFilters] = useState(defaultFilters);
+  const [localFilters, setLocalFilters] = useState(defaultFilters);
+  const filters = controlledFilters ?? localFilters;
+  const setFilters = (next: RecordFilters) => {
+    setLocalFilters(next);
+    onFiltersChange?.(next);
+  };
   const [localViews, setLocalViews] = useState(() => loadViews(module, viewNamespace));
   const [viewName, setViewName] = useState('');
   const [viewError, setViewError] = useState('');
   const now = useNow();
   const { search, status, owner, sort, agingOnly } = filters;
-  const updateFilters = (change: Partial<RecordFilters>) =>
-    setFilters((current) => ({ ...current, ...change }));
-  const owners = Array.from(new Set([...module.owners, ...records.map((record) => record.owner)]));
+  const updateFilters = (change: Partial<RecordFilters>) => setFilters({ ...filters, ...change });
+  const owners = Array.from(
+    new Set([
+      ...module.owners,
+      ...records.map((record) => record.owner),
+      ...(owner === 'all' ? [] : [owner]),
+    ]),
+  );
   const visible = filterRecords(records, module, filters, now);
   function storeViews(views: typeof localViews.views) {
     const saved = saveViews(module.id, views, viewNamespace);
@@ -56,20 +72,45 @@ export function ToolView({
           <p>{module.description}</p>
         </div>
       </div>
-      <div className="metrics">
-        {module.metrics(records).map((metric) => (
-          <div className="metric" key={metric.label}>
-            <span className="metric-label">{metric.label}</span>
-            <strong>{metric.value}</strong>
-            <span className="metric-hint">{metric.hint}</span>
-          </div>
-        ))}
-      </div>
-      <section className="panel records-panel" aria-label={module.title}>
+      {recordHref ? (
+        <div className="workspace-queue-scope">
+          <button
+            className="text-button"
+            onClick={() => document.getElementById('queue-results')?.focus()}
+          >
+            {visible.length} matching local records · current filters
+          </button>
+          <button className="text-button" onClick={() => setFilters(defaultFilters)}>
+            All {records.length} local records · clear filters
+          </button>
+          <p>
+            Browser-local synthetic data only. Shared KYC is excluded. Record IDs are stable links;
+            copy their link address to send a reference, not a shared view.
+          </p>
+        </div>
+      ) : (
+        <div className="metrics">
+          {module.metrics(records).map((metric) => (
+            <div className="metric" key={metric.label}>
+              <span className="metric-label">{metric.label}</span>
+              <strong>{metric.value}</strong>
+              <span className="metric-hint">{metric.hint}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <section
+        id="queue-results"
+        tabIndex={-1}
+        className={`panel records-panel ${recordHref ? 'workspace-local-queue' : ''}`}
+        aria-label={module.title}
+      >
         <div className="panel-heading">
           <div className="title-line">
-            <h2>All {module.recordLabel}</h2>
-            <span className="count-pill">{records.length}</span>
+            <h2>
+              {recordHref ? 'Matching' : 'All'} {module.recordLabel}
+            </h2>
+            <span className="count-pill">{recordHref ? visible.length : records.length}</span>
           </div>
           <span className="subtle panel-hint">
             <Icon name="box" size={14} /> Curated sample · not company volume
@@ -265,6 +306,7 @@ export function ToolView({
                   <td>
                     <button
                       className="record-link"
+                      data-work-record={`${module.id}:${record.id}`}
                       onClick={() => onSelect(record)}
                       aria-label={`Open ${record.name}`}
                     >
@@ -283,7 +325,29 @@ export function ToolView({
                   </td>
                   <td>
                     <span className="secondary-value">{module.secondaryValue(record)}</span>
-                    <small className="record-id">{record.id}</small>
+                    {recordHref ? (
+                      <a
+                        className="record-id workspace-record-reference"
+                        href={recordHref(record)}
+                        aria-label={`Record reference ${record.id}`}
+                        onClick={(event) => {
+                          if (
+                            event.button !== 0 ||
+                            event.metaKey ||
+                            event.ctrlKey ||
+                            event.shiftKey ||
+                            event.altKey
+                          )
+                            return;
+                          event.preventDefault();
+                          onSelect(record);
+                        }}
+                      >
+                        {record.id}
+                      </a>
+                    ) : (
+                      <small className="record-id">{record.id}</small>
+                    )}
                   </td>
                   <td>
                     <Badge label={record.status} tone={module.statuses[record.status]} />
