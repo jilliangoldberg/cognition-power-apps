@@ -564,7 +564,7 @@ describe('narrow browser-local workflow stories', () => {
         record.fields.environment = environment;
         expect(() =>
           executeAction(state, { ...request, moduleId: 'flags', recordId: record.id, actionId }),
-        ).toThrow('Only synthetic Staging');
+        ).toThrow('Only Staging flags');
         expect(state.activity).toEqual([]);
       }
     },
