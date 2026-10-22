@@ -10,6 +10,7 @@ import {
 import type { ToolModule, ToolRecord } from '../core/types';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
+import { openFromRow } from './rowClick';
 import { useNow } from '../core/useNow';
 
 export function ToolView({
@@ -302,7 +303,11 @@ export function ToolView({
             </thead>
             <tbody>
               {visible.map((record, index) => (
-                <tr key={record.id}>
+                <tr
+                  key={record.id}
+                  className="clickable-row"
+                  onClick={openFromRow(() => onSelect(record))}
+                >
                   <td>
                     <button
                       className="record-link"

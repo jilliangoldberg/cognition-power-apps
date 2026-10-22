@@ -6,6 +6,7 @@ import { ageLabel } from '../core/format';
 import { workspaceItems, workItemsForView, workViews, type WorkView } from '../core/workspace';
 import { Icon } from './Icon';
 import { Badge } from './Badge';
+import { openFromRow } from './rowClick';
 
 const pageSummaries: Record<
   (typeof customPages)[number]['id'],
@@ -118,7 +119,11 @@ export function Overview({
             </thead>
             <tbody>
               {visible.map(({ module, record, reason }) => (
-                <tr key={`${module.id}-${record.id}`}>
+                <tr
+                  key={`${module.id}-${record.id}`}
+                  className="clickable-row"
+                  onClick={openFromRow(() => onSelect(module.id, record))}
+                >
                   <td>
                     <a
                       className="work-record-link"

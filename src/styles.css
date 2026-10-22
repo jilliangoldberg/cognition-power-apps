@@ -1174,6 +1174,9 @@ tbody tr:last-child td {
 tbody tr:hover {
   background: #fdfbff;
 }
+tbody tr.clickable-row {
+  cursor: pointer;
+}
 tbody tr:focus-within {
   background: #faf7ff;
 }
