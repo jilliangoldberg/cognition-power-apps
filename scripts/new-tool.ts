@@ -152,7 +152,12 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const [id, title] = process.argv.slice(2);
   try {
     const files = createTool(process.cwd(), id, title);
-    spawnSync('npx', ['prettier', '--write', ...files], { stdio: 'ignore' });
+    const format = spawnSync('npx', ['prettier', '--write', ...files], { encoding: 'utf8' });
+    if (format.status !== 0) {
+      console.error(`Created the files, but Prettier failed:\n${format.stderr || format.error}`);
+      console.error('Fix the error, then run: npx prettier --write ' + files.join(' '));
+      process.exit(1);
+    }
     console.log(`Created ${title} (#${id}):\n${files.map((file) => `  ${file}`).join('\n')}`);
     console.log('\nNext: npm test (checks the new tool automatically), then npm run dev.');
   } catch (error) {
