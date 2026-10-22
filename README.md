@@ -1,10 +1,47 @@
-# Workbench · internal tools built with Devin
+# Workbench: internal tools built with Devin
 
-A small React + TypeScript workspace that shows how a fintech engineering team can use Devin to build internal tools in code instead of Power Apps, and keep adding more. Three tools mirror the client's existing Power Apps: a **KYC review queue**, a **refunds dashboard** and a **feature-flag admin**. A fourth, **Investigation**, was added through the extension point to show the platform can grow without copying the shell.
+Workbench is a working prototype of a code-first alternative to a licensed low-code platform such as Microsoft Power Apps. Engineers working with Devin build internal operational tools as ordinary TypeScript in their own repository. Each tool is reviewed in pull requests, tested in CI, and runs on one shared application foundation.
 
-All data is synthetic and fictional. Nothing verifies real identities, moves money or changes a real product.
+## Executive summary
 
-## Run it
+- **The core of three current Power Apps, rebuilt as code:** a KYC review queue, a refunds dashboard and a feature-flag admin. Each covers its main workflow, including exception handling.
+- **A shared foundation, so new tools are mostly business logic.** Navigation, work queues, search, saved views, record detail, assignment, notes and history are written once and reused by every tool.
+- **Extensibility shown with a fourth tool.** Investigation, a transaction lookup across several data sources, was added through a typed extension point. It needed no copy of the shell and no change to the existing tools.
+- **Operational controls are on by default.** Every action requires a confirmation and a written reason, eligibility rules are enforced before an action is allowed, and each record keeps its own history.
+- **Synthetic data that exercises the edge cases:** missing and inconsistent evidence, over-limit refunds, staging rollbacks, and conflicting or unavailable data sources.
+
+## Why this approach fits a growing engineering team
+
+With roughly 60 engineers and more than ten additional tools planned, the main cost is delivering and maintaining each new tool, not building the first one. In this model internal tools follow the same practices as the rest of your software: version control, code review, automated tests and CI. Devin does most of the implementation, so engineers spend their time specifying the work and reviewing it. A consistent foundation also gives every tool the same behavior for queues, audit context and permissions checks.
+
+## What the prototype demonstrates
+
+| Capability your team relies on today | How Workbench demonstrates it                                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Queue-based operational apps         | Shared queue with search, filters, sorting, saved views and links that reopen a specific record     |
+| Forms, business rules and validation | Typed actions with eligibility guards that explain why an action is unavailable                     |
+| Approval-style workflows             | KYC request-information and resume cycle; refunds approved for simulation before they are simulated |
+| Change management                    | Feature flags with proposed diffs, change history and restore of the prior configuration            |
+| Multi-source operational lookups     | Investigation preserves conflicting, stale, unavailable and missing results instead of hiding them  |
+| Building new tools quickly           | Typed tool modules and a custom-page extension contract, checked automatically in CI                |
+
+## The four tools
+
+| Tool                          | Synthetic dataset                                                  | Suggested walkthrough                                                                                                                            |
+| ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **KYC review queue**          | 14 cases with complete, missing, expired and inconsistent evidence | Assign a case, request information, record the response, assess the evidence, and decide with a reason. An open evidence gap blocks approval.    |
+| **Refunds dashboard**         | 10 requests ($18–$1,250) across the refund lifecycle               | Approve a request for simulation, then simulate it. Capacity is rechecked at each step, and over-limit and shared-payment requests stay blocked. |
+| **Feature flags**             | 7 staging flags with owners, audiences and change history          | Change a flag with a reason, review the proposed diff, and restore the prior configuration as a new version.                                     |
+| **Investigation** (extension) | 6 transactions (`TX-DEMO-001`…`006`) checked against three sources | Compare clean, conflicting, unavailable, stale, no-match and incomplete results, then retry a single degraded source.                            |
+
+## Extending the platform
+
+- **Queue tools** are defined in `src/modules/<tool>.ts`: fields, statuses, guarded actions, metrics and sample records. The shared shell provides the rest of the experience.
+- **Custom pages** register through a small typed contract. Investigation consists of its own view (`src/features/Investigation.tsx`) and data (`src/features/evidence.ts`), plus one `defineReadOnlyPage` entry in `src/features/pages.tsx`. Automated tests check the registration and confirm that existing tools and saved data are unaffected.
+
+Details: [extension guide](docs/extension-guide.md) and the [change ledger for the Investigation extension](docs/extension-proof.md).
+
+## Running the demo
 
 Requires Node 24 (`.nvmrc`).
 
@@ -14,56 +51,41 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The four tools run entirely in the browser: no backend, database or credentials. Your changes are saved in the browser's localStorage. **Reset demo data** restores the samples.
+Open http://localhost:5173. The four tools run entirely in the browser and need no backend, database or credentials. Work is saved in the browser, and **Reset demo data** restores the original samples.
 
-## The four tools
-
-| Tool                                                | Synthetic data                                                                    | Try this                                                                                                                                                                                |
-| --------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **KYC review queue**                                | 14 cases with complete, missing, expired and inconsistent evidence                | Assign an unassigned case. Request information, record the response, assess the evidence, then approve or reject with a reason. An open evidence gap blocks approval but not rejection. |
-| **Refunds dashboard**                               | 10 requests ($18–$1,250) across requested, approved, processing and failed        | Approve a request for simulation, then simulate it. Capacity is rechecked at both steps. Over-capacity and shared-payment requests (Maya Robinson) stay blocked.                        |
-| **Feature flags**                                   | 7 staging flags with owners, audiences and change history                         | Enable or disable a flag with a reason, inspect the proposed diff, then restore the prior configuration as a new version.                                                               |
-| **Investigation** (4th tool, added as an extension) | 6 transactions, `TX-DEMO-001`…`006`, each checked against three synthetic sources | Look up each one. Results can be clean, conflicting, unavailable, stale, no-match or incomplete, and each keeps its own meaning. Retry a single degraded source.                        |
-
-## What every tool gets from the shared shell
-
-- **My work** overview: assigned, unassigned and waiting items, where each count opens exactly the list behind it.
-- Search, filters, sort and up to 8 saved views per tool. Shareable links restore the record and the list you came from.
-- A record drawer with details, assignment and handoff, notes and per-record history.
-- Every action needs a confirmation and a written reason. Unavailable actions explain why before you type anything.
-- Versioned browser storage with migration. Damaged or unknown saved data is kept rather than overwritten.
-
-## How the platform extends
-
-- **Queue tools** (KYC, refunds, flags) are defined as code in `src/modules/<tool>.ts`: fields, statuses, actions with guards, and metrics, plus sample records. The shell supplies the rest.
-- **Custom pages** use a small typed contract. Investigation is its own view (`src/features/Investigation.tsx`) and its own fixtures (`src/features/evidence.ts`), registered with one `defineReadOnlyPage` entry in `src/features/pages.tsx`. The contract checks the registration (IDs, declared read-only actions, owner and support metadata), and tests confirm the existing tools and saved data are unaffected.
-
-See the [extension guide](docs/extension-guide.md) and the [change ledger for the Investigation extension](docs/extension-proof.md).
-
-## Optional extras (not needed for the core demo)
-
-- **Shared KYC:** a multi-user KYC variant with a Node + SQLite API, demo logins, server-enforced operator/viewer roles, and stale-edit rejection. Setup: [docs/reference.md](docs/reference.md#run-shared-kyc).
-- **Stripe test lookup:** one read-only test-mode PaymentIntent lookup, with the key kept on the server. With no key it shows "not connected".
-- **Vendor approvals:** a cross-department example (Finance, Security, Legal) built on the same shell. See the [walkthrough](docs/vendor-extension.md).
-
-## How this was built
-
-Built with Devin in about two hours of the author's hands-on time, spread across short sessions. Devin wrote the code, tests and docs, and each milestone landed as a small reviewed PR with CI. The optional extras show how quickly further tools can be added on the same foundation.
-
-## Limits
-
-This is a prototype, not a Power Apps replacement ready for production. The original four tools store data only in the browser. There's no SSO, external writes, hosting or load testing, and nothing has been checked against the client's real apps. It's aimed at engineers working with Devin, not a no-code builder.
-
-## Checks
+To run the quality checks used in CI:
 
 ```sh
 npm run format:check && npm run lint && npm run typecheck && npm test && npm run build
 ```
 
-`npm test` runs the frontend tests and the API/SQLite tests. CI runs the same checks on every PR.
+## Scope and path to a pilot
 
-## More detail
+This prototype shows workflow fit and extensibility. It is not a production deployment. All data is fictional: no identity is verified, no money moves, and no product configuration changes. The four core tools store data only in the browser.
 
-- [Full reference](docs/reference.md): detailed behavior, Shared KYC and Stripe setup, security and storage notes.
-- [Prototype contract](docs/prototype-contract.md): what the prototype promises and how each promise is proven.
-- [Gates, effort and cost](docs/gates-and-effort.md): implementation status, effort ledger, next steps.
+A pilot would add:
+
+1. Discovery against your current apps: screens, exceptions, permissions and integrations.
+2. Single sign-on and role-based access.
+3. Shared server-side storage for all tools.
+4. Hosting, backups and monitoring.
+5. Approved integrations with your providers.
+6. A total-cost comparison based on measured engineering effort and the portion of current licensing that can actually be avoided.
+
+## Additional extensions
+
+These were built on the same foundation and aren't required for the core demo:
+
+- **Shared KYC:** a multi-user version with a Node + SQLite API, demo sign-in, server-enforced operator and viewer roles, and protection against conflicting edits. Setup: [reference guide](docs/reference.md#run-shared-kyc).
+- **Payment-provider lookup:** a read-only Stripe test-mode lookup. The key stays on the server, and the page reports "not connected" when no key is configured.
+- **Vendor onboarding and spend approvals:** a cross-department workflow (Finance, Security, Legal) showing reuse beyond financial operations. [Walkthrough](docs/vendor-extension.md).
+
+## How it was built
+
+Workbench was built with Devin in about two hours of hands-on engineering time, spread across short sessions. Devin wrote the application, tests and documentation, and each milestone was delivered as a small reviewed pull request that passed CI.
+
+## Documentation
+
+- [Reference guide](docs/reference.md): detailed behavior, multi-user setup, security and storage.
+- [Prototype contract](docs/prototype-contract.md): what the prototype claims and the evidence for each claim.
+- [Gates, effort and cost](docs/gates-and-effort.md): implementation status, effort ledger and next steps.
