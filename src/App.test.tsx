@@ -36,11 +36,9 @@ describe('task-first local workspace and references (jsdom)', () => {
     await user.click(within(screen.getByRole('table')).getByRole('link', { name: /KYC-1042/ }));
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByRole('button', { name: 'Approve case' })).toBeDisabled();
-    await user.click(within(dialog).getByRole('button', { name: 'Assess fictional evidence' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Assess evidence' }));
     await user.type(within(dialog).getByRole('textbox'), 'Assess the consistent fictional sample.');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Confirm assess fictional evidence' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm assess evidence' }));
     expect(within(dialog).getByRole('button', { name: 'Approve case' })).toBeEnabled();
     await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
     await screen.findByRole('heading', { name: /Waiting \/ blocked/ });

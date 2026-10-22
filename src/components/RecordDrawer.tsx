@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import type { Activity, RecordAction, ToolModule, ToolRecord } from '../core/types';
+import type { Activity, DetailField, RecordAction, ToolModule, ToolRecord } from '../core/types';
 import type { MutationRequest } from '../core/actions';
 import { actionBlock } from '../core/eligibility';
 import { ageLabel, dateTime, initials } from '../core/format';
@@ -17,6 +17,25 @@ type FormChoice = { version: number } & (
 
 type Draft = { form: FormChoice; reason: string; owner: string };
 const draftKey = (form: FormChoice) => (form.kind === 'action' ? form.action.id : form.kind);
+
+const visibleFields = (fields: DetailField[], record: ToolRecord) =>
+  fields.filter((field) => field.badge || field.value(record));
+
+function DetailRows({ fields, record }: { fields: DetailField[]; record: ToolRecord }) {
+  return visibleFields(fields, record).map((field) => {
+    const badge = field.badge?.(record);
+    const value = field.value(record);
+    return (
+      <div key={field.label} className={field.wide ? 'detail-wide' : undefined}>
+        <dt>
+          {field.label}
+          {badge && <Badge label={badge.label} tone={badge.tone} />}
+        </dt>
+        {value && <dd>{value}</dd>}
+      </div>
+    );
+  });
+}
 
 export function RecordDrawer({
   module,
@@ -178,34 +197,24 @@ export function RecordDrawer({
             </dd>
           </div>
           <div>
-            <dt>Age since opening</dt>
-            <dd>{ageLabel(record.openedAt, now)} · not an SLA</dd>
+            <dt>Time open</dt>
+            <dd>{ageLabel(record.openedAt, now)}</dd>
           </div>
-          {module.details.map((detail) => (
-            <div key={detail.label}>
-              <dt>{detail.label}</dt>
-              <dd>{detail.value(record)}</dd>
-            </div>
-          ))}
+          <DetailRows fields={module.details} record={record} />
         </dl>
-        {module.localDetails && (
-          <section className="workflow-context" aria-label="Local workflow context">
-            <h4 className="section-label">FICTIONAL EVIDENCE &amp; FOLLOW-UP</h4>
-            <dl className="workflow-context-list">
-              {module.localDetails.map((detail) => (
-                <div key={detail.label}>
-                  <dt>{detail.label}</dt>
-                  <dd>{detail.value(record)}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="input-hint">
-              Checklist items and assessment rules are illustrative—not verified client policy or
-              real identity checks. Reassign owner to record a reasoned handoff; owner labels are
-              not authenticated reviewers.
-            </p>
-          </section>
-        )}
+        {module.localDetails?.map((section) => {
+          const fields = visibleFields(section.fields, record);
+          if (!fields.length) return null;
+          const checks = fields.some((field) => field.badge);
+          return (
+            <section key={section.title} aria-label={section.title}>
+              <h4 className="section-label">{section.title.toUpperCase()}</h4>
+              <dl className={checks ? 'check-list' : 'detail-grid'}>
+                <DetailRows fields={fields} record={record} />
+              </dl>
+            </section>
+          );
+        })}
         <div className="detail-divider" />
         <h4 className="section-label">ACTIONS</h4>
         {form ? (
@@ -215,9 +224,9 @@ export function RecordDrawer({
               {action?.confirmation ??
                 (form.kind === 'assignment'
                   ? 'Owners are local demo labels, not authenticated people or permissions. Explain the handoff.'
-                  : 'Add fictional operational context only. Notes stay in this browser and are editable local data, not a secure audit log.')}
+                  : 'Notes are saved in this browser only and can be cleared by resetting the demo.')}
             </p>
-            {action?.eligibility && (
+            {action?.eligibility?.(record) && (
               <p className="workflow-eligibility">{action.eligibility(record)}</p>
             )}
             {action?.preview && <p className="workflow-diff">{action.preview(record)}</p>}
@@ -343,28 +352,32 @@ export function RecordDrawer({
                   'No further workflow actions. You can still assign this record or add a note.')}
             </p>
             <div className="action-buttons">
-              {available.map((candidate) => (
-                <div className="workflow-action" key={candidate.id}>
-                  <button
-                    className={`button ${candidate.tone === 'primary' ? 'button-primary' : candidate.tone === 'danger' ? 'button-danger-outline' : 'button-secondary'}`}
-                    onClick={() =>
-                      openForm({ kind: 'action', action: candidate, version: record.version })
-                    }
-                    disabled={Boolean(actionBlock(candidate, record, records))}
-                    aria-describedby={`eligibility-${candidate.id}`}
-                  >
-                    {candidate.label}
-                  </button>
-                  <p id={`eligibility-${candidate.id}`} className="workflow-eligibility">
-                    {actionBlock(candidate, record, records) ??
-                      candidate.eligibility?.(record) ??
-                      'Available in this case state. Add a reason before confirming.'}
-                  </p>
-                  {candidate.preview && (
-                    <p className="workflow-diff">{candidate.preview(record)}</p>
-                  )}
-                </div>
-              ))}
+              {available.map((candidate) => {
+                const help =
+                  actionBlock(candidate, record, records) ?? candidate.eligibility?.(record);
+                return (
+                  <div className="workflow-action" key={candidate.id}>
+                    <button
+                      className={`button ${candidate.tone === 'primary' ? 'button-primary' : candidate.tone === 'danger' ? 'button-danger-outline' : 'button-secondary'}`}
+                      onClick={() =>
+                        openForm({ kind: 'action', action: candidate, version: record.version })
+                      }
+                      disabled={Boolean(actionBlock(candidate, record, records))}
+                      aria-describedby={help ? `eligibility-${candidate.id}` : undefined}
+                    >
+                      {candidate.label}
+                    </button>
+                    {help && (
+                      <p id={`eligibility-${candidate.id}`} className="workflow-eligibility">
+                        {help}
+                      </p>
+                    )}
+                    {candidate.preview && (
+                      <p className="workflow-diff">{candidate.preview(record)}</p>
+                    )}
+                  </div>
+                );
+              })}
               <button
                 className="button button-secondary"
                 onClick={() => openForm({ kind: 'assignment', version: record.version })}
@@ -381,9 +394,9 @@ export function RecordDrawer({
           </>
         )}
         <div className="detail-divider" />
-        <h4 className="section-label">LOCAL NOTES ({notes.length})</h4>
+        <h4 className="section-label">NOTES ({notes.length})</h4>
         {notes.length === 0 ? (
-          <p className="muted activity-empty">No local notes. Use fictional context only.</p>
+          <p className="muted activity-empty">No notes yet.</p>
         ) : (
           <ol className="local-notes">
             {notes.map((note) => (
@@ -395,11 +408,9 @@ export function RecordDrawer({
           </ol>
         )}
         <div className="detail-divider" />
-        <h4 className="section-label">LOCAL ACTIVITY</h4>
+        <h4 className="section-label">ACTIVITY</h4>
         {changes.length === 0 ? (
-          <p className="muted activity-empty">
-            No workflow changes yet. Initial sample states have no invented operator history.
-          </p>
+          <p className="muted activity-empty">No changes recorded yet.</p>
         ) : (
           <ol className="record-activity">
             {changes.map((event) => (
