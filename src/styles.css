@@ -1,5 +1,6 @@
 :root {
   font-family:
+    'Inter Variable',
     Inter,
     -apple-system,
     BlinkMacSystemFont,
@@ -9,13 +10,12 @@
   background: #f8f9fc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
   font-weight: 400;
   font-size: 14px;
   --purple: #7354d2;
   --purple-dark: #6141bd;
   --line: #e9eaf0;
-  --muted: #697080;
+  --muted: #505562;
   --bg: #f8f9fc;
   --sidebar: 244px;
 }
@@ -158,7 +158,7 @@
   width: 100%;
 }
 .vendor-blocker {
-  color: #8b530f;
+  color: #7c4a0d;
   background: #fff8e7;
   padding: 10px;
   border-radius: 6px;
@@ -310,8 +310,8 @@ select:focus-visible {
   color: var(--muted);
 }
 .eyebrow {
-  color: #8c829f;
-  font-size: 10px;
+  color: #595265;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 1.6px;
   margin-bottom: 10px;
@@ -375,7 +375,7 @@ select:focus-visible {
   display: grid;
   place-items: center;
   background: #f0ebfc;
-  color: #7c5bd2;
+  color: #5e45a0;
   border: 1px solid #e8dffa;
   border-radius: 7px;
   font-weight: 650;
@@ -392,19 +392,20 @@ select:focus-visible {
   margin-bottom: 3px;
 }
 .workspace-switch div > span {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
+  white-space: nowrap;
 }
 .workspace-switch .badge {
-  font-size: 9px;
+  font-size: 11px;
   padding: 3px 5px;
   background: #f7f7fa;
 }
 .nav-label {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 1.4px;
-  color: #707687;
+  color: #515562;
   padding-left: 13px;
   margin-bottom: 9px;
 }
@@ -417,7 +418,7 @@ select:focus-visible {
   gap: 11px;
   align-items: center;
   border-radius: 7px;
-  color: #6a6e7f;
+  color: #525562;
   font-size: 13px;
   margin-bottom: 4px;
   transition:
@@ -425,7 +426,7 @@ select:focus-visible {
     color 0.15s;
 }
 .nav-item.active {
-  color: #7150c6;
+  color: #5f43a7;
   background: #f1edfb;
   font-weight: 600;
 }
@@ -437,14 +438,14 @@ select:focus-visible {
   flex: 1;
 }
 .nav-count {
-  font-size: 10px;
+  font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #9699a5;
+  color: #54555c;
   background: #f5f5f9;
 }
 .active .nav-count {
-  color: #8062c9;
+  color: #5e4895;
   background: #e7dff8;
 }
 .sidebar-bottom {
@@ -467,19 +468,19 @@ select:focus-visible {
   margin: 0 6px 2px 0;
 }
 .sandbox-card > strong {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 .sandbox-card p {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.8;
-  color: #93909f;
+  color: #56545e;
   margin: 8px 0 10px;
 }
 .sandbox-card .text-button {
-  font-size: 10px;
+  font-size: 11px;
   gap: 5px;
-  color: #7d63b7;
+  color: #5e4a8a;
 }
 .demo-user {
   display: flex;
@@ -490,7 +491,7 @@ select:focus-visible {
 }
 .user-avatar {
   background: #eee9f7;
-  color: #7966a6;
+  color: #5c4e7e;
   width: 31px;
   height: 31px;
   border-radius: 50%;
@@ -506,8 +507,8 @@ select:focus-visible {
   margin-bottom: 4px;
 }
 .demo-user div > span {
-  font-size: 9px;
-  color: #989aaa;
+  font-size: 11px;
+  color: #55555e;
 }
 .main-shell {
   margin-left: var(--sidebar);
@@ -528,26 +529,26 @@ select:focus-visible {
   align-items: center;
   gap: 14px;
   font-size: 11px;
-  color: #9093a2;
+  color: #54555f;
 }
 .breadcrumbs strong {
-  color: #55596a;
+  color: #515565;
   font-weight: 500;
 }
 .breadcrumbs > svg {
-  color: #c0c2cc;
+  color: #54555a;
 }
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 16px;
-  font-size: 10px;
+  font-size: 11px;
 }
 .local-indicator {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #697575;
+  color: #4e5757;
 }
 .local-indicator > span {
   height: 5px;
@@ -574,7 +575,7 @@ select:focus-visible {
   margin-bottom: 29px;
 }
 .page-heading p:not(.eyebrow) {
-  color: #6c7283;
+  color: #515563;
   font-size: 12px;
   line-height: 1.8;
   margin-top: 9px;
@@ -590,7 +591,7 @@ select:focus-visible {
   letter-spacing: -1px;
 }
 .overview-heading .eyebrow {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1.9px;
   margin-bottom: 12px;
 }
@@ -619,7 +620,7 @@ select:focus-visible {
 }
 .button-secondary {
   background: #fff;
-  color: #616577;
+  color: #525564;
   border-color: #e2e4ec;
   box-shadow: 0 1px 2px #25273503;
 }
@@ -637,7 +638,7 @@ select:focus-visible {
 .button-danger-outline {
   background: #fff;
   border-color: #ecdade;
-  color: #ad5462;
+  color: #85404b;
 }
 .button-danger-outline:hover {
   background: #fff7f8;
@@ -647,8 +648,8 @@ select:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 10px;
-  color: #8b72c4;
+  font-size: 11px;
+  color: #5d4c84;
   background: none;
   border: 0;
   padding: 0;
@@ -665,11 +666,11 @@ select:focus-visible {
   border: 0;
   border-radius: 5px;
   padding: 6px;
-  color: #8a8d9d;
+  color: #54555f;
 }
 .icon-button:hover {
   background: #f0edf6;
-  color: #6e55a6;
+  color: #5f498f;
 }
 .metrics {
   display: grid;
@@ -690,7 +691,7 @@ select:focus-visible {
 }
 .metric-label {
   font-size: 11px;
-  color: #6c7283;
+  color: #515563;
   font-weight: 500;
 }
 .metric strong {
@@ -701,7 +702,7 @@ select:focus-visible {
 }
 .metric-hint {
   font-size: 11px;
-  color: #727889;
+  color: #515562;
 }
 .section-heading {
   display: flex;
@@ -715,14 +716,14 @@ select:focus-visible {
   gap: 9px;
 }
 .section-heading > .subtle {
-  font-size: 10px;
-  color: #747b8a;
+  font-size: 11px;
+  color: #515560;
 }
 .count-pill {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
-  color: #888b9a;
+  color: #54555f;
   background: #f0f1f5;
   border: 1px solid #e9eaf0;
   border-radius: 5px;
@@ -762,7 +763,7 @@ select:focus-visible {
   margin-bottom: 18px;
 }
 .tool-card-top > svg {
-  color: #b7bbc7;
+  color: #54555a;
 }
 .app-icon {
   display: grid;
@@ -773,15 +774,15 @@ select:focus-visible {
 }
 .app-icon-purple {
   background: #f1ebfc;
-  color: #8b6bd5;
+  color: #5f4991;
 }
 .app-icon-blue {
   background: #ebf2fd;
-  color: #6c91d4;
+  color: #40557d;
 }
 .app-icon-green {
   background: #eaf6f1;
-  color: #66a68c;
+  color: #385c4d;
 }
 .tool-card h3 {
   font-size: 14px;
@@ -792,7 +793,7 @@ select:focus-visible {
 .tool-card > p {
   font-size: 12px;
   line-height: 1.8;
-  color: #6e7485;
+  color: #515562;
   min-height: 40px;
   margin-bottom: 21px;
   max-width: 245px;
@@ -802,14 +803,14 @@ select:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 9px;
-  color: #9b9eaa;
+  font-size: 11px;
+  color: #54555c;
   padding: 14px 0;
 }
 .tool-card-footer .badge {
-  font-size: 8px;
+  font-size: 11px;
   padding: 3px 6px;
-  color: #8f93a2;
+  color: #54555f;
   background: #f8f9fb;
   border: 1px solid #edeef4;
 }
@@ -837,8 +838,8 @@ select:focus-visible {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 9px;
-  color: #a0a3b1;
+  font-size: 11px;
+  color: #54555d;
 }
 .welcome-empty {
   padding: 27px 25px;
@@ -854,7 +855,7 @@ select:focus-visible {
   height: 47px;
   width: 47px;
   background: #f7f5fc;
-  color: #b2a3d5;
+  color: #59526b;
   flex-shrink: 0;
 }
 .welcome-empty > div {
@@ -868,11 +869,11 @@ select:focus-visible {
 .welcome-empty p {
   font-size: 11px;
   line-height: 1.7;
-  color: #707687;
+  color: #515562;
   max-width: 380px;
 }
 .welcome-empty .button {
-  font-size: 9px;
+  font-size: 11px;
   padding: 8px 10px;
   min-height: 31px;
 }
@@ -887,7 +888,7 @@ select:focus-visible {
   height: 37px;
   display: grid;
   place-items: center;
-  color: #b1a4d1;
+  color: #585269;
   border: 1px solid #e8e3f3;
   border-radius: 9px;
   background: #f6f3fb;
@@ -901,15 +902,15 @@ select:focus-visible {
   font-size: 11px;
   font-weight: 550;
   margin-bottom: 6px;
-  color: #81758f;
+  color: #5b5265;
 }
 .foundation-strip p {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.7;
-  color: #a0a0ae;
+  color: #55555d;
 }
 .foundation-strip > .text-button {
-  font-size: 9px;
+  font-size: 11px;
 }
 .workspace-footer {
   border-top: 1px solid #eaeaf1;
@@ -918,16 +919,16 @@ select:focus-visible {
   justify-content: space-between;
   gap: 15px;
   padding: 17px 0 20px;
-  font-size: 8px;
-  color: #adafbc;
+  font-size: 11px;
+  color: #54555c;
 }
 .workspace-footer > span:first-child {
   letter-spacing: 1.2px;
-  font-size: 7px;
+  font-size: 11px;
 }
 .footer-dot {
   padding: 0 6px;
-  color: #c2b4db;
+  color: #595264;
 }
 .badge {
   display: inline-flex;
@@ -936,7 +937,7 @@ select:focus-visible {
   width: fit-content;
   white-space: nowrap;
   max-width: 100%;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.3;
   font-weight: 500;
   border-radius: 5px;
@@ -950,27 +951,27 @@ select:focus-visible {
 }
 .badge-neutral {
   background: #f2f3f6;
-  color: #626a7b;
+  color: #4f5563;
 }
 .badge-purple {
   background: #f2ecfd;
-  color: #7755b5;
+  color: #624695;
 }
 .badge-green {
   background: #edf7f1;
-  color: #38775b;
+  color: #2d5f49;
 }
 .badge-amber {
   background: #fff6e6;
-  color: #8a661f;
+  color: #6d5019;
 }
 .badge-red {
   background: #fbedef;
-  color: #a24c5b;
+  color: #873f4c;
 }
 .badge-blue {
   background: #edf3fc;
-  color: #5277b3;
+  color: #3b5681;
 }
 .table-toolbar {
   padding: 15px 20px;
@@ -989,14 +990,14 @@ select:focus-visible {
   gap: 8px;
   padding: 8px 10px;
   width: 280px;
-  color: #aaadbc;
+  color: #54555d;
   min-height: 34px;
 }
 .search-input input {
   border: 0;
   outline: none;
   background: none;
-  font-size: 10px;
+  font-size: 11px;
   color: #4d5264;
   min-width: 0;
   width: 100%;
@@ -1010,11 +1011,11 @@ select:focus-visible {
   outline: none;
 }
 .search-input input::placeholder {
-  color: #a8abba;
+  color: #54555d;
 }
 .search-input kbd {
-  font-size: 9px;
-  color: #b7b9c5;
+  font-size: 11px;
+  color: #54555a;
   background: #f9f9fc;
   border: 1px solid #edeef4;
   border-radius: 3px;
@@ -1044,7 +1045,7 @@ select:focus-visible {
 }
 .view-presets .button,
 .save-view-form .button {
-  font-size: 10px;
+  font-size: 11px;
   padding: 7px 10px;
 }
 .view-presets [aria-pressed='true'] {
@@ -1056,8 +1057,8 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
-  color: #797187;
+  font-size: 11px;
+  color: #595363;
 }
 .save-view-form input,
 .action-form select {
@@ -1066,7 +1067,7 @@ select:focus-visible {
   border-radius: 6px;
   background: #fff;
   padding: 8px 10px;
-  color: #5f536f;
+  color: #5c516c;
   font-size: 11px;
   max-width: 100%;
 }
@@ -1077,15 +1078,15 @@ select:focus-visible {
 .view-help,
 .view-warning,
 .view-toolbar .form-error {
-  font-size: 10px;
+  font-size: 11px;
   flex-basis: 100%;
   margin: 0;
-  color: #797187;
+  color: #595363;
   line-height: 1.7;
 }
 .view-warning,
 .view-toolbar .form-error {
-  color: #985d3c;
+  color: #794a2f;
 }
 .saved-views {
   flex-basis: 100%;
@@ -1118,7 +1119,7 @@ select:focus-visible {
   overflow-wrap: anywhere;
 }
 .local-notes small {
-  color: #797187;
+  color: #595363;
 }
 .select-wrap {
   position: relative;
@@ -1130,8 +1131,8 @@ select:focus-visible {
   background: #fff;
   border: 1px solid #e4e6ed;
   border-radius: 6px;
-  color: #888c9e;
-  font-size: 10px;
+  color: #535560;
+  font-size: 11px;
   padding: 8px 29px 8px 10px;
   cursor: pointer;
   min-height: 34px;
@@ -1140,7 +1141,7 @@ select:focus-visible {
   position: absolute;
   pointer-events: none;
   right: 9px;
-  color: #a2a6b5;
+  color: #54555d;
 }
 .table-scroll {
   overflow: auto;
@@ -1157,7 +1158,7 @@ thead {
 th {
   font-size: 11px;
   font-weight: 500;
-  color: #6d7485;
+  color: #505562;
   padding: 12px 16px;
   border-bottom: 1px solid var(--line);
 }
@@ -1166,9 +1167,9 @@ th:first-child {
 }
 td {
   padding: 16px;
-  font-size: 10px;
+  font-size: 11px;
   border-bottom: 1px solid #f0f0f5;
-  color: #818697;
+  color: #525560;
 }
 td:first-child {
   padding-left: 20px;
@@ -1195,7 +1196,7 @@ tbody tr:focus-within {
 .record-link strong {
   font-weight: 550;
   font-size: 12px;
-  color: #53596d;
+  color: #505569;
   display: block;
   margin-bottom: 5px;
 }
@@ -1203,8 +1204,8 @@ tbody tr:focus-within {
   color: var(--purple);
 }
 .record-link small {
-  font-size: 10px;
-  color: #747c8e;
+  font-size: 11px;
+  color: #505562;
   display: block;
 }
 .avatar {
@@ -1213,44 +1214,44 @@ tbody tr:focus-within {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 550;
   flex-shrink: 0;
 }
 .avatar-0 {
   background: #eee9fa;
-  color: #967cc5;
+  color: #5d4d7b;
 }
 .avatar-1 {
   background: #eaf0fb;
-  color: #879bc6;
+  color: #4a556d;
 }
 .avatar-2 {
   background: #fbeef2;
-  color: #be8d9f;
+  color: #694e58;
 }
 .avatar-3 {
   background: #eaf4ed;
-  color: #82a992;
+  color: #465a4e;
 }
 .avatar-flag {
   background: #edf4f1;
-  color: #8db3a1;
+  color: #475a51;
   border-radius: 8px;
 }
 .secondary-value {
   display: block;
-  color: #6e7587;
+  color: #505563;
   font-size: 11px;
 }
 .record-id {
   max-width: 360px;
   white-space: normal;
   overflow-wrap: anywhere;
-  font-size: 8px;
+  font-size: 11px;
   margin-top: 5px;
   display: block;
-  color: #b2b5c2;
+  color: #54555c;
   letter-spacing: 0.3px;
 }
 .owner {
@@ -1258,7 +1259,7 @@ tbody tr:focus-within {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #6d7485;
+  color: #505562;
 }
 .owner-dot {
   height: 5px;
@@ -1270,11 +1271,11 @@ tbody tr:focus-within {
   background: #baabe0;
 }
 .date-cell {
-  font-size: 10px;
-  color: #70788a;
+  font-size: 11px;
+  color: #505563;
 }
 .row-arrow {
-  color: #c5c7d2;
+  color: #54555a;
   padding-right: 18px;
   padding-left: 0;
 }
@@ -1284,27 +1285,27 @@ tbody tr:focus-within {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #a1a5b4;
-  font-size: 9px;
+  color: #54555e;
+  font-size: 11px;
   gap: 10px;
 }
 .table-footer > span:last-child {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #ada4c0;
+  color: #585362;
 }
 .page-note {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #a4a3b4;
-  font-size: 9px;
+  color: #55545e;
+  font-size: 11px;
   margin-top: 19px;
   line-height: 1.7;
 }
 .page-note svg {
-  color: #bab1cc;
+  color: #575360;
 }
 .empty-state {
   padding: 45px 20px;
@@ -1330,7 +1331,7 @@ tbody tr:focus-within {
   background: #f6f3fc;
   border: 1px solid #eee7f8;
   border-radius: 7px;
-  color: #78638f;
+  color: #5f4f71;
 }
 .notice svg {
   margin-top: 1px;
@@ -1379,10 +1380,10 @@ tbody tr:focus-within {
 }
 .dialog-header .eyebrow {
   overflow-wrap: anywhere;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1px;
   margin-bottom: 8px;
-  color: #9c92af;
+  color: #595363;
 }
 .drawer {
   position: fixed;
@@ -1427,7 +1428,7 @@ tbody tr:focus-within {
 }
 .record-profile p {
   font-size: 11px;
-  color: #a0a4b4;
+  color: #53555e;
   margin-top: 5px;
   overflow-wrap: anywhere;
 }
@@ -1438,12 +1439,12 @@ tbody tr:focus-within {
   margin-bottom: 24px;
 }
 .record-meta > span:last-child {
-  font-size: 10px;
-  color: #999eb0;
+  font-size: 11px;
+  color: #53555f;
 }
 .section-label {
-  color: #9a95a9;
-  font-size: 9px;
+  color: #57545f;
+  font-size: 11px;
   letter-spacing: 1.2px;
   font-weight: 600;
   margin: 26px 0 16px;
@@ -1455,12 +1456,12 @@ tbody tr:focus-within {
   margin: 0;
 }
 .detail-grid dt {
-  color: #72788a;
+  color: #515563;
   font-size: 11px;
   margin-bottom: 7px;
 }
 .detail-grid dd {
-  color: #5c6277;
+  color: #505568;
   font-size: 12px;
   line-height: 1.7;
   margin: 0;
@@ -1475,7 +1476,7 @@ tbody tr:focus-within {
 }
 .action-help {
   font-size: 11px;
-  color: #73798a;
+  color: #515561;
   line-height: 1.7;
   margin-bottom: 16px;
 }
@@ -1496,26 +1497,26 @@ tbody tr:focus-within {
 }
 .action-form > p {
   font-size: 11px;
-  color: #9890a5;
+  color: #58545f;
   line-height: 1.8;
   margin-bottom: 17px;
 }
 .action-form > label {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 550;
-  color: #797187;
+  color: #595363;
   margin-bottom: 8px;
 }
 .required {
-  color: #b8778e;
+  color: #734a58;
 }
 .action-form textarea {
   resize: vertical;
   width: 100%;
   min-height: 85px;
   padding: 11px;
-  color: #5f536f;
+  color: #5c516c;
   background: #fff;
   border: 1px solid #ded7e8;
   border-radius: 6px;
@@ -1523,18 +1524,18 @@ tbody tr:focus-within {
   line-height: 1.7;
 }
 .action-form textarea::placeholder {
-  color: #b0a8bd;
+  color: #58545f;
 }
 .input-hint {
-  font-size: 9px;
-  color: #b0a9bd;
+  font-size: 11px;
+  color: #58545e;
   margin-top: 6px;
 }
 .action-form .action-buttons {
   margin-top: 18px;
 }
 .action-form > .form-error {
-  color: #ba4c60;
+  color: #8d3949;
   margin: 12px 0 0;
   font-size: 11px;
 }
@@ -1558,7 +1559,7 @@ tbody tr:focus-within {
   width: 23px;
   border: 1px solid #e7e0f4;
   background: #f7f3fd;
-  color: #9b82cd;
+  color: #5d4e7c;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -1572,15 +1573,15 @@ tbody tr:focus-within {
 }
 .record-activity p {
   font-size: 11px;
-  color: #a0a0b0;
+  color: #55555e;
   line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   margin-bottom: 7px;
 }
 .record-activity small {
-  font-size: 9px;
-  color: #b4afc2;
+  font-size: 11px;
+  color: #57545d;
 }
 .drawer-footer {
   display: flex;
@@ -1589,15 +1590,15 @@ tbody tr:focus-within {
   padding: 17px 27px;
   background: #fdfcfe;
   border-top: 1px solid var(--line);
-  color: #b1a8c0;
-  font-size: 9px;
+  color: #58545f;
+  font-size: 11px;
 }
 .reset-body {
   padding: 24px;
 }
 .reset-body p {
   font-size: 12px;
-  color: #9390a3;
+  color: #56545f;
   line-height: 1.9;
   margin-bottom: 24px;
 }
@@ -1624,7 +1625,7 @@ tbody tr:focus-within {
   border-radius: 8px;
   padding: 12px 14px;
   pointer-events: auto;
-  color: #7a6d8b;
+  color: #5b5168;
   font-size: 11px;
 }
 .toast-check {
@@ -1634,7 +1635,7 @@ tbody tr:focus-within {
   place-items: center;
   border-radius: 50%;
   background: #edf6ef;
-  color: #80a58b;
+  color: #465a4c;
 }
 .toast .icon-button {
   margin-left: 8px;
@@ -1648,7 +1649,7 @@ tbody tr:focus-within {
   border: 1px solid #efe2c4;
   border-radius: 7px;
   background: #fff9ed;
-  color: #ad8c4a;
+  color: #66532c;
   margin-bottom: 22px;
   font-size: 11px;
 }
@@ -1657,7 +1658,7 @@ tbody tr:focus-within {
 }
 .warning-banner .text-button {
   white-space: nowrap;
-  color: #987735;
+  color: #695225;
 }
 .recent-list {
   padding: 0 22px;
@@ -1679,16 +1680,16 @@ tbody tr:focus-within {
   display: block;
   font-size: 11px;
   font-weight: 550;
-  color: #81758f;
+  color: #5b5265;
   margin-bottom: 5px;
 }
 .recent-list p > span {
-  font-size: 10px;
-  color: #a4a0b0;
+  font-size: 11px;
+  color: #56545d;
 }
 .recent-list time {
-  font-size: 9px;
-  color: #aca7b7;
+  font-size: 11px;
+  color: #57545d;
 }
 .activity-notice {
   margin-bottom: 23px;
@@ -1720,30 +1721,30 @@ tbody tr:focus-within {
 }
 .activity-item-body > p {
   font-size: 11px;
-  color: #8e8a9f;
+  color: #575461;
   margin-bottom: 9px;
 }
 .state-change {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 10px;
-  color: #a6a0b5;
+  font-size: 11px;
+  color: #58545f;
 }
 .activity-item blockquote {
   margin: 12px 0;
   padding: 10px 14px;
   border-left: 2px solid #ded3f1;
   background: #faf8fe;
-  color: #9f95ae;
+  color: #595362;
   font-size: 11px;
   line-height: 1.8;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .activity-item small {
-  font-size: 9px;
-  color: #b1aabc;
+  font-size: 11px;
+  color: #58545d;
 }
 .about-grid {
   display: grid;
@@ -1762,18 +1763,18 @@ tbody tr:focus-within {
   padding-left: 18px;
   margin: 0;
   font-size: 12px;
-  color: #9591a4;
+  color: #57545f;
   line-height: 2.6;
 }
 .check-list li::marker {
-  color: #b1a0ce;
+  color: #5a5269;
 }
 .boundaries h2 {
   margin: 0 0 15px;
 }
 .boundaries p {
   font-size: 12px;
-  color: #928d9f;
+  color: #58545f;
   line-height: 1.9;
   max-width: 850px;
 }
@@ -1789,10 +1790,10 @@ tbody tr:focus-within {
 .next-step h2 {
   font-size: 13px;
   margin: 1px 0 9px;
-  color: #83788c;
+  color: #5a5361;
 }
 .next-step p {
-  color: #a29aaa;
+  color: #58545d;
   font-size: 11px;
   line-height: 1.9;
   max-width: 750px;
@@ -1801,7 +1802,7 @@ tbody tr:focus-within {
 .work-scope,
 .work-list-help,
 .workspace-queue-scope {
-  color: #625b70;
+  color: #595265;
   font-size: 12px;
   line-height: 1.8;
 }
@@ -1907,12 +1908,12 @@ tbody tr:focus-within {
 .work-directory li p {
   font-size: 12px;
   line-height: 1.7;
-  color: #625b70;
+  color: #595265;
   margin: 8px 0;
 }
 .work-directory li small {
   font-size: 11px;
-  color: #625b70;
+  color: #595265;
 }
 .workspace-queue-scope {
   margin-bottom: 20px;
@@ -2021,10 +2022,10 @@ tbody tr:focus-within {
     padding-left: 7px;
   }
   .workspace-switch > div > strong {
-    font-size: 10px;
+    font-size: 11px;
   }
   .workspace-switch div > span {
-    font-size: 9px;
+    font-size: 11px;
   }
   .main-content {
     padding: 29px 25px 0;
@@ -2040,10 +2041,10 @@ tbody tr:focus-within {
     padding: 18px 15px;
   }
   .metric-label {
-    font-size: 9px;
+    font-size: 11px;
   }
   .metric-hint {
-    font-size: 8px;
+    font-size: 11px;
   }
   .tool-cards {
     gap: 12px;
@@ -2088,7 +2089,7 @@ tbody tr:focus-within {
     min-width: 178px;
   }
   .overview-heading .button {
-    font-size: 10px;
+    font-size: 11px;
   }
   .overview-heading h1 {
     font-size: 26px;
@@ -2130,7 +2131,7 @@ tbody tr:focus-within {
     min-height: 0;
     margin: 0;
     max-width: none;
-    font-size: 10px;
+    font-size: 11px;
   }
   .tool-card-footer {
     grid-column: 3;
@@ -2140,7 +2141,7 @@ tbody tr:focus-within {
     align-items: flex-end;
     gap: 10px;
     padding: 0;
-    font-size: 9px;
+    font-size: 11px;
     min-width: 64px;
   }
   .overview-heading {
@@ -2157,10 +2158,10 @@ tbody tr:focus-within {
     font-size: 11px;
   }
   .overview-heading .eyebrow {
-    font-size: 8px;
+    font-size: 11px;
   }
   .section-heading > .subtle {
-    font-size: 9px;
+    font-size: 11px;
   }
   .welcome-empty {
     flex-wrap: wrap;
@@ -2180,7 +2181,7 @@ tbody tr:focus-within {
     max-width: none;
   }
   .foundation-strip p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .table-toolbar {
     flex-wrap: wrap;
@@ -2248,7 +2249,7 @@ tbody tr:focus-within {
     gap: 10px;
   }
   .topbar-right {
-    font-size: 9px;
+    font-size: 11px;
   }
   .page-heading {
     margin-bottom: 23px;
@@ -2271,10 +2272,10 @@ tbody tr:focus-within {
     min-height: 34px;
   }
   .metric-label {
-    font-size: 10px;
+    font-size: 11px;
   }
   .metric-hint {
-    font-size: 9px;
+    font-size: 11px;
   }
   .metric strong {
     font-size: 25px;
@@ -2293,14 +2294,14 @@ tbody tr:focus-within {
     font-size: 14px;
   }
   .tool-card-footer {
-    font-size: 10px;
+    font-size: 11px;
   }
   .foundation-strip p {
-    font-size: 10px;
+    font-size: 11px;
   }
   .workspace-footer {
     margin-top: 24px;
-    font-size: 8px;
+    font-size: 11px;
   }
   .table-toolbar {
     flex-wrap: nowrap;
@@ -2316,7 +2317,7 @@ tbody tr:focus-within {
     width: auto;
   }
   .select-wrap select {
-    font-size: 9px;
+    font-size: 11px;
   }
   .drawer {
     width: 480px;
@@ -2326,7 +2327,7 @@ tbody tr:focus-within {
     left: 50%;
   }
   .page-note {
-    font-size: 10px;
+    font-size: 11px;
   }
   .about-grid {
     grid-template-columns: 1fr 1fr;
@@ -2336,7 +2337,7 @@ tbody tr:focus-within {
     padding: 21px;
   }
   .check-list {
-    font-size: 10px;
+    font-size: 11px;
   }
   .boundaries p {
     font-size: 11px;
@@ -2360,11 +2361,11 @@ tbody tr:focus-within {
     padding: 0 17px;
   }
   .breadcrumbs {
-    font-size: 10px;
+    font-size: 11px;
     gap: 8px;
   }
   .topbar-right {
-    font-size: 8px;
+    font-size: 11px;
   }
   .page-heading p:not(.eyebrow) {
     font-size: 11px;
@@ -2387,10 +2388,10 @@ tbody tr:focus-within {
     min-height: 114px;
   }
   .metric-label {
-    font-size: 9px;
+    font-size: 11px;
   }
   .metric-hint {
-    font-size: 8px;
+    font-size: 11px;
   }
   .metric strong {
     font-size: 23px;
@@ -2409,7 +2410,7 @@ tbody tr:focus-within {
     font-size: 13px;
   }
   .tool-card > p {
-    font-size: 10px;
+    font-size: 11px;
   }
   .tool-card-footer {
     grid-row: 3;
@@ -2418,7 +2419,7 @@ tbody tr:focus-within {
     align-items: center;
     justify-content: space-between;
     padding-top: 12px;
-    font-size: 9px;
+    font-size: 11px;
   }
   .tool-card-top {
     align-self: start;
@@ -2431,7 +2432,7 @@ tbody tr:focus-within {
     font-size: 11px;
   }
   .welcome-empty p {
-    font-size: 10px;
+    font-size: 11px;
   }
   .welcome-empty .empty-icon {
     width: 36px;
@@ -2450,14 +2451,14 @@ tbody tr:focus-within {
     min-width: calc(100% - 52px);
   }
   .foundation-strip p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .foundation-strip strong {
-    font-size: 10px;
+    font-size: 11px;
   }
   .foundation-strip > .text-button {
     margin-left: 49px;
-    font-size: 9px;
+    font-size: 11px;
   }
   .workspace-footer > span:last-child {
     display: none;
@@ -2486,17 +2487,17 @@ tbody tr:focus-within {
     padding: 16px 13px;
   }
   .panel-hint {
-    font-size: 8px;
+    font-size: 11px;
   }
   .table-footer {
     padding: 13px;
-    font-size: 8px;
+    font-size: 11px;
   }
   .table-footer > span:last-child {
     display: none;
   }
   .page-note {
-    font-size: 9px;
+    font-size: 11px;
     align-items: flex-start;
   }
   .page-note svg {
@@ -2522,7 +2523,7 @@ tbody tr:focus-within {
     padding: 22px;
   }
   .toast {
-    font-size: 10px;
+    font-size: 11px;
     padding: 10px;
     gap: 7px;
   }
