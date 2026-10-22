@@ -545,6 +545,20 @@ select:focus-visible {
   background: #69a88d;
   border-radius: 50%;
 }
+.new-tool-cta {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  min-height: 36px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px #7354d240;
+}
+.topbar-right > .text-button {
+  white-space: nowrap;
+}
+.new-tool-cta[aria-current='page'] {
+  background: var(--purple-dark);
+}
 .topbar-divider {
   height: 13px;
   width: 1px;
@@ -2290,6 +2304,13 @@ tbody tr:focus-within {
   }
   .topbar-right {
     font-size: 11px;
+    gap: 12px;
+  }
+  .topbar-right > .local-indicator {
+    display: none;
+  }
+  .new-tool-cta {
+    padding: 8px 12px;
   }
   .page-heading p:not(.eyebrow) {
     font-size: 11px;

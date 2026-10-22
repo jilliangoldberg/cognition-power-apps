@@ -252,7 +252,6 @@ export default function App() {
           <p className="nav-label nav-label-tools">EXTENSION PROOFS</p>
           {customPages.map((item) => navItem(item.id, item.title, item.icon))}
           <p className="nav-label nav-label-tools">MANAGE</p>
-          {navItem('new-tool', 'New tool', 'code')}
           {navItem('activity', 'Activity', 'activity')}
         </nav>
         <div className="sidebar-bottom">
@@ -304,6 +303,18 @@ export default function App() {
               <Icon name="identity" size={14} />
               Sign in
             </button>
+            <a
+              href="#new-tool"
+              className="button button-primary new-tool-cta"
+              aria-current={page === 'new-tool' ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                navigate('new-tool');
+              }}
+            >
+              <Icon name="plus" size={15} />
+              New tool
+            </a>
           </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
