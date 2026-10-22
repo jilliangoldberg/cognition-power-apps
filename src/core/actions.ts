@@ -1,6 +1,7 @@
 import { getModule } from '../modules';
 import type { DemoState, ToolId } from './types';
 import { randomId } from './id';
+import { isRecord } from './storage';
 
 interface ChangeTarget {
   moduleId: ToolId;
@@ -79,6 +80,53 @@ export function executeAction(
         before,
         after,
         at: now.toISOString(),
+      },
+      ...state.activity,
+    ],
+  };
+}
+
+// Adds one record through a tool's intake form. The tool builds it; the shell checks it fits.
+export function submitRecord(
+  state: DemoState,
+  moduleId: ToolId,
+  values: Record<string, string>,
+  now = new Date(),
+): DemoState {
+  const module = getModule(moduleId);
+  if (!module?.intake) throw new Error('This tool does not accept new records.');
+  const rows = state.records[module.id];
+  const at = now.toISOString();
+  const record = {
+    ...module.intake.create(values, rows, now),
+    owner: 'Unassigned',
+    openedAt: at,
+    updatedAt: at,
+    version: 1,
+  };
+  if (
+    !isRecord(record) ||
+    !Object.hasOwn(module.statuses, record.status) ||
+    !module.validateFields(record)
+  )
+    throw new Error('This request could not be saved. Check the fields and try again.');
+  if (rows.some((row) => row.id === record.id))
+    throw new Error('A record with this ID already exists.');
+  return {
+    ...state,
+    records: { ...state.records, [module.id]: [record, ...rows] },
+    activity: [
+      {
+        id: randomId(),
+        kind: 'action',
+        moduleId: module.id,
+        recordId: record.id,
+        recordName: record.name,
+        action: 'Submitted',
+        reason: 'Submitted through the request form.',
+        before: 'New',
+        after: record.status,
+        at,
       },
       ...state.activity,
     ],
