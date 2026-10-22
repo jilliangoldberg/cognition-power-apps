@@ -290,7 +290,7 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="local-indicator">
-              <span /> {page === 'investigation' ? 'Synthetic evidence' : 'Local demo'}
+              <span /> {page === 'investigation' ? 'Read-only' : 'Local demo'}
             </span>
             <span className="topbar-divider" />
             <span className="subtle">Synthetic data only</span>

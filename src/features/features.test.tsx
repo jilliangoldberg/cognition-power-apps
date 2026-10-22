@@ -21,8 +21,8 @@ describe('fourth-tool custom view', () => {
   it('reports source disagreements without inventing an authoritative combined status', async () => {
     const user = userEvent.setup();
     render(<Investigation />);
-    await user.clear(screen.getByLabelText('Synthetic transaction ID'));
-    await user.type(screen.getByLabelText('Synthetic transaction ID'), 'TX-DEMO-002');
+    await user.clear(screen.getByLabelText('Transaction ID'));
+    await user.type(screen.getByLabelText('Transaction ID'), 'TX-DEMO-002');
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
     expect(screen.getByRole('status')).toHaveTextContent('Reports disagree');
   });

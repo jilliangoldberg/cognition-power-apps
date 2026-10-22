@@ -17,8 +17,8 @@ export const investigationExtension = defineReadOnlyPage({
     runbook: 'docs/extension-guide.md',
   },
   actions: [
-    { id: 'investigate', label: 'Investigate synthetic transaction', effect: 'synthetic-read' },
-    { id: 'retry-source', label: 'Simulate one source retry', effect: 'synthetic-read' },
+    { id: 'investigate', label: 'Investigate transaction', effect: 'synthetic-read' },
+    { id: 'retry-source', label: 'Retry one source', effect: 'synthetic-read' },
   ],
   fixtureScenarios: investigationExamples.map((example) => example.id),
 });
