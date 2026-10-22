@@ -215,9 +215,7 @@ describe('versioned local demo data', () => {
         },
       });
       expect(loaded.data.records.kyc).toHaveLength(data.records.kyc.length);
-      expect(loaded.data.records.refunds[0].fields.relatedRequests).toContain(
-        'No related-request snapshot recorded',
-      );
+      expect(loaded.data.records.refunds[0].fields.relatedRequests).toBe('');
       expect(loaded.data.records.flags[0]).toMatchObject({
         status: 'Disabled',
         fields: { previousStatus: '', previousAudience: '' },
@@ -287,6 +285,33 @@ describe('versioned local demo data', () => {
       evidenceReviewContext: '',
       handoffContext: '',
       decisionContext: 'Keep a real saved reason.',
+    });
+  });
+
+  it('migrates refund records saved with the old example statuses and placeholder text', () => {
+    const data = createFixtures();
+    const [shared, failed] = ['REF-0199', 'REF-0195'].map(
+      (id) => data.records.refunds.find((record) => record.id === id)!,
+    );
+    failed.status = 'Failed example';
+    Object.assign(shared.fields, {
+      relatedRequests:
+        'REF-0195 · Failed example · 8450 cents · initial synthetic snapshot, not reconciliation; current siblings are rechecked before actions',
+      summary:
+        'Two sample requests share this payment. Simulation is blocked: shared refundable capacity and reconciliation are not modeled. Investigate the other request first.',
+      decisionContext: 'No decision reason recorded here; inspect existing activity.',
+      simulationContext: 'Keep a real simulation note.',
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const loaded = loadDemo();
+    expect(loaded.blocked).toBe(false);
+    const byId = (id: string) => loaded.data.records.refunds.find((record) => record.id === id)!;
+    expect(byId('REF-0195').status).toBe('Failed');
+    expect(byId('REF-0199').fields).toMatchObject({
+      relatedRequests: 'REF-0195 · Failed · $84.50',
+      summary: expect.stringContaining('Another request is open'),
+      decisionContext: '',
+      simulationContext: 'Keep a real simulation note.',
     });
   });
 

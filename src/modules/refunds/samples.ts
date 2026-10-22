@@ -1,5 +1,22 @@
 import type { ToolRecord } from '../../core/types';
 
+export const sharedSummary =
+  'Another request is open against the same payment. Resolve it before approving this one.';
+
+const summaries: Record<string, string> = {
+  'REF-0204': 'Customer was charged twice for one add-on. Requested amount matches the duplicate.',
+  'REF-0203': 'Partial refund for a session that was cancelled by the provider.',
+  'REF-0202': 'Customer cancelled within 24 hours of payment and asked for a full refund.',
+  'REF-0201': 'Service outage confirmed for the billing period. Refund simulated after approval.',
+  'REF-0200': 'Request was made outside the refund window, so it was declined.',
+  'REF-0199': sharedSummary,
+  'REF-0198': 'Full refund on a large annual plan. Waiting for a second approver.',
+  'REF-0197': 'Refund of the remaining balance after an earlier partial refund.',
+  'REF-0196':
+    'Order cancelled before fulfilment. Refund submitted and waiting for the provider result.',
+  'REF-0195': 'Provider returned an error on this payment. Check REF-0199 before another attempt.',
+};
+
 export function refundSamples(now: Date): ToolRecord[] {
   const time = (hours: number) => new Date(now.getTime() - hours * 3_600_000).toISOString();
   const refund = (
@@ -34,12 +51,11 @@ export function refundSamples(now: Date): ToolRecord[] {
       sharedPaymentContext: paymentId === 'PAY-8069',
       relatedRequests:
         paymentId === 'PAY-8069'
-          ? `${id === 'REF-0199' ? 'REF-0195 · Failed example · 8450 cents' : 'REF-0199 · Requested · 24995 cents'} · initial synthetic snapshot, not reconciliation; current siblings are rechecked before actions`
-          : 'No sibling in the initial synthetic snapshot; current siblings are rechecked before actions.',
-      summary:
-        paymentId === 'PAY-8069'
-          ? 'Two sample requests share this payment. Simulation is blocked: shared refundable capacity and reconciliation are not modeled. Investigate the other request first.'
-          : 'Illustrative request against a completed payment. Amounts are sample USD, not client averages or policy thresholds.',
+          ? id === 'REF-0199'
+            ? 'REF-0195 · Failed · $84.50'
+            : 'REF-0199 · Requested · $249.95'
+          : '',
+      summary: summaries[id] ?? '',
     },
   });
   return [
@@ -52,7 +68,7 @@ export function refundSamples(now: Date): ToolRecord[] {
       12000,
       0,
       'Requested',
-      'Duplicate component reported within the original payment',
+      'Charged twice for one add-on',
       'You',
       1,
     ),
@@ -104,7 +120,7 @@ export function refundSamples(now: Date): ToolRecord[] {
       1800,
       0,
       'Declined',
-      'Example request declined after review; no client policy implied',
+      'Requested after the refund window closed',
       'Alex Morgan',
       48,
     ),
@@ -129,8 +145,8 @@ export function refundSamples(now: Date): ToolRecord[] {
       125000,
       125000,
       0,
-      'Awaiting approval example',
-      'Illustrative second-review handoff; not an amount-based client rule',
+      'Awaiting second approval',
+      'Annual plan cancelled in the first month',
       'Alex Morgan',
       18,
     ),
@@ -155,8 +171,8 @@ export function refundSamples(now: Date): ToolRecord[] {
       75000,
       150000,
       0,
-      'Processing example',
-      'Illustrative submitted request awaiting an external outcome; no real submission occurred',
+      'Processing',
+      'Order cancelled before fulfilment',
       'Jamie Brooks',
       30,
     ),
@@ -168,8 +184,8 @@ export function refundSamples(now: Date): ToolRecord[] {
       8450,
       49990,
       0,
-      'Failed example',
-      'Illustrative external failure on the same payment as REF-0199; investigate before another attempt',
+      'Failed',
+      'Partial refund for a damaged item',
       'You',
       72,
     ),

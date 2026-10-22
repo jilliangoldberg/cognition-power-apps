@@ -1,44 +1,154 @@
 import { countStatus, dateTime, money } from '../../core/format';
-import type { ToolModule, ToolRecord } from '../../core/types';
-import { refundSamples } from './samples';
+import type { DetailSection, ToolModule, ToolRecord, Tone } from '../../core/types';
+import { refundSamples, sharedSummary } from './samples';
+
+const legacyContext = new Set([
+  'No related-request snapshot recorded in saved demo; current siblings are checked before an action.',
+  'No sibling in the initial synthetic snapshot; current siblings are rechecked before actions.',
+  'No decision reason recorded here; inspect existing activity.',
+  'No simulation detail recorded here; no provider outcome is known.',
+  'Illustrative request against a completed payment. Amounts are sample USD, not client averages or policy thresholds.',
+]);
+const legacySharedSummary =
+  'Two sample requests share this payment. Simulation is blocked: shared refundable capacity and reconciliation are not modeled. Investigate the other request first.';
+const legacySnapshotSuffix =
+  ' · initial synthetic snapshot, not reconciliation; current siblings are rechecked before actions';
+
+const migrateText = (value: unknown) => {
+  if (typeof value !== 'string') return value;
+  if (legacyContext.has(value)) return '';
+  if (value === legacySharedSummary) return sharedSummary;
+  if (!value.endsWith(legacySnapshotSuffix)) return value;
+  return value
+    .slice(0, -legacySnapshotSuffix.length)
+    .replace(' example · ', ' · ')
+    .replace(/(\d+) cents$/, (_, cents: string) => money(Number(cents)));
+};
 
 export function refundDefaults(record: ToolRecord): ToolRecord {
-  return {
-    ...record,
-    fields: {
-      workflowVersion: 1,
-      relatedRequests:
-        'No related-request snapshot recorded in saved demo; current siblings are checked before an action.',
-      sharedPaymentContext: false,
-      decisionContext: 'No decision reason recorded here; inspect existing activity.',
-      simulationContext: 'No simulation detail recorded here; no provider outcome is known.',
-      ...record.fields,
-    },
+  const fields: ToolRecord['fields'] = {
+    workflowVersion: 1,
+    relatedRequests: '',
+    sharedPaymentContext: false,
+    decisionContext: '',
+    simulationContext: '',
+    ...record.fields,
   };
+  for (const key of ['relatedRequests', 'decisionContext', 'simulationContext', 'summary'])
+    if (key in fields) fields[key] = migrateText(fields[key]) as string;
+  return { ...record, fields };
 }
 
-function capacityBlock(r: ToolRecord): string | undefined {
+const text = (r: ToolRecord, key: string) =>
+  typeof r.fields[key] === 'string' ? String(r.fields[key]) : '';
+const remaining = (r: ToolRecord) => Number(r.fields.paymentCents) - Number(r.fields.refundedCents);
+
+const sharedMessage =
+  'Multiple requests share this payment. Resolve the other request before approving or simulating this one.';
+
+function balanceBlock(r: ToolRecord): string | undefined {
   if (
     !['amountCents', 'paymentCents', 'refundedCents'].every(
       (key) => Number.isSafeInteger(r.fields[key]) && Number(r.fields[key]) >= 0,
     ) ||
     Number(r.fields.amountCents) <= 0 ||
     Number(r.fields.refundedCents) > Number(r.fields.paymentCents) ||
-    Number(r.fields.amountCents) > Number(r.fields.paymentCents) - Number(r.fields.refundedCents)
+    Number(r.fields.amountCents) > remaining(r)
   )
-    return 'The requested amount exceeds the remaining refundable balance or the integer minor-unit amounts are invalid.';
-  if (r.fields.sharedPaymentContext === true)
-    return 'Multiple requests share this payment. Simulation is blocked until shared refundable capacity and reconciliation are modeled.';
+    return 'The requested amount exceeds the remaining refundable balance or the amounts are invalid.';
+}
+
+function capacityBlock(r: ToolRecord): string | undefined {
+  return balanceBlock(r) ?? (r.fields.sharedPaymentContext === true ? sharedMessage : undefined);
 }
 
 function validateCapacity(r: ToolRecord, records: ToolRecord[]) {
   const blocked = capacityBlock(r);
   if (blocked) throw new Error(blocked);
   if (records.some((other) => other.id !== r.id && other.fields.paymentId === r.fields.paymentId))
-    throw new Error(
-      'Multiple requests share this payment. Simulation is blocked until shared refundable capacity and reconciliation are modeled.',
-    );
+    throw new Error(sharedMessage);
 }
+
+const badge = (label: string, tone: Tone) => ({ label, tone });
+
+const approval: Record<string, [string, string, Tone]> = {
+  Requested: ['Waiting for a reviewer decision', 'Pending', 'amber'],
+  'Approved for simulation': ['Approved in this workspace', 'Approved', 'green'],
+  Simulated: ['Approved in this workspace', 'Approved', 'green'],
+  Declined: ['Declined in this workspace', 'Declined', 'neutral'],
+  'Awaiting second approval': ['Waiting for a second approver', 'Waiting', 'purple'],
+  Processing: ['Approved before submission', 'Approved', 'green'],
+  Failed: ['Approved before submission', 'Approved', 'green'],
+};
+const outcome: Record<string, [string, string, Tone]> = {
+  Simulated: ['Simulated · no money moved', 'Simulated', 'green'],
+  Processing: ['Submitted · waiting for the provider result', 'Processing', 'blue'],
+  Failed: ['Provider returned an error · investigate before retrying', 'Failed', 'red'],
+};
+
+const localDetails: DetailSection[] = [
+  {
+    title: 'Payment',
+    fields: [
+      { label: 'Payment ID', value: (r) => text(r, 'paymentId') },
+      {
+        label: 'Payment date',
+        value: (r) => (typeof r.fields.paymentAt === 'string' ? dateTime(r.fields.paymentAt) : ''),
+      },
+      { label: 'Customer ID', value: (r) => text(r, 'customerId') },
+      { label: 'Original payment', value: (r) => money(Number(r.fields.paymentCents)) },
+      { label: 'Previously refunded', value: (r) => money(Number(r.fields.refundedCents)) },
+      { label: 'Remaining balance', value: (r) => money(remaining(r)) },
+    ],
+  },
+  {
+    title: 'Refund checks',
+    fields: [
+      {
+        label: 'Refundable balance',
+        value: (r) =>
+          `${money(Number(r.fields.amountCents))} requested of ${money(remaining(r))} remaining`,
+        badge: (r) =>
+          balanceBlock(r) ? badge('Exceeds balance', 'red') : badge('Within balance', 'green'),
+      },
+      {
+        label: 'Other requests on this payment',
+        value: (r) => text(refundDefaults(r), 'relatedRequests') || 'None',
+        badge: (r) =>
+          r.fields.sharedPaymentContext === true
+            ? badge('Shared payment', 'amber')
+            : badge('Clear', 'green'),
+      },
+      {
+        label: 'Approval',
+        value: (r) => approval[r.status]?.[0] ?? '',
+        badge: (r) =>
+          badge(approval[r.status]?.[1] ?? r.status, approval[r.status]?.[2] ?? 'neutral'),
+      },
+      {
+        label: 'Refund',
+        value: (r) => outcome[r.status]?.[0] ?? 'Not issued',
+        badge: (r) =>
+          badge(outcome[r.status]?.[1] ?? 'Not issued', outcome[r.status]?.[2] ?? 'neutral'),
+      },
+    ],
+  },
+  {
+    title: 'Case notes',
+    fields: [
+      {
+        label: 'Decision reason',
+        value: (r) => text(refundDefaults(r), 'decisionContext'),
+        wide: true,
+      },
+      {
+        label: 'Simulation note',
+        value: (r) => text(refundDefaults(r), 'simulationContext'),
+        wide: true,
+      },
+    ],
+  },
+];
 
 export const refunds: ToolModule = {
   id: 'refunds',
@@ -46,7 +156,7 @@ export const refunds: ToolModule = {
   shortTitle: 'Refunds',
   icon: 'refund',
   color: 'blue',
-  description: 'Inspect refund requests and try a local, no-money-moved simulation.',
+  description: 'Review refund requests, check balances, and simulate approved refunds.',
   recordLabel: 'requests',
   primaryColumn: 'Customer / payment',
   secondaryColumn: 'Requested amount',
@@ -56,90 +166,36 @@ export const refunds: ToolModule = {
     'Approved for simulation': 'purple',
     Simulated: 'green',
     Declined: 'neutral',
-    'Awaiting approval example': 'purple',
-    'Processing example': 'blue',
-    'Failed example': 'red',
+    'Awaiting second approval': 'purple',
+    Processing: 'blue',
+    Failed: 'red',
+  },
+  legacyStatuses: {
+    'Awaiting approval example': 'Awaiting second approval',
+    'Processing example': 'Processing',
+    'Failed example': 'Failed',
   },
   owners: ['Unassigned', 'You', 'Alex Morgan', 'Jamie Brooks'],
   isOpen: (r) => !['Simulated', 'Declined'].includes(r.status),
   noActionMessage: (r) =>
-    r.status.endsWith('example')
-      ? 'Read-only scenario, not a live provider or approval workflow. You can assign it or add a note; no payment action is available.'
-      : 'This request is resolved in the local demo. You can still assign it or add a note.',
+    ['Awaiting second approval', 'Processing', 'Failed'].includes(r.status)
+      ? 'Sample request in a provider or second-approval state. Those steps are not connected here, so you can only reassign it or add a note.'
+      : 'This request is resolved. You can still reassign it or add a note.',
   details: [
-    { label: 'Payment ID', value: (r) => String(r.fields.paymentId) },
-    {
-      label: 'Payment date',
-      value: (r) =>
-        typeof r.fields.paymentAt === 'string'
-          ? dateTime(r.fields.paymentAt)
-          : 'Not recorded in older demo data',
-    },
-    {
-      label: 'Customer ID',
-      value: (r) => String(r.fields.customerId ?? 'Not recorded in older demo data'),
-    },
-    { label: 'Currency', value: () => 'USD' },
-    { label: 'Original payment', value: (r) => money(Number(r.fields.paymentCents)) },
-    { label: 'Previously refunded', value: (r) => money(Number(r.fields.refundedCents)) },
-    {
-      label: 'Remaining balance',
-      value: (r) => money(Number(r.fields.paymentCents) - Number(r.fields.refundedCents)),
-    },
+    { label: 'Request reason', value: (r) => text(r, 'reason') },
     { label: 'Requested refund', value: (r) => money(Number(r.fields.amountCents)) },
-    { label: 'Request reason', value: (r) => String(r.fields.reason) },
-    {
-      label: 'Related request snapshot · synthetic',
-      value: (r) => String(refundDefaults(r).fields.relatedRequests),
-    },
-    {
-      label: 'Integer USD minor units',
-      value: (r) =>
-        `Payment ${r.fields.paymentCents}; previously refunded ${r.fields.refundedCents}; requested ${r.fields.amountCents}; remaining ${Number(r.fields.paymentCents) - Number(r.fields.refundedCents)} cents`,
-    },
-    {
-      label: 'Request decision',
-      value: (r) =>
-        r.status === 'Requested'
-          ? 'Pending local decision'
-          : r.status === 'Approved for simulation' || r.status === 'Simulated'
-            ? 'Approved locally for simulation only'
-            : r.status === 'Declined'
-              ? 'Declined locally'
-              : 'Read-only decision illustration; no local approval performed',
-    },
-    {
-      label: 'Execution / provider outcome',
-      value: (r) =>
-        r.status === 'Simulated'
-          ? 'Local simulation recorded · no refund issued; provider outcome unknown'
-          : r.status === 'Failed example'
-            ? 'Uncertain read-only illustration · failure does not prove no provider effect; do not retry'
-            : r.status === 'Processing example'
-              ? 'Read-only processing illustration · no submission performed by this app'
-              : 'Not executed · no provider connection',
-    },
-    { label: 'Decision context', value: (r) => String(refundDefaults(r).fields.decisionContext) },
-    {
-      label: 'Simulation context',
-      value: (r) => String(refundDefaults(r).fields.simulationContext),
-    },
-    {
-      label: 'Context',
-      value: (r) => String(r.fields.summary ?? 'Local sample request; no provider is connected.'),
-    },
+    { label: 'Summary', value: (r) => text(refundDefaults(r), 'summary'), wide: true },
   ],
+  localDetails,
   notice:
-    'Simulation only. No payment provider is connected, no funds move, and no ledger is updated. USD is a demo limitation. Approval, processing, and failure examples are illustrative read-only scenarios.',
+    'Refunds are simulated. No payment provider is connected and no money moves. Processing and failed requests are sample states.',
   actions: [
     {
       id: 'approve-refund',
       label: 'Approve for simulation',
       tone: 'primary',
       confirmation:
-        'Record a local decision only. A separate simulation step follows; no payment is submitted or reserved.',
-      eligibility: () =>
-        'Requested cases only; positive integer USD cents within remaining capacity. Shared-payment requests stay blocked. This is not client approval policy.',
+        'Approve this refund. Simulating it is a separate step; no payment is submitted.',
       blockedReason: capacityBlock,
       validate: validateCapacity,
       available: (r) => r.status === 'Requested',
@@ -154,11 +210,9 @@ export const refunds: ToolModule = {
       id: 'simulate',
       label: 'Simulate refund',
       tone: 'primary',
-      confirmation:
-        'Simulate this request locally. This does not issue a refund or represent a provider outcome.',
+      confirmation: 'Simulate this approved refund. No money is sent to the customer.',
       available: (r) => r.status === 'Approved for simulation',
-      eligibility: () =>
-        'Requires a prior local approval. Capacity and current sibling requests are checked again; no reservation or durable execution exists.',
+      eligibility: () => 'Balance and other requests on this payment are checked again first.',
       blockedReason: capacityBlock,
       validate: validateCapacity,
       apply: (r) => {
@@ -182,10 +236,8 @@ export const refunds: ToolModule = {
       id: 'decline',
       label: 'Decline request',
       tone: 'danger',
-      confirmation: 'Mark this request as declined in the local demo.',
+      confirmation: 'Decline this refund request. No money moves.',
       available: (r) => ['Requested', 'Approved for simulation'].includes(r.status),
-      eligibility: () =>
-        'Decline a requested or approved-but-not-simulated request. No money or external request is changed.',
       apply: (r) => ({ ...r, status: 'Declined' }),
       applyWithContext: (r, reason) => ({
         ...r,
@@ -197,7 +249,7 @@ export const refunds: ToolModule = {
   withDefaults: refundDefaults,
   metrics: (records) => [
     {
-      label: 'Requested (sample)',
+      label: 'Requested',
       value: String(countStatus(records, 'Requested')),
       hint: 'Waiting for a decision',
     },
@@ -208,17 +260,17 @@ export const refunds: ToolModule = {
           .filter((r) => r.status === 'Requested')
           .reduce((sum, r) => sum + Number(r.fields.amountCents), 0),
       ),
-      hint: 'Sample USD · not provider-pending funds',
+      hint: 'Across requests waiting for a decision',
     },
     {
       label: 'Simulated',
       value: String(countStatus(records, 'Simulated')),
-      hint: 'No real refunds issued',
+      hint: 'No money moved',
     },
     {
-      label: 'Sample requests',
+      label: 'Total requests',
       value: String(records.length),
-      hint: 'Curated examples, not company volume',
+      hint: 'In this queue',
     },
   ],
   samples: refundSamples,

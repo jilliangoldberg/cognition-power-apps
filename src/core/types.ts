@@ -80,6 +80,8 @@ export interface ToolModule {
   secondaryColumn: string;
   secondaryValue: (record: ToolRecord) => string;
   statuses: Record<string, Tone>;
+  /** Renamed statuses in saved browser data, mapped old → new before validation. */
+  legacyStatuses?: Record<string, string>;
   owners: string[];
   isOpen?: (record: ToolRecord) => boolean;
   noActionMessage?: (record: ToolRecord) => string;

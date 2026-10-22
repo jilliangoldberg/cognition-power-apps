@@ -45,7 +45,7 @@ describe('browser-local My work', () => {
     ).toContain('Multiple requests share this payment');
     expect(
       workItemsForView(items, 'waiting').some(
-        ({ record }) => record.status === 'Awaiting approval example',
+        ({ record }) => record.status === 'Awaiting second approval',
       ),
     ).toBe(true);
     expect(JSON.stringify(data)).toBe(original);
