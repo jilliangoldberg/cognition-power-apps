@@ -64,7 +64,7 @@ function RequestForm({
   return (
     <Dialog
       title={request ? 'Edit and resubmit vendor request' : 'New vendor request'}
-      subtitle="FICTIONAL DETAILS ONLY"
+      subtitle="FINANCE · SECURITY · LEGAL"
       onClose={onClose}
     >
       <form className="vendor-form" onSubmit={submit}>
@@ -84,7 +84,7 @@ function RequestForm({
           />
         </label>
         <label>
-          Fictional requester
+          Requester
           <input
             required
             minLength={2}
@@ -126,7 +126,7 @@ function RequestForm({
           />
         </label>
         <p id="vendor-spend-help" className="subtle">
-          Illustrative annual estimate, not an approved budget or financial commitment.
+          Annual estimate. Finance confirms the budget during review.
         </p>
         <label>
           Budget owner
@@ -155,8 +155,8 @@ function RequestForm({
           </select>
         </label>
         <fieldset>
-          <legend>Synthetic review prerequisites</legend>
-          <p>Demo checkboxes only—not uploaded documents, verification, or real sign-off.</p>
+          <legend>Review documents</legend>
+          <p>Checkboxes only. No documents are uploaded.</p>
           <label className="vendor-check">
             <input
               type="checkbox"
@@ -164,7 +164,7 @@ function RequestForm({
               disabled={details.dataAccess === 'Public information only'}
               onChange={(e) => update('securityReviewed', e.target.checked)}
             />
-            Synthetic security assessment reviewed
+            Security assessment reviewed
           </label>
           <label className="vendor-check">
             <input
@@ -172,7 +172,7 @@ function RequestForm({
               checked={details.contractReviewed}
               onChange={(e) => update('contractReviewed', e.target.checked)}
             />
-            Synthetic contract reviewed
+            Contract reviewed
           </label>
         </fieldset>
         {error && (
@@ -230,8 +230,8 @@ function ReviewCard({
         {team === 'Finance'
           ? 'Confirm a budget owner and review the annual spend.'
           : team === 'Security'
-            ? 'Review the synthetic assessment for internal or customer data access.'
-            : 'Review the synthetic contract before onboarding.'}
+            ? 'Review the security assessment for internal or customer data access.'
+            : 'Review the contract before onboarding.'}
       </p>
       {!required && (
         <p>Skipped by this demo’s public-information-only rule. Real company policy may differ.</p>
@@ -245,7 +245,7 @@ function ReviewCard({
             maxLength={1000}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Explain this simulated decision (5–1,000 characters)."
+            placeholder="Explain this decision (5–1,000 characters)."
           />
           <div className="action-buttons">
             <button
@@ -348,7 +348,7 @@ export function VendorOnboarding() {
     <section className="custom-page vendor-page">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">CROSS-DEPARTMENT EXTENSION · LOCAL SIMULATION</p>
+          <p className="eyebrow">CROSS-DEPARTMENT REVIEW</p>
           <h1>Vendor onboarding & spend approvals</h1>
           <p>One business request. Finance, Security, and Legal working from the same context.</p>
         </div>
@@ -363,10 +363,8 @@ export function VendorOnboarding() {
       <div className="vendor-notice">
         <strong>Start in financial operations. Extend across the company.</strong>
         <p>
-          This page reuses Workbench’s shell, navigation, badges, dialogs, and formatting with a new
-          departmental review model. All identities and decisions are simulated in this browser—not
-          authenticated approvals. No vendor is provisioned, no contract is signed, and no money is
-          committed. Use fictional details only.
+          Approvals are simulated in this browser. No vendor is provisioned, no contract is signed,
+          and no money is committed.
         </p>
       </div>
       {snapshot.warning && (
@@ -389,7 +387,7 @@ export function VendorOnboarding() {
           <div className="metric" key={status}>
             <span className="metric-label">{status}</span>
             <strong>{requests.filter((request) => vendorStatus(request) === status).length}</strong>
-            <span className="metric-hint">Synthetic requests · all departments</span>
+            <span className="metric-hint">Across all departments</span>
           </div>
         ))}
         <div className="metric">
@@ -397,7 +395,7 @@ export function VendorOnboarding() {
           <strong>
             {money(requests.reduce((sum, request) => sum + request.details.annualCents, 0))}
           </strong>
-          <span className="metric-hint">Sample USD · not approved or committed</span>
+          <span className="metric-hint">Estimated · not yet approved</span>
         </div>
       </div>
       <section className="panel" aria-label="Vendor requests">
@@ -431,7 +429,7 @@ export function VendorOnboarding() {
             </select>
           </label>
           <span className="subtle">
-            {visible.length} of {requests.length} sample requests
+            {visible.length} of {requests.length} requests
           </span>
         </div>
         <div className="table-scroll">
@@ -500,7 +498,7 @@ export function VendorOnboarding() {
         </div>
         {visible.length === 0 && (
           <p className="vendor-empty">
-            No matching requests. Clear filters or create a new fictional request.
+            No matching requests. Clear filters or create a new request.
           </p>
         )}
       </section>
@@ -549,8 +547,8 @@ export function VendorOnboarding() {
             <strong>{vendorStatus(selected)}</strong>
             <p>
               {vendorStatus(selected) === 'Ready for onboarding'
-                ? 'All required demo reviews are complete. This is only a handoff marker: the vendor is not onboarded and no spend is authorized.'
-                : 'Finance and Legal review every request. This illustrative policy also requires Security for internal or customer data. Any edit resets all reviews.'}
+                ? 'All required reviews are complete. Ready to hand off for onboarding; no spend is authorized here.'
+                : 'Finance and Legal review every request. Security also reviews requests with internal or customer data access. Any edit resets all reviews.'}
             </p>
           </div>
           <div className="evidence-grid vendor-reviews">
@@ -564,11 +562,8 @@ export function VendorOnboarding() {
               />
             ))}
           </div>
-          <h3>Local decision history</h3>
-          <p>
-            Browser-editable simulation labels, not verified people or a compliance audit trail.
-            History for earlier revisions is retained.
-          </p>
+          <h3>Decision history</h3>
+          <p>Includes earlier revisions. Stored in this browser; not a compliance audit trail.</p>
           <ol className="evidence-timeline">
             {[...selected.history].reverse().map((event) => (
               <li key={event.id}>
@@ -585,8 +580,7 @@ export function VendorOnboarding() {
       )}
       <div className="vendor-reset">
         <p>
-          Stored separately from KYC, refunds, and flags. Not shared between users; simultaneous
-          browser tabs are not coordinated. Vendor history appears here, not in the original tools’
+          Vendor requests are stored separately from the other tools and don’t appear on the
           Activity page.
         </p>
         <button className="text-button" onClick={() => setResetOpen(true)}>
@@ -604,8 +598,8 @@ export function VendorOnboarding() {
         >
           <div className="vendor-form">
             <p>
-              This replaces vendor requests and their local history with three synthetic examples.
-              Other local tools and saved views are unchanged.
+              This replaces vendor requests and their history with three sample requests. Other
+              tools and saved views are unchanged.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setResetOpen(false)}>

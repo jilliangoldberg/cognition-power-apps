@@ -30,10 +30,10 @@ describe('vendor onboarding extension', () => {
 
   it('selects a request from anywhere on its row', () => {
     render(<VendorOnboarding />);
-    const button = screen.getByRole('button', { name: 'Open Harbor Demo Recruiting' });
+    const button = screen.getByRole('button', { name: 'Open Harbor Recruiting' });
     fireEvent.click(button.closest('tr')!.querySelectorAll('td')[1]);
     expect(button).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('heading', { name: 'Harbor Demo Recruiting' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Harbor Recruiting' })).toBeInTheDocument();
   });
 
   it('submits a request, simulates required reviews, and persists a handoff marker without external writes', async () => {
@@ -43,7 +43,7 @@ describe('vendor onboarding extension', () => {
     await user.click(screen.getByRole('button', { name: 'New vendor request' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.type(dialog.getByLabelText('Vendor name'), 'Cedar Demo Studio');
-    await user.type(dialog.getByLabelText('Fictional requester'), 'Taylor Demo');
+    await user.type(dialog.getByLabelText('Requester'), 'Taylor Demo');
     await user.selectOptions(dialog.getByLabelText('Requesting department'), 'Engineering');
     await user.type(
       dialog.getByLabelText('Business need'),
@@ -51,7 +51,7 @@ describe('vendor onboarding extension', () => {
     );
     await user.type(dialog.getByLabelText('Annual spend (USD)'), '2499.95');
     await user.type(dialog.getByLabelText('Budget owner'), 'Demo Engineering lead');
-    await user.click(dialog.getByLabelText('Synthetic contract reviewed'));
+    await user.click(dialog.getByLabelText('Contract reviewed'));
     await user.click(dialog.getByRole('button', { name: 'Submit demo request' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     const security = within(screen.getByRole('region', { name: 'Security review' }));
@@ -65,9 +65,7 @@ describe('vendor onboarding extension', () => {
       await user.click(stage.getByRole('button', { name: `Simulate ${team} approval` }));
     }
     const detail = within(screen.getByRole('region', { name: 'Selected vendor request' }));
-    expect(
-      detail.getByText(/vendor is not onboarded and no spend is authorized/),
-    ).toBeInTheDocument();
+    expect(detail.getByText(/no spend is authorized here/)).toBeInTheDocument();
     expect(detail.getByText('Demo Finance reviewer', { exact: false })).toBeInTheDocument();
     expect(
       JSON.parse(localStorage.getItem(VENDOR_STORAGE_KEY)!).requests[0].details.annualCents,
@@ -91,7 +89,7 @@ describe('vendor onboarding extension', () => {
     expect(security.getByText('Changes requested')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Edit & resubmit' }));
     const dialog = within(screen.getByRole('dialog'));
-    await user.click(dialog.getByLabelText('Synthetic security assessment reviewed'));
+    await user.click(dialog.getByLabelText('Security assessment reviewed'));
     await user.click(dialog.getByRole('button', { name: 'Resubmit for fresh reviews' }));
     expect(screen.getByText('Resubmitted revision 2; all reviews reset')).toBeInTheDocument();
     const next = within(screen.getByRole('region', { name: 'Security review' }));
@@ -107,7 +105,7 @@ describe('vendor onboarding extension', () => {
   it('resets approvals on edits to a ready request, even when only spend changes', async () => {
     const user = userEvent.setup();
     render(<VendorOnboarding />);
-    await user.click(screen.getByRole('button', { name: 'Open Maple Demo Design' }));
+    await user.click(screen.getByRole('button', { name: 'Open Maple Design' }));
     await user.click(screen.getByRole('button', { name: 'Edit & resubmit' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.clear(dialog.getByLabelText('Annual spend (USD)'));
@@ -124,10 +122,8 @@ describe('vendor onboarding extension', () => {
     render(<VendorOnboarding />);
     await user.selectOptions(screen.getByLabelText('Request status'), 'Changes requested');
     const list = within(screen.getByRole('region', { name: 'Vendor requests' }));
-    expect(list.getByRole('button', { name: 'Open Harbor Demo Recruiting' })).toBeInTheDocument();
-    expect(
-      list.queryByRole('button', { name: 'Open Juniper Demo Analytics' }),
-    ).not.toBeInTheDocument();
+    expect(list.getByRole('button', { name: 'Open Harbor Recruiting' })).toBeInTheDocument();
+    expect(list.queryByRole('button', { name: 'Open Juniper Analytics' })).not.toBeInTheDocument();
     await user.type(screen.getByLabelText('Search vendors'), 'Engineering');
     expect(screen.getByText(/No matching requests/)).toBeInTheDocument();
     expect(
@@ -187,7 +183,7 @@ describe('vendor onboarding extension', () => {
     await user.click(screen.getByRole('button', { name: 'New vendor request' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.type(dialog.getByLabelText('Vendor name'), 'Demo Vendor');
-    await user.type(dialog.getByLabelText('Fictional requester'), 'Demo Requester');
+    await user.type(dialog.getByLabelText('Requester'), 'Demo Requester');
     await user.type(
       dialog.getByLabelText('Business need'),
       'A fictional business need for this request.',
