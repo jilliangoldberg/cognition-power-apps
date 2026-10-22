@@ -551,14 +551,6 @@ select:focus-visible {
   padding: 8px 16px;
   min-height: 36px;
   text-decoration: none;
-  background: #f4f0fc;
-  border-color: #d8cdf3;
-  color: var(--purple-dark);
-}
-.new-tool-cta:hover,
-.new-tool-cta[aria-current='page'] {
-  background: #ebe4fa;
-  border-color: #c6b7ee;
 }
 .topbar-right > .text-button {
   white-space: nowrap;
@@ -624,6 +616,16 @@ select:focus-visible {
 }
 .button-primary:hover:not(:disabled) {
   background: var(--purple-dark);
+}
+.button-soft {
+  background: #f4f0fc;
+  border-color: #d8cdf3;
+  color: var(--purple-dark);
+}
+.button-soft:hover:not(:disabled),
+.button-soft[aria-current='page'] {
+  background: #ebe4fa;
+  border-color: #c6b7ee;
 }
 .button-secondary {
   background: #fff;

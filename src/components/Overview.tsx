@@ -61,7 +61,7 @@ export function Overview({
         </div>
         {next && (
           <button
-            className="button button-primary"
+            className="button button-soft"
             onClick={() => onSelect(next.module.id, next.record)}
           >
             Start next item <Icon name="arrow" size={14} />
