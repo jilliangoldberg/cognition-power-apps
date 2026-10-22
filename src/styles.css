@@ -1739,16 +1739,11 @@ tbody tr:focus-within {
   color: #1d1d1f;
 }
 /* Browser-local workspace; domain/custom-page styles stay independent. */
-.work-scope,
 .work-list-help,
 .workspace-queue-scope {
   color: #1d1d1f;
   font-size: 12px;
   line-height: 1.8;
-}
-.work-scope {
-  margin-bottom: 22px;
-  max-width: 960px;
 }
 .work-counts {
   display: grid;
