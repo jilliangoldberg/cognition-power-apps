@@ -8,18 +8,9 @@ import { Icon } from './Icon';
 import { Badge } from './Badge';
 import { openFromRow } from './rowClick';
 
-const pageSummaries: Record<
-  (typeof customPages)[number]['id'],
-  { description: string; scope: string }
-> = {
-  investigation: {
-    description: 'Read-only synthetic evidence, separate from queue records.',
-    scope: 'Stateless synthetic evidence',
-  },
-  vendors: {
-    description: 'Take a fictional vendor request through Finance, Security, and Legal reviews.',
-    scope: 'Separate local simulation · excluded from local counts',
-  },
+const pageDescriptions: Record<(typeof customPages)[number]['id'], string> = {
+  investigation: 'Look up a transaction and review its evidence.',
+  vendors: 'Take a vendor request through Finance, Security, and Legal reviews.',
 };
 
 export function Overview({
@@ -40,14 +31,18 @@ export function Overview({
   const [directorySearch, setDirectorySearch] = useState('');
   const items = workspaceItems(data);
   const visible = workItemsForView(items, view);
+  const next = workItemsForView(items, 'mine')[0];
   const directory = [
     ...modules.map((module) => ({
       id: module.id,
       title: module.title,
       description: module.description,
-      scope: 'Browser-local synthetic records',
     })),
-    ...customPages.map((page) => ({ id: page.id, title: page.title, ...pageSummaries[page.id] })),
+    ...customPages.map((page) => ({
+      id: page.id,
+      title: page.title,
+      description: pageDescriptions[page.id],
+    })),
   ].filter((item) =>
     `${item.title} ${item.description}`
       .toLowerCase()
@@ -57,18 +52,23 @@ export function Overview({
     <div className="work-home">
       <div className="page-heading overview-heading">
         <div>
-          <p className="eyebrow">SYNTHETIC · BROWSER-LOCAL WORK</p>
           <h1>My work</h1>
-          <p>Find a next item, allocate unassigned work, or inspect what is waiting.</p>
+          <p>
+            {next
+              ? 'Pick up where you left off, or grab something from the backlog.'
+              : 'You’re all caught up. Grab something from the backlog.'}
+          </p>
         </div>
-        <Badge label="Local demo · not shared" dot={false} />
+        {next && (
+          <button
+            className="button button-primary"
+            onClick={() => onSelect(next.module.id, next.record)}
+          >
+            Start next item <Icon name="arrow" size={14} />
+          </button>
+        )}
       </div>
-      <p className="work-scope">
-        “You” is the current demo owner label, not an authenticated identity. Counts use only this
-        browser’s KYC and refund queues; Investigation is independent. Flags are configurations, not
-        pending tasks. No separate approver queue or independent-review permission is modeled.
-      </p>
-      <nav className="work-counts" aria-label="Local work views">
+      <nav className="work-counts" aria-label="Work views">
         {(Object.keys(workViews) as WorkView[]).map((key) => (
           <a
             className={`work-count ${view === key ? 'selected' : ''}`}
@@ -82,7 +82,7 @@ export function Overview({
           >
             <span>{workViews[key].title}</span>
             <strong>{workItemsForView(items, key).length}</strong>
-            <small>Local records · view exact list</small>
+            <small>{workViews[key].hint}</small>
           </a>
         ))}
       </nav>
@@ -91,25 +91,19 @@ export function Overview({
           <h2 id="work-title">
             {workViews[view].title} <span className="count-pill">{visible.length}</span>
           </h2>
-          <span className="subtle">Oldest opened first · not an SLA</span>
+          <span className="subtle">Oldest first</span>
         </div>
-        <div className="work-list-help">
-          <p>{workViews[view].description}</p>
-          <p>
-            Unassigned waiting items appear in both views. Open a record to review its module rules;
-            this list does not authorize a decision.
-          </p>
-        </div>
+        <p className="work-list-help">{workViews[view].description}</p>
         <div className="table-scroll">
           <table>
-            <caption className="sr-only">{workViews[view].title} · local synthetic records</caption>
+            <caption className="sr-only">{workViews[view].title}</caption>
             <thead>
               <tr>
-                <th scope="col">Record / tool</th>
-                <th scope="col">Why it needs attention</th>
+                <th scope="col">Item</th>
+                <th scope="col">Next step</th>
                 <th scope="col">Status</th>
-                <th scope="col">Local owner</th>
-                <th scope="col">Opened age</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Age</th>
               </tr>
             </thead>
             <tbody>
@@ -156,20 +150,15 @@ export function Overview({
         </div>
         {visible.length === 0 && (
           <div className="empty-state">
-            <h3>No local items in this view</h3>
-            <p>Try another work view or use the tool directory below.</p>
+            <h3>Nothing here right now</h3>
+            <p>Check another view or open a tool below.</p>
           </div>
         )}
-        <p className="work-list-help">
-          Showing all {visible.length} matching local records. Record names are stable links: copy
-          their link address to send a reference. Another browser needs its own matching local
-          sample; no shared handoff is implemented.
-        </p>
       </section>
       <section className="work-directory" aria-labelledby="directory-title">
         <div className="section-heading">
           <h2 id="directory-title">Tool directory</h2>
-          <span className="subtle">Open a tool when you need its full queue or custom page</span>
+          <span className="subtle">Open a full queue or page</span>
         </div>
         <label className="search-input">
           <Icon name="search" size={17} />
@@ -189,21 +178,11 @@ export function Overview({
                 {item.title} <Icon name="arrow" size={14} />
               </button>
               <p>{item.description}</p>
-              <small>{item.scope}</small>
             </li>
           ))}
         </ul>
         {directory.length === 0 && <p>No tools match that search.</p>}
       </section>
-      <div className="page-note">
-        <Icon name="info" size={16} />
-        <span>
-          Local notes and actions are demo activity, not authenticated audit history.{' '}
-          <button className="text-button" onClick={() => navigate('activity')}>
-            View local activity
-          </button>
-        </span>
-      </div>
     </div>
   );
 }
