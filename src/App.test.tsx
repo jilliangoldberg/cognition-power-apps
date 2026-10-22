@@ -382,7 +382,9 @@ describe('workspace components (jsdom)', () => {
       'Try the simulated refund flow.',
     );
     await user.click(within(dialog).getByRole('button', { name: 'Confirm simulate refund' }));
-    expect(within(dialog).getByText('Simulated', { selector: '.badge' })).toBeInTheDocument();
+    expect(
+      within(dialog).getByText('Simulated', { selector: '.record-meta .badge' }),
+    ).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
     await user.click(
       within(screen.getByRole('navigation')).getByRole('link', { name: /Feature flags/ }),
@@ -541,7 +543,7 @@ describe('workspace components (jsdom)', () => {
     render(<App />);
     await user.click(within(screen.getByText('REF-0195').closest('tr')!).getByRole('button'));
     let dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByText(/Read-only scenario/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Sample request in a provider/)).toBeInTheDocument();
     expect(
       within(dialog).queryByRole('button', { name: 'Simulate refund' }),
     ).not.toBeInTheDocument();

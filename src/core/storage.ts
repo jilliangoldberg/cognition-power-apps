@@ -97,6 +97,29 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
         added.push(...missing.map((module) => module.shortTitle));
       }
     }
+    if (object(value) && object(value.records)) {
+      const saved = value.records;
+      value = {
+        ...value,
+        records: Object.fromEntries(
+          Object.entries(saved).map(([id, rows]) => {
+            const renamed = modules.find((module) => module.id === id)?.legacyStatuses;
+            return [
+              id,
+              renamed && Array.isArray(rows)
+                ? rows.map((row: unknown) =>
+                    object(row) &&
+                    typeof row.status === 'string' &&
+                    Object.hasOwn(renamed, row.status)
+                      ? { ...row, status: renamed[row.status] }
+                      : row,
+                  )
+                : rows,
+            ];
+          }),
+        ),
+      };
+    }
     if (!isDemoState(value)) throw new Error('Unsupported demo data');
     // Add only conservative flat defaults; never replace saved records or infer past outcomes.
     const data: DemoState = {

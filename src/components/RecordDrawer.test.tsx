@@ -208,8 +208,8 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
     );
     expect(screen.getByRole('button', { name: 'Approve for simulation' })).toBeDisabled();
     expect(screen.getByText(/Multiple requests share this payment/)).toBeInTheDocument();
-    expect(screen.getByText(/REF-0195 · Failed example · 8450 cents/)).toBeInTheDocument();
-    expect(screen.getByText(/remaining 49990 cents/)).toBeInTheDocument();
+    expect(screen.getByText('REF-0195 · Failed · $84.50')).toBeInTheDocument();
+    expect(screen.getByText('$249.95 requested of $499.90 remaining')).toBeInTheDocument();
     drawer.unmount();
     render(<RecordDrawer {...props} module={flags} record={createFixtures().records.flags[1]} />);
     expect(screen.getByText(/Change in Staging: Disabled → Enabled/)).toBeInTheDocument();
