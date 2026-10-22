@@ -12,6 +12,7 @@
     "server:setup": "tsx server/index.ts --setup",
     "db:backup": "tsx server/backup.ts",
     "measure": "tsx server/measure.ts",
+    "new-tool": "tsx scripts/new-tool.ts",
     "test:server": "vitest run --config vitest.server.config.ts",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
