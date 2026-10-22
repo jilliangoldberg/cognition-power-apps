@@ -26,9 +26,9 @@ Open the Vite address. The dev server listens on all interfaces for the private 
 
 `WORKBENCH_DB` selects an explicit database path. A fresh path creates independent fixtures; switching paths does **not** migrate data. Keep this single-instance demo's database on persistent local disk. Browser reset cannot reset it. Initial SQLite schema is version 1, independent of browser schema v2. Unknown newer database schemas refuse startup rather than being reseeded.
 
-For a built single-origin demo, `npm run build`, then `npm run server` behind an approved HTTPS reverse proxy to loopback 3001. Set `APP_ORIGIN` to that HTTPS origin; cookies become `Secure`. `NODE_ENV=production` refuses startup without an explicit HTTPS origin. Do not expose the raw API port or use Vite as a production web server. This is a deployment recipe, **not a production-readiness claim**.
+For a built single-origin demo, `npm run build`, then `npm run server` behind an approved HTTPS reverse proxy to loopback 3001. Set `APP_ORIGIN` to that HTTPS origin; cookies become `Secure`. `NODE_ENV=production` refuses startup without an explicit HTTPS origin. Do not expose the raw API port or use Vite as a production web server. This is a deployment recipe, not a production setup.
 
-## Optional sandbox lookup · step 5a
+## Optional sandbox lookup
 
 The illustrative question is: **what status and amount does one sandbox PaymentIntent currently report?** Stripe is a demo adapter choice, not a client-provider assumption.
 
@@ -38,7 +38,7 @@ The adapter uses only `GET https://api.stripe.com/v1/payment_intents/:id`, pinne
 
 It distinguishes not-found, rejected credentials/permissions, rate limits, temporary failures, invalid/incomplete responses, and unmapped statuses. Manual refresh retains previous good data as **stale** after failure, not as current evidence. This single-object scope deliberately does **not** paginate/list events or claim full payment history, settlement, or reconciliation. Missing required snapshot fields are unavailable, not partial success. Results are never merged with the synthetic investigation timeline.
 
-**Live connectivity remains unverified**: no sandbox credential was configured in this implementation session. Provider transport tests are mocked, not evidence that a real account works. No external write endpoint exists.
+Live connectivity has not been verified with a real sandbox account; provider transport tests are mocked. There is no external write endpoint.
 
 References reviewed: [retrieve a PaymentIntent](https://docs.stripe.com/api/payment_intents/retrieve), [test/restricted keys](https://docs.stripe.com/keys), [API versioning](https://docs.stripe.com/api/versioning), [Node SQLite](https://nodejs.org/docs/latest-v24.x/api/sqlite.html), [Express security](https://expressjs.com/en/advanced/best-practice-security.html).
 
@@ -78,7 +78,7 @@ Optional flat workflow defaults preserve saved v1/v2 decisions, notes, owners, a
 
 For an ordinary queue, run `npm run new-tool -- <id> "<Title>"` (see [new-tool.md](new-tool.md)), or add a `src/modules/<id>/` folder (`index.ts` definition + `samples.ts` synthetic records) and one line in `src/modules/index.ts`. `src/modules/modules.test.ts` checks every registered tool automatically: unique route-safe ID, valid deterministic samples, declared owners/statuses, and actions that stay inside declared statuses. Saved browser work gains the new tool's samples on next load instead of being discarded; removing or renaming a tool is still not migrated. Metadata defines owners, allowed actions, details, and optional open-work/related-record guards. Assignment/notes increment version and update time, not opening time or domain status.
 
-For a custom page, add its `Page` ID and `{id,title,icon,View}` entry in `src/features/pages.tsx`. Its React code need not fake table columns/actions/statuses or enter the local queue schema. Both registries are **build-time TypeScript**, not a runtime plugin loader. App routing still has a typed-ID edit; this is an explicit small seam, not zero-core-change extensibility. Reviewed code is allowed; no visual/formula/workflow engine is being built.
+For a custom page, add its `Page` ID and `{id,title,icon,View}` entry in `src/features/pages.tsx`. Its React code need not fake table columns/actions/statuses or enter the local queue schema. Both registries are build-time TypeScript, not a runtime plugin loader, and app routing still needs a typed-ID edit.
 
 Custom-page entries also include `description`, `scope`, and `color` for generic Overview cards. Vendor request rules/storage remain feature-owned in `src/features/vendors.ts`, separate from both local queue data and shared API policy. [Vendor extension evidence](vendor-extension.md) distinguishes unchanged shared components, integration edits, demo limits, and unmeasured commercial claims.
 
@@ -100,29 +100,9 @@ Shared KYC reuses pure KYC rules on the server only **after** authenticating/aut
 
 To restore, stop the API and point `WORKBENCH_DB` at a private copy of a backup, **not an active database file**. Revoke restored sessions through an authorized database operator (`DELETE FROM sessions`) before exposure, restart, then check schema/history. Automatic backup scheduling, remote encryption, point-in-time recovery, retention expiry, password recovery/rotation, and disaster-recovery operations are not implemented. An operational pilot needs an owner, recovery objectives, retention policy, and restore drills.
 
-## Eight-step roadmap · interaction and reuse proofs
+## Status and next steps
 
-[Prototype contract and five-persona scorecard](prototype-contract.md) define the promise and bounded acceptance targets. That document's source evidence is pinned to the pre-parallel baseline; it is not a claim that later proofs were already complete then.
-
-Roadmap steps **1–4** add the contract, task-first workspace/references, narrow local workflow depth, and the read-only extension seam described above. The [developer starter guide](extension-guide.md) and [independent-agent change/effort ledger](extension-proof.md) document actual reuse and a shared UTC/year timestamp upgrade across original drawers and Investigation. Core compatibility tests are automated, not human adoption, real-browser validation, team-load, or production-readiness evidence. Proposed ownership is not staffed support.
-
-The numbering below is the earlier implementation-gate sequence, **not** the eight-step roadmap. Enterprise identity, reliable external writes, team-scale release/support/load, client parity, and economics remain separate proofs. No real provider write or additional backend is introduced by these four missions.
-
-## Gates / next decisions
-
-[Gate evidence, effort ledger and operating cost](gates-and-effort.md) is the authoritative implementation status for v0.3; older design attachments are broader hypotheses, not completed production requirements.
-
-| Gate     | Here                                                                                                               | Remaining                                                                                                           |
-| -------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| 1–2      | Original tools, richer samples, daily-work interactions                                                            | Client workflow validation                                                                                          |
-| 3        | Custom investigation/source failures/retry UI; saved-work compatibility                                            | Independent extension exercise and human review effort                                                              |
-| Narrow 4 | Password demo accounts, shared KYC, API policy, transactional history, concurrency/replay tests, backup smoke test | Enterprise identity, tenant/field scope, production operations, migration of other tools                            |
-| 5a       | Protected read-only Stripe test adapter, failure contracts, explicit not-connected                                 | Confirm provider, provision credential, validate live sandbox                                                       |
-| 5b       | **Deferred; not required for these read-only/collaboration proofs**                                                | Separate write use case, provider idempotency review, durable intent/outcome-unknown/reconciliation/recovery design |
-
-[Scoped potential next steps](gates-and-effort.md#potential-next-steps--validate-the-current-prototype) cover secure demo credentials, real sandbox validation, and approved real-browser testing, with dependencies, complexity, acceptance checks, and cleanup boundaries. These are proposals, not completed setup or testing.
-
-A fourth screen or sandbox call proves neither Power Apps replacement nor $250K/year savings. Use measured extension/review effort and total operating cost before comparing licensing alternatives.
+Implemented: the three browser-local tools, Investigation, Vendor approvals, Shared KYC with server-enforced roles, and the read-only Stripe test lookup. Before a pilot, the main open items are validating workflows with the client's operators, enterprise sign-in and per-tool access, shared storage for the remaining tools, a live sandbox credential for the provider lookup, and real-browser end-to-end testing. Provider writes (for example, issuing real refunds) are out of scope and would need their own design for idempotency and reconciliation.
 
 ## Checks
 
@@ -138,4 +118,4 @@ npm run measure
 
 `npm test` runs frontend domain/storage/component regressions in jsdom **and** Node tests against real loopback HTTP/SQLite. They cover independent sessions, forged requests, role denial, stale edits, replay, rollback, restart persistence, and backup/restore. Stripe transport is mocked; no live provider behavior is claimed. `npm run measure` reports reproducible local RSS, database/WAL size, latency and CPU for a disposable synthetic dataset—not a capacity test or hosting quote.
 
-Component tests mock the native dialog API: they do **not** prove real-browser focus trapping, mobile layout, Chrome cookie behavior, or full UI end-to-end operation. UI-driven testing requires separate approval.
+Component tests mock the native dialog API, so real-browser focus trapping, mobile layout, cookie behavior and full end-to-end flows are not covered by automated tests.
