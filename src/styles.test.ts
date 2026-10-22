@@ -32,4 +32,20 @@ describe('readability floor', () => {
     expect(colours.length).toBeGreaterThan(0);
     expect(colours.filter((hex) => contrast(hex, '#f8f9fc') < 4.5)).toEqual([]);
   });
+
+  it('keeps neutral text near-black rather than grey', () => {
+    const saturation = (hex: string) => {
+      const full = hex.length === 4 ? hex.replace(/\w/g, '$&$&') : hex;
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const light = (max + min) / 2;
+      return max === min ? 0 : (max - min) / (1 - Math.abs(2 * light - 1));
+    };
+    const greys = [...css.matchAll(/(?:(?<![-\w])color|--muted):\s*(#[\da-f]{3,6})\b/gi)]
+      .map((m) => m[1].toLowerCase())
+      .filter((hex) => hex !== '#fff' && hex !== '#ffffff' && saturation(hex) <= 0.11);
+    expect(greys.length).toBeGreaterThan(0);
+    expect(greys.filter((hex) => contrast(hex, '#f8f9fc') < 14)).toEqual([]);
+  });
 });
