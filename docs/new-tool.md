@@ -4,6 +4,11 @@ A queue-style tool (a searchable list of records with details, owners, notes and
 folder plus one registry line. The shared shell provides the UI; the tool file only describes the
 workflow. This is a reviewed-code path for an engineer working with Devin, not a no-code builder.
 
+The **New tool** page in the sidebar (under MANAGE) is the in-app way to start this: describe the
+fields, statuses and actions, check the live preview, and copy the generated request into a Devin
+session. Devin then follows the steps below and opens a PR. The preview is a mock; nothing is built
+until that PR is merged.
+
 ## 1. Generate it
 
 ```sh

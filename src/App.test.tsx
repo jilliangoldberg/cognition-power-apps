@@ -306,6 +306,7 @@ describe('workspace components (jsdom)', () => {
       ['KYC review', 'KYC review queue'],
       ['Refunds', 'Refunds dashboard'],
       ['Feature flags', 'Feature flags'],
+      ['New tool', 'New tool'],
     ]) {
       await user.click(within(nav).getByRole('link', { name: new RegExp(label) }));
       expect(screen.getByRole('heading', { name: title, level: 1 })).toBeInTheDocument();

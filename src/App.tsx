@@ -12,6 +12,7 @@ import { RecordDrawer } from './components/RecordDrawer';
 import { ActivityView } from './components/ActivityView';
 import { Dialog } from './components/Dialog';
 import { customPages } from './features/pages';
+import { NewTool } from './features/NewTool';
 import { isToolPage, readRoute, recordRoute, routeHash } from './core/routing';
 import { defaultFilters, type RecordFilters } from './core/views';
 
@@ -20,6 +21,7 @@ const pages: Page[] = [
   ...modules.map((module) => module.id),
   ...customPages.map((item) => item.id),
   'activity',
+  'new-tool',
 ];
 const currentRoute = () => readRoute(window.location.hash, pages);
 
@@ -41,7 +43,9 @@ export default function App() {
   const module = isToolPage(page) ? getModule(page) : null;
   const customPage = customPages.find((item) => item.id === page);
   const title =
-    module?.shortTitle ?? customPage?.title ?? (page === 'overview' ? 'My work' : 'Activity');
+    module?.shortTitle ??
+    customPage?.title ??
+    (page === 'overview' ? 'My work' : page === 'new-tool' ? 'New tool' : 'Activity');
   const record = selection
     ? data.records[selection.moduleId].find((row) => row.id === selection.id)
     : null;
@@ -248,6 +252,7 @@ export default function App() {
           <p className="nav-label nav-label-tools">EXTENSION PROOFS</p>
           {customPages.map((item) => navItem(item.id, item.title, item.icon))}
           <p className="nav-label nav-label-tools">MANAGE</p>
+          {navItem('new-tool', 'New tool', 'code')}
           {navItem('activity', 'Activity', 'activity')}
         </nav>
         <div className="sidebar-bottom">
@@ -367,6 +372,7 @@ export default function App() {
             />
           )}
           {page === 'activity' && <ActivityView activity={data.activity} />}
+          {page === 'new-tool' && <NewTool />}
           <footer className="workspace-footer">
             <span>
               WORKBENCH <span className="footer-dot">/</span> PROTOTYPE 0.3
@@ -396,9 +402,8 @@ export default function App() {
           <div className="reset-body">
             <p>
               This restores the current synthetic sample and clears local assignments, notes, and
-              activity. Saved views are kept. Record changes in this browser will be lost. Shared
-              KYC records and server history are not affected. Vendor requests have their own reset
-              on the Vendor approvals page and are not affected here.
+              activity. Saved views are kept. Record changes in this browser will be lost. Vendor
+              requests have their own reset on the Vendor approvals page and are not affected here.
             </p>
             <div className="action-buttons">
               <button className="button button-secondary" onClick={() => setResetOpen(false)}>
