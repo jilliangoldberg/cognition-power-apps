@@ -1,3 +1,4 @@
+import { buildIntakeRecord } from '../core/intake';
 import { isRecord } from '../core/storage';
 import type { ToolModule } from '../core/types';
 
@@ -59,6 +60,15 @@ export function contractProblems(module: ToolModule, now = new Date('2026-01-15T
   for (const action of module.actions)
     if (!reached.has(action.id))
       problems.push(`action "${action.id}" has no sample record to act on`);
+  if (module.intake) {
+    if (!/^[A-Z]{2,6}$/.test(module.intake.idPrefix))
+      problems.push('intake idPrefix must be 2-6 capital letters');
+    try {
+      buildIntakeRecord(module, module.intake.example, records, now);
+    } catch (error) {
+      problems.push(`intake example is rejected: ${(error as Error).message}`);
+    }
+  }
   if (!module.metrics(records).length) problems.push('declare at least one metric');
   return problems;
 }
