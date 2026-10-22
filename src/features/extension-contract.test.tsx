@@ -6,8 +6,8 @@ import { readOnlyPageStarter } from './extension-starter';
 import { investigationExamples } from './evidence';
 
 describe('reviewed static read-only extension seam v1', () => {
-  it('registers the existing Investigation once alongside Vendor approvals', () => {
-    expect(customPages.map((page) => page.id)).toEqual(['investigation', 'vendors']);
+  it('registers Investigation once alongside Vendor approvals and Payment lookup', () => {
+    expect(customPages.map((page) => page.id)).toEqual(['investigation', 'vendors', 'payments']);
     expect(customPages[0]).toBe(investigationExtension);
     const ids = [
       'overview',

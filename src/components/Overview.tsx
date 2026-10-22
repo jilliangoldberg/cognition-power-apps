@@ -11,6 +11,7 @@ import { openFromRow } from './rowClick';
 const pageDescriptions: Record<(typeof customPages)[number]['id'], string> = {
   investigation: 'Look up a transaction and review its evidence.',
   vendors: 'Take a vendor request through Finance, Security, and Legal reviews.',
+  payments: 'Look up a payment’s status, timeline and disputes.',
 };
 
 export function Overview({

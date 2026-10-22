@@ -1,0 +1,128 @@
+.payment-lookup .payment-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  padding: 20px;
+}
+
+.payment-lookup .payment-form label {
+  display: grid;
+  gap: 7px;
+  flex: 1 1 200px;
+}
+
+.payment-lookup .payment-form input {
+  width: 100%;
+  color: inherit;
+  background: white;
+}
+
+.payment-lookup .payment-form-actions,
+.payment-lookup .payment-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payment-lookup .payment-help {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+
+.payment-lookup .payment-error {
+  color: #8a2c36;
+  background: #fdf1f2;
+  border-left: 3px solid #b9434e;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.payment-lookup .payment-notice {
+  background: #f2effb;
+  border-left: 3px solid var(--purple);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.payment-lookup .payment-results {
+  display: grid;
+  gap: 16px;
+}
+
+.payment-lookup .payment-empty {
+  padding: 24px;
+}
+
+.payment-lookup td,
+.payment-lookup th {
+  white-space: normal;
+}
+
+.payment-lookup .payment-selected {
+  background: #f7f4fd;
+}
+
+.payment-lookup .payment-detail {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  min-width: 0;
+}
+
+.payment-lookup .payment-detail .section-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+}
+
+.payment-lookup .payment-dispute {
+  color: #8a2c36;
+  background: #fdf1f2;
+  border: 1px solid #f1cdd1;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.payment-lookup .payment-timeline {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.payment-lookup .payment-timeline li {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  padding: 12px 0 12px 20px;
+  border-left: 2px solid var(--line);
+  position: relative;
+}
+
+.payment-lookup .payment-timeline li::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #c9c4d8;
+}
+
+.payment-lookup .payment-timeline li.payment-step-done::before {
+  background: var(--purple);
+  border-color: var(--purple);
+}
+
+@media (max-width: 600px) {
+  .payment-lookup .detail-grid,
+  .payment-lookup .payment-timeline li {
+    grid-template-columns: 1fr;
+  }
+}
