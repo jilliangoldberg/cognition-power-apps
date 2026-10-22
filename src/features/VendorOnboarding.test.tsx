@@ -62,7 +62,7 @@ describe('vendor onboarding extension', () => {
         stage.getByLabelText(`${team} review reason`),
         'Reviewed the synthetic request.',
       );
-      await user.click(stage.getByRole('button', { name: `Simulate ${team} approval` }));
+      await user.click(stage.getByRole('button', { name: `Approve for ${team}` }));
     }
     const detail = within(screen.getByRole('region', { name: 'Selected vendor request' }));
     expect(detail.getByText(/no spend is authorized here/)).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('vendor onboarding extension', () => {
       security.getByLabelText('Security review reason'),
       'Missing the synthetic assessment.',
     );
-    expect(security.getByRole('button', { name: 'Simulate Security approval' })).toBeDisabled();
+    expect(security.getByRole('button', { name: 'Approve for Security' })).toBeDisabled();
     await user.click(security.getByRole('button', { name: 'Request changes from Security' }));
     expect(security.getByText('Changes requested')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Edit & resubmit' }));
@@ -98,7 +98,7 @@ describe('vendor onboarding extension', () => {
       next.getByLabelText('Security review reason'),
       'Assessment now reviewed for the demo.',
     );
-    expect(next.getByRole('button', { name: 'Simulate Security approval' })).toBeEnabled();
+    expect(next.getByRole('button', { name: 'Approve for Security' })).toBeEnabled();
     expect(screen.getByText('Security: Changes requested · revision 1')).toBeInTheDocument();
   });
 
@@ -169,7 +169,7 @@ describe('vendor onboarding extension', () => {
       throw new Error('quota');
     });
     await user.type(screen.getByLabelText('Finance review reason'), 'Synthetic budget reviewed.');
-    await user.click(screen.getByRole('button', { name: 'Simulate Finance approval' }));
+    await user.click(screen.getByRole('button', { name: 'Approve for Finance' }));
     expect(screen.getByRole('alert')).toHaveTextContent('in memory only');
     expect(
       within(screen.getByRole('region', { name: 'Finance review' })).getByText('Approved'),
