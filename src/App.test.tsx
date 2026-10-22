@@ -233,6 +233,7 @@ describe('task-first local workspace and references (jsdom)', () => {
     render(<App />);
     const directory = screen.getByRole('region', { name: 'Tool directory' });
     expect(within(directory).getByRole('button', { name: 'Shared KYC' })).toBeInTheDocument();
+    expect(within(directory).getByRole('button', { name: 'Vendor approvals' })).toBeInTheDocument();
     await user.type(
       screen.getByRole('searchbox', { name: 'Search tool directory' }),
       'Investigation',
