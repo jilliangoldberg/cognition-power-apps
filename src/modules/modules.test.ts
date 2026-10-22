@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { modules } from '.';
-import { contractProblems } from './contract';
+import { BUILT_IN_PAGES, contractProblems } from './contract';
+import { RESERVED } from '../../scripts/new-tool';
 import { customPages } from '../features/pages';
 import type { ToolModule } from '../core/types';
 
@@ -54,4 +55,9 @@ describe('contract checks', () => {
   ] satisfies [string, Partial<ToolModule>, string][])('reports %s', (_, change, message) => {
     expect(broken(change).join('\n')).toContain(message);
   });
+});
+
+it('new-tool generator reserves every built-in and custom page id', () => {
+  for (const id of [...BUILT_IN_PAGES, ...customPages.map((page) => page.id)])
+    expect(RESERVED).toContain(id);
 });

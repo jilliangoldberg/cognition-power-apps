@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Kept in sync with BUILT_IN_PAGES and customPages; src/modules/modules.test.ts is the backstop.
-const RESERVED = ['overview', 'activity', 'about', 'investigation', 'shared-kyc'];
+export const RESERVED = ['overview', 'activity', 'about', 'investigation', 'shared-kyc', 'vendors'];
 
 export function validateArgs(id = '', title = '') {
   if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(id) || id.length > 32)
