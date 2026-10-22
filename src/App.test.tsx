@@ -92,7 +92,7 @@ describe('task-first local workspace and references (jsdom)', () => {
       ['Waiting / blocked', 11],
     ] as const) {
       const link = within(views).getByRole('link', {
-        name: new RegExp(`^${name.replace('/', '\\/')} ${count} Local records`),
+        name: new RegExp(`^${name.replace('/', '\\/')} ${count} View list`),
       });
       await user.click(link);
       expect(link).toHaveAttribute('aria-current', 'page');
