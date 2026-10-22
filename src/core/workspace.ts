@@ -4,16 +4,19 @@ import { actionBlock } from './eligibility';
 
 export const workViews = {
   mine: {
-    title: 'Assigned actionable',
-    description: 'Open items assigned to you that are ready for a decision.',
+    title: 'Ready for you',
+    hint: 'Assigned to you and ready to decide',
+    description: 'Items assigned to you that are ready for a decision.',
   },
   unassigned: {
-    title: 'Unassigned backlog',
-    description: 'Open items with no owner, including waiting ones.',
+    title: 'Unassigned',
+    hint: 'Pick one up to get started',
+    description: 'Open items nobody has picked up yet. Open one to assign it to yourself.',
   },
   waiting: {
-    title: 'Waiting / blocked',
-    description: 'Cases waiting on a customer, escalated, or blocked by a check, for any owner.',
+    title: 'Waiting or blocked',
+    hint: 'Follow up or check back later',
+    description: 'Items waiting on information, escalated, or blocked by a check.',
   },
 };
 export type WorkView = keyof typeof workViews;
