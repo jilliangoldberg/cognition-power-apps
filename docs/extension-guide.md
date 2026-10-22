@@ -7,11 +7,11 @@ ledger and limits are in [extension-proof.md](extension-proof.md).
 
 ## Choose the right seam
 
-| Need                                             | Existing seam                                                      | Review implications                                                                                                                                                   |
-| ------------------------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Queue, record details, versioned local decisions | `ToolModule` in `src/modules`                                      | Typed tool ID, registry, domain rules, fixtures, tests, and additive persisted-state migration. Do not add a queue solely to display a timeline.                      |
-| Read-only synthetic custom rendering             | `ReadOnlyPageExtension` v1 in `src/features/extension-contract.ts` | Custom React view, deterministic fixture scenarios, explicit synthetic-read actions, proposed/assigned owner and support metadata. No persisted records.              |
-| Shared/authenticated operational behavior        | Existing Shared KYC API/policy, separately reviewed                | The synthetic contract does **not** inherit authentication, record/field permissions, history, or concurrency. Server integration requires its own design and checks. |
+| Need                                             | Existing seam                                                      | Review implications                                                                                                                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Queue, record details, versioned local decisions | `ToolModule` in `src/modules`                                      | A `src/modules/<id>/` folder (definition + samples) and one registry line; shared contract tests and saved-state additions are automatic. Do not add a queue solely to display a timeline. |
+| Read-only synthetic custom rendering             | `ReadOnlyPageExtension` v1 in `src/features/extension-contract.ts` | Custom React view, deterministic fixture scenarios, explicit synthetic-read actions, proposed/assigned owner and support metadata. No persisted records.                                   |
+| Shared/authenticated operational behavior        | Existing Shared KYC API/policy, separately reviewed                | The synthetic contract does **not** inherit authentication, record/field permissions, history, or concurrency. Server integration requires its own design and checks.                      |
 
 Shared KYC keeps its existing entry in `customPages`; it is deliberately **not** advertised as a
 read-only/stateless extension. No common interface can turn a client declaration into permission.

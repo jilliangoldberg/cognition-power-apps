@@ -70,7 +70,10 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
     await user.type(screen.getByRole('textbox'), 'Jamie will assess the fictional replacement.');
     await user.click(screen.getByRole('button', { name: 'Confirm reassign owner' }));
     expect(screen.getByText('Owner: Jamie Brooks')).toBeInTheDocument();
-    await confirm('Record fictional response', 'Fictional replacement includes the missing date.');
+    await confirm(
+      'Record fictional address response',
+      'Fictional replacement includes the missing date.',
+    );
     expect(screen.getByText('Waiting for information', { selector: '.badge' })).toBeInTheDocument();
     await confirm('Return to review', 'Ready for a separate evidence assessment.');
     expect(screen.getByRole('button', { name: 'Approve case' })).toBeDisabled();
