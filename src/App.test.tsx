@@ -8,6 +8,18 @@ import { viewsKey } from './core/views';
 import { RecordDrawer } from './components/RecordDrawer';
 import { kyc } from './modules/kyc';
 
+// These tests assert the curated demo data of the original three tools, so a newly added tool
+// must not change them.
+vi.mock('./modules', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./modules')>();
+  const original = actual.modules.filter((m) => ['kyc', 'refunds', 'flags'].includes(m.id));
+  return {
+    ...actual,
+    modules: original,
+    getModule: (id: string) => original.find((m) => m.id === id)!,
+  };
+});
+
 beforeEach(() => {
   localStorage.clear();
   window.history.replaceState(null, '', window.location.pathname);
