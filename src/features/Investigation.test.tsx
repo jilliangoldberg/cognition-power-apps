@@ -3,64 +3,108 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Investigation } from './Investigation';
 
+const row = (name: string) => screen.getByRole('row', { name });
+const timeline = () => within(screen.getByRole('list')).queryAllByRole('listitem');
+
 describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
   it.each([
-    ['001', 'Clean reports', 'Evidence retrieved'],
-    ['002', 'Conflicting reports', 'Evidence retrieved'],
-    ['003', 'Unavailable source', 'Unavailable · outcome unknown'],
-    ['004', 'Stale evidence', 'Stale evidence'],
-    ['005', 'No matching records', 'No matching records'],
-    ['006', 'Incomplete response', 'Incomplete · more records may exist'],
-  ])('makes fixture %s (%s) reachable without editing an ID', async (suffix, label, expected) => {
+    ['001', 'All systems agree', 'All 3 systems agree: Completed'],
+    ['002', 'Systems disagree', 'Systems disagree'],
+    ['003', 'A system is down', 'Bank settlement didn’t respond'],
+    ['004', 'Out-of-date data', 'Bank settlement data is out of date'],
+    ['005', 'Not found anywhere', 'No system has a record of this transaction'],
+    ['006', 'Partial data', 'Payment processor returned partial data'],
+  ])(
+    'makes fixture %s (%s) reachable in one click with a plain verdict',
+    async (suffix, label, verdict) => {
+      const user = userEvent.setup();
+      render(<Investigation />);
+      await user.click(screen.getByRole('button', { name: label }));
+      expect(screen.getByRole('heading', { name: `TX-DEMO-${suffix}` })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: label })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('status')).toHaveTextContent(verdict);
+      expect(screen.getAllByRole('row')).toHaveLength(4);
+      if (suffix === '005') {
+        expect(screen.queryByText('Amount')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^Retry/ })).not.toBeInTheDocument();
+        expect(screen.getAllByText('Not found')).toHaveLength(3);
+      }
+    },
+  );
+
+  it('shows the default example on load and never infers a combined status on disagreement', async () => {
     const user = userEvent.setup();
     render(<Investigation />);
-    await user.click(screen.getByRole('button', { name: `TX-DEMO-${suffix} · ${label}` }));
-    expect(
-      screen.getByRole('heading', { name: `Evidence for TX-DEMO-${suffix}` }),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText(expected, { exact: false }).length).toBeGreaterThan(0);
-    if (suffix === '002') expect(screen.getByRole('status')).toHaveTextContent('Reports disagree');
-    if (suffix === '005') {
-      expect(screen.queryByText('Amount')).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /Simulate retry/ })).not.toBeInTheDocument();
-    }
+    expect(screen.getByRole('heading', { name: 'TX-DEMO-003' })).toBeInTheDocument();
+    expect(within(row('Bank settlement')).getByText('No response')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Systems disagree' }));
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Bank settlement says Pending review');
+    expect(status).not.toHaveTextContent('agree:');
+    expect(screen.queryByRole('button', { name: /^Retry/ })).not.toBeInTheDocument();
   });
 
-  it('filters only timeline events, leaving missing-source context and retry visible', async () => {
+  it('retries only the selected source and leaves the other rows untouched', async () => {
     const user = userEvent.setup();
     render(<Investigation />);
+    const ledger = row('Ledger').innerHTML;
+    const processor = row('Payment processor').innerHTML;
+    expect(timeline()).toHaveLength(2);
+    await user.click(screen.getByRole('button', { name: 'Retry Bank settlement' }));
+    expect(row('Ledger').innerHTML).toBe(ledger);
+    expect(row('Payment processor').innerHTML).toBe(processor);
+    expect(within(row('Bank settlement')).getByText('Completed')).toBeInTheDocument();
+    expect(
+      within(row('Bank settlement')).getByText(/Refreshed just now \(simulated, no real request\)/),
+    ).toBeInTheDocument();
+    expect(timeline()).toHaveLength(3);
+    expect(screen.getByRole('status')).toHaveTextContent('All 3 systems agree: Completed');
+    expect(screen.queryByRole('button', { name: /^Retry/ })).not.toBeInTheDocument();
+  });
+
+  it('labels stale and partial sources, and retry recovers the missing detail', async () => {
+    const user = userEvent.setup();
+    render(<Investigation />);
+    await user.click(screen.getByRole('button', { name: 'Out-of-date data' }));
+    expect(
+      within(row('Bank settlement')).getByText('Out of date: last updated 90 min ago'),
+    ).toBeInTheDocument();
+    expect(timeline()).toHaveLength(3);
+    await user.click(screen.getByRole('button', { name: 'Partial data' }));
+    expect(
+      within(row('Payment processor')).getByText('Partial response: some details missing'),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Retry Payment processor' }));
+    expect(timeline()).toHaveLength(4);
+    expect(screen.getByText(/Processor fee and payout details received/)).toBeInTheDocument();
+  });
+
+  it('shows the customer, merchant, masked card and amount for a found payment', async () => {
+    const user = userEvent.setup();
+    render(<Investigation />);
+    await user.click(screen.getByRole('button', { name: 'All systems agree' }));
+    expect(screen.getByText('Maya Chen')).toBeInTheDocument();
+    expect(screen.getByText('maya.chen@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Northwind Outfitters')).toBeInTheDocument();
+    expect(screen.getByText('Visa •••• 4242')).toBeInTheDocument();
+    expect(screen.getByText('$184.50 USD')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Not found anywhere' }));
+    expect(screen.queryByText('Customer')).not.toBeInTheDocument();
+  });
+
+  it('clears a pasted card number without echoing it or replacing the results', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Investigation />);
+    const input = screen.getByLabelText('Transaction ID');
+    await user.clear(input);
+    await user.type(input, '4242 4242 4242 4242');
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    const internal = screen.getByRole('article', { name: 'Internal records' }).innerHTML;
-    const processing = screen.getByRole('article', { name: 'Processing events' }).innerHTML;
-    await user.selectOptions(screen.getByLabelText('Timeline source'), '2');
-    expect(screen.getByText(/No events available for the selected source/)).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(3);
-    await user.click(screen.getByRole('button', { name: 'Simulate retry Reconciliation reports' }));
-    expect(screen.getByRole('article', { name: 'Internal records' }).innerHTML).toBe(internal);
-    expect(screen.getByRole('article', { name: 'Processing events' }).innerHTML).toBe(processing);
-    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(1);
-    expect(screen.getByText(/Simulated retry completed for this source only/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Simulate retry/ })).not.toBeInTheDocument();
-  });
-
-  it('keeps event and retrieval provenance separate, with stale and incomplete labels', async () => {
-    const user = userEvent.setup();
-    render(<Investigation />);
-    await user.click(screen.getByRole('button', { name: 'TX-DEMO-004 · Stale evidence' }));
-    const rows = within(screen.getByRole('list')).getAllByRole('listitem');
-    expect(rows).toHaveLength(3);
-    expect(
-      within(rows[2]).getByText(/Source: Reconciliation reports · Reference:/),
-    ).toBeInTheDocument();
-    expect(within(rows[2]).getByText(/Retrieved:/)).toBeInTheDocument();
-    expect(within(rows[2]).getByText('This evidence is stale.')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Ordered by the time each source reported the event/),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'TX-DEMO-006 · Incomplete response' }));
-    expect(within(screen.getByRole('list')).getByText(/Incomplete response/)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Simulate retry Processing events' }));
-    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(4);
+    expect(input).toHaveValue('');
+    expect(screen.getByRole('alert')).toHaveTextContent('looks like a full card number');
+    expect(container.textContent).not.toMatch(/4242 4242/);
+    expect(screen.getByRole('heading', { name: 'TX-DEMO-003' })).toBeInTheDocument();
+    await user.type(input, 'T');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('normalizes search and never shows old results as the edited query', async () => {
@@ -69,31 +113,26 @@ describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
     await user.clear(screen.getByLabelText('Transaction ID'));
     await user.type(screen.getByLabelText('Transaction ID'), ' tx-demo-001 ');
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    expect(screen.getByRole('heading', { name: 'Evidence for TX-DEMO-001' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'TX-DEMO-001' })).toBeInTheDocument();
     await user.clear(screen.getByLabelText('Transaction ID'));
     await user.type(screen.getByLabelText('Transaction ID'), 'unknown');
     expect(
       screen.getByText(/Input changed. Results below are still for TX-DEMO-001/),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    expect(screen.getByRole('heading', { name: 'Evidence for UNKNOWN' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'UNKNOWN' })).toBeInTheDocument();
     expect(screen.queryByText(/Input changed/)).not.toBeInTheDocument();
-    expect(screen.getAllByText('No matching records', { selector: 'strong' })).toHaveLength(3);
+    expect(screen.getAllByText('No record for this ID')).toHaveLength(3);
+    expect(screen.getByText('No events found for this ID.')).toBeInTheDocument();
   });
 
-  it('resets source filtering and retries when a different fixture is selected', async () => {
+  it('does not treat an unresponsive system as proof of no activity', async () => {
     const user = userEvent.setup();
     render(<Investigation />);
-    await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    await user.selectOptions(screen.getByLabelText('Timeline source'), '0');
-    await user.click(screen.getByRole('button', { name: 'Simulate retry Reconciliation reports' }));
-    await user.click(screen.getByRole('button', { name: 'TX-DEMO-002 · Conflicting reports' }));
-    expect(screen.getByLabelText('Timeline source')).toHaveValue('all');
-    expect(screen.queryByText(/Simulated retry completed/)).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'No authoritative combined status is inferred',
-    );
-    expect(screen.queryByRole('button', { name: /Simulate retry/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Retry Bank settlement' }));
+    await user.click(screen.getByRole('button', { name: 'A system is down' }));
+    expect(within(row('Bank settlement')).getByText('No response')).toBeInTheDocument();
+    expect(screen.queryByText(/Refreshed just now/)).not.toBeInTheDocument();
   });
 
   it('uses no network or persisted writes during synthetic investigation and retry', async () => {
@@ -103,7 +142,7 @@ describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
     const removals = vi.spyOn(Storage.prototype, 'removeItem');
     render(<Investigation />);
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    await user.click(screen.getByRole('button', { name: 'Simulate retry Reconciliation reports' }));
+    await user.click(screen.getByRole('button', { name: 'Retry Bank settlement' }));
     expect(fetcher).not.toHaveBeenCalled();
     expect(writes).not.toHaveBeenCalled();
     expect(removals).not.toHaveBeenCalled();

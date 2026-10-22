@@ -1,7 +1,14 @@
 .investigation .investigation-examples {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+}
+
+.investigation .investigation-examples [aria-pressed='true'] {
+  background: #f2ecfd;
+  border-color: #cdbdf2;
+  color: #4b2f9a;
 }
 
 .investigation .investigation-notice {
@@ -9,39 +16,150 @@
   border-left: 3px solid var(--purple);
   border-radius: 4px;
   padding: 12px;
-  margin: 12px 0;
+  margin: 0;
 }
 
-.investigation .investigation-filter {
+.investigation .investigation-results {
+  display: grid;
+  gap: 16px;
+}
+
+.investigation .investigation-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin: 18px 0 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 32px;
 }
 
-.investigation .investigation-filter select {
-  max-width: 100%;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: white;
+.investigation .investigation-header h2 {
+  margin: 0;
+  font-size: 20px;
 }
 
-.investigation .investigation-references {
+.investigation .investigation-header dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+}
+
+.investigation .investigation-header dt {
+  font-size: 11px;
+}
+
+.investigation .investigation-header dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.investigation .investigation-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.investigation .investigation-verdict {
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 14px 16px;
   display: grid;
-  gap: 10px;
+  gap: 4px;
 }
 
-.investigation .investigation-references dd {
-  margin: 4px 0 0;
+.investigation .investigation-verdict strong {
+  font-size: 15px;
+}
+
+.investigation .verdict-green {
+  background: #edf7f1;
+  border-color: #b9dcc7;
+  color: #2d5f49;
+}
+
+.investigation .verdict-amber {
+  background: #fff6e6;
+  border-color: #efd29c;
+  color: #6d5019;
+}
+
+.investigation .verdict-red {
+  background: #fbedef;
+  border-color: #e7b9c1;
+  color: #873f4c;
+}
+
+.investigation .verdict-neutral {
+  background: #f2f3f6;
+  border-color: #d9dbe3;
+  color: #1d1d1f;
+}
+
+.investigation table th[scope='row'] {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.investigation tbody tr:last-child th {
+  border-bottom: 0;
+}
+
+.investigation table td {
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.investigation .investigation-note {
+  white-space: normal;
+  min-width: 200px;
+}
+
+.investigation h3 {
+  margin: 8px 0 0;
+}
+
+.investigation .investigation-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--line);
+  display: grid;
+  gap: 14px;
+}
+
+.investigation .investigation-timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(170px, max-content) 1fr;
+  gap: 4px 16px;
+  padding-left: 18px;
   overflow-wrap: anywhere;
 }
 
-.investigation .evidence-timeline li {
-  overflow-wrap: anywhere;
+.investigation .investigation-timeline li::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--purple);
 }
 
-.investigation details summary {
-  cursor: pointer;
+.investigation .investigation-timeline time {
+  font-variant-numeric: tabular-nums;
+}
+
+.investigation .investigation-source {
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .investigation .investigation-timeline li {
+    grid-template-columns: 1fr;
+  }
 }

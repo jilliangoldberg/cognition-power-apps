@@ -1,43 +1,74 @@
 import { useState, type FormEvent } from 'react';
+import { Badge } from '../components/Badge';
 import { dateTime, money } from '../core/format';
+import type { Tone } from '../core/types';
 import {
   canRetrySyntheticSource,
   investigationExamples,
+  looksLikeCardNumber,
   retrySyntheticSource,
+  summarizeEvidence,
   syntheticEvidence,
   type SourceEvidence,
 } from './evidence';
 import './investigation.css';
 
+function sourceStatus(source: SourceEvidence): { label: string; tone: Tone } {
+  if (source.outcome === 'unavailable') return { label: 'No response', tone: 'amber' };
+  if (source.outcome === 'not-found') return { label: 'Not found', tone: 'neutral' };
+  return {
+    label: source.reportedStatus ?? 'Unknown',
+    tone: source.reportedStatus === 'Completed' ? 'green' : 'amber',
+  };
+}
+
+function sourceNote(source: SourceEvidence): string {
+  if (source.outcome === 'unavailable') return 'Didn’t respond. Outcome unknown.';
+  if (source.outcome === 'not-found') return 'No record for this ID';
+  if (source.stale) {
+    const minutes = Math.round(
+      (Date.parse(source.attemptedAt) - Date.parse(source.retrievedAt!)) / 60_000,
+    );
+    return `Out of date: last updated ${minutes} min ago`;
+  }
+  if (!source.complete) return 'Partial response: some details missing';
+  if (source.retryCount > 0) return 'Refreshed just now (simulated, no real request)';
+  return 'Up to date';
+}
+
 export function Investigation() {
   const [query, setQuery] = useState('TX-DEMO-003');
-  const [sources, setSources] = useState<SourceEvidence[]>([]);
-  const [searched, setSearched] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('all');
+  const [sources, setSources] = useState<SourceEvidence[]>(() => syntheticEvidence('TX-DEMO-003'));
+  const [searched, setSearched] = useState('TX-DEMO-003');
+  const [refused, setRefused] = useState(false);
   function investigate(id: string) {
+    setRefused(false);
     setQuery(id);
     setSearched(id);
     setSources(syntheticEvidence(id));
-    setSourceFilter('all');
   }
   function search(event: FormEvent) {
     event.preventDefault();
+    if (looksLikeCardNumber(query)) {
+      setQuery('');
+      setRefused(true);
+      return;
+    }
     const id = query.trim().toUpperCase();
     if (id) investigate(id);
   }
-  const statuses = new Set(sources.map((s) => s.reportedStatus).filter(Boolean));
+  const summary = summarizeEvidence(sources);
   const events = sources
-    .filter((source) => sourceFilter === 'all' || source.id === sourceFilter)
     .flatMap((source) => source.events.map((event) => ({ ...event, source })))
     .sort((a, b) => a.occurredAt.localeCompare(b.occurredAt) || a.id.localeCompare(b.id));
-  const contextSource = sources.find((source) => source.amountCents !== undefined);
+  const payment = sources.find((source) => source.payment)?.payment;
   return (
     <section className="custom-page investigation">
       <p className="eyebrow">READ-ONLY LOOKUP</p>
       <h1>Transaction investigation</h1>
       <p>
-        Compare what the payment, processing, and reconciliation sources report for one transaction.
-        This page doesn’t change transactions.
+        When a customer asks “did my payment go through?”, check what the ledger, the payment
+        processor and the bank settlement report each say, and see whether they agree.
       </p>
       <form className="toolbar" onSubmit={search}>
         <label htmlFor="investigation-id">Transaction ID</label>
@@ -46,165 +77,141 @@ export function Investigation() {
           value={query}
           maxLength={64}
           required
-          onChange={(e) => setQuery(e.target.value)}
+          aria-describedby={refused ? 'investigation-refused' : undefined}
+          onChange={(e) => {
+            setRefused(false);
+            setQuery(e.target.value);
+          }}
         />
         <button className="button button-primary" disabled={!query.trim()}>
           Investigate
         </button>
       </form>
       <div className="investigation-examples" aria-label="Example transactions">
+        <span>Try an example:</span>
         {investigationExamples.map((example) => (
           <button
             key={example.id}
             type="button"
             className="button button-secondary"
+            aria-pressed={searched === example.id}
             onClick={() => investigate(example.id)}
           >
-            {example.id} · {example.label}
+            {example.label}
           </button>
         ))}
       </div>
-      {searched && query.trim().toUpperCase() !== searched && (
+      {refused && (
+        <p id="investigation-refused" role="alert" className="investigation-notice">
+          That looks like a full card number, so it was cleared. Search by transaction ID instead.
+        </p>
+      )}
+      {searched && !refused && query.trim().toUpperCase() !== searched && (
         <p className="investigation-notice">
           Input changed. Results below are still for {searched}; investigate to replace them.
         </p>
       )}
       {searched && (
-        <div aria-live="polite">
-          <h2>Evidence for {searched}</h2>
-          {contextSource && contextSource.amountCents !== undefined && (
-            <dl className="detail-grid">
-              <div>
-                <dt>Amount</dt>
-                <dd>
-                  {money(contextSource.amountCents)} USD · reported by {contextSource.label}
-                </dd>
-              </div>
-              <div>
-                <dt>Current reported status</dt>
-                <dd>Reports can differ. Check each source below.</dd>
-              </div>
-            </dl>
-          )}
-          <p role="status" className="investigation-notice">
-            {statuses.size > 1
-              ? 'Reports disagree. No authoritative combined status is inferred.'
-              : 'Source reports are evidence, not a verified transaction outcome.'}
-          </p>
-          <p>
-            {sources.filter((source) => source.outcome === 'found').length}/{sources.length} sources
-            returned evidence. Related references are for context only.
-          </p>
-          <div className="evidence-grid">
-            {sources.map((source) => (
-              <article className="evidence-card" key={source.id} aria-label={source.label}>
-                <h3>{source.label}</h3>
-                <p>
-                  Lookup: {source.lookupId} · source-{source.id}
-                </p>
-                <strong>
-                  {source.outcome === 'not-found'
-                    ? 'No matching records'
-                    : source.outcome === 'unavailable'
-                      ? 'Unavailable · outcome unknown'
-                      : source.stale
-                        ? 'Stale evidence'
-                        : 'Evidence retrieved'}
-                </strong>
-                <p>
-                  Source-reported status: {source.reportedStatus ?? 'No status assertion available'}
-                </p>
-                <p>Last attempted: {dateTime(source.attemptedAt)}</p>
-                <p>
-                  Retrieved: {source.retrievedAt ? dateTime(source.retrievedAt) : 'Not retrieved'}
-                </p>
-                <p>
-                  Completeness:{' '}
-                  {source.outcome === 'unavailable'
-                    ? 'Unknown'
-                    : source.complete
-                      ? 'Complete response'
-                      : 'Incomplete · more records may exist'}
-                </p>
-                {source.relatedReferences.length > 0 && (
-                  <details>
-                    <summary>Related reference context</summary>
-                    <dl className="investigation-references">
-                      {source.relatedReferences.map((related) => (
-                        <div key={`${related.kind}/${related.reference}`}>
-                          <dt>{related.kind}</dt>
-                          <dd>{related.reference}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                    <p>
-                      Provenance: {source.label} · retrieved {dateTime(source.retrievedAt)}.
-                    </p>
-                  </details>
-                )}
-                {canRetrySyntheticSource(source) && (
-                  <button
-                    className="button button-secondary"
-                    onClick={() =>
-                      setSources((current) =>
-                        current.map((s) => (s.id === source.id ? retrySyntheticSource(s) : s)),
-                      )
-                    }
-                  >
-                    Simulate retry {source.label}
-                  </button>
-                )}
-                {source.retryCount > 0 && (
-                  <p className="investigation-notice">
-                    Simulated retry completed for this source only. No external request was made;
-                    reported event times were not replaced by the retry time.
-                  </p>
-                )}
-              </article>
-            ))}
+        <div className="investigation-results" aria-live="polite">
+          <div className="investigation-header">
+            <h2>{searched}</h2>
+            {payment && (
+              <dl>
+                <div>
+                  <dt>Customer</dt>
+                  <dd>
+                    {payment.customerName}
+                    <span className="investigation-sub">{payment.customerEmail}</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Merchant</dt>
+                  <dd>{payment.merchant}</dd>
+                </div>
+                <div>
+                  <dt>Card</dt>
+                  <dd>
+                    {payment.card.brand} •••• {payment.card.last4}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Amount</dt>
+                  <dd>{money(payment.amountCents)} USD</dd>
+                </div>
+              </dl>
+            )}
           </div>
-          <h2>Reported event timeline</h2>
-          <p>Ordered by the time each source reported the event. Retrieval time is shown above.</p>
-          <label className="investigation-filter">
-            Timeline source
-            <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)}>
-              <option value="all">All sources</option>
-              {sources.map((source) => (
-                <option key={source.id} value={source.id}>
-                  {source.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p>{events.length} reported events shown. Source cards above always show all sources.</p>
+          <div role="status" className={`investigation-verdict verdict-${summary.tone}`}>
+            <strong>{summary.headline}</strong>
+            <p>{summary.nextStep}</p>
+          </div>
+          <div className="panel">
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">System</th>
+                    <th scope="col">Reported status</th>
+                    <th scope="col">Data as of</th>
+                    <th scope="col">Notes</th>
+                    <th scope="col">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sources.map((source) => {
+                    const status = sourceStatus(source);
+                    return (
+                      <tr key={source.id} aria-label={source.label}>
+                        <th scope="row">{source.label}</th>
+                        <td>
+                          <Badge label={status.label} tone={status.tone} />
+                        </td>
+                        <td>{source.retrievedAt ? dateTime(source.retrievedAt) : '—'}</td>
+                        <td className="investigation-note">{sourceNote(source)}</td>
+                        <td>
+                          {canRetrySyntheticSource(source) && (
+                            <button
+                              className="button button-secondary"
+                              aria-label={`Retry ${source.label}`}
+                              onClick={() =>
+                                setSources((current) =>
+                                  current.map((s) =>
+                                    s.id === source.id ? retrySyntheticSource(s) : s,
+                                  ),
+                                )
+                              }
+                            >
+                              Retry
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <h3>What happened</h3>
           {events.length ? (
-            <ol className="evidence-timeline">
+            <ol className="investigation-timeline">
               {events.map((event) => (
                 <li key={`${event.source.id}/${event.id}`}>
-                  <details>
-                    <summary>
-                      {dateTime(event.occurredAt)} · {event.description}
-                    </summary>
-                    <p>
-                      Source: {event.source.label} · Reference: {event.reference}
-                    </p>
-                    <p>
-                      Retrieved: {dateTime(event.source.retrievedAt)} ·{' '}
-                      {event.source.complete ? 'Complete response' : 'Incomplete response'}
-                    </p>
-                    <p>
-                      {event.source.stale
-                        ? 'This evidence is stale.'
-                        : 'Reported by the source system.'}
-                    </p>
-                  </details>
+                  <time dateTime={event.occurredAt}>{dateTime(event.occurredAt)}</time>
+                  <span>
+                    {event.description}{' '}
+                    <span className="investigation-source">· {event.source.label}</span>
+                  </span>
                 </li>
               ))}
             </ol>
           ) : (
             <p>
-              No events available{sourceFilter === 'all' ? '' : ' for the selected source'}. Check
-              each source’s availability before interpreting this as an absence of activity.
+              {sources.some((source) => source.outcome === 'unavailable')
+                ? 'No events yet. A system didn’t respond, so this isn’t proof nothing happened.'
+                : 'No events found for this ID.'}
             </p>
           )}
         </div>
