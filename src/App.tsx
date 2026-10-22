@@ -255,18 +255,9 @@ export default function App() {
           {navItem('activity', 'Activity', 'activity')}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sandbox-card">
-            <span className="sandbox-light" />
-            <strong>A safe place to explore</strong>
-            <p>
-              Synthetic data. No live systems.
-              <br />
-              Make a change, then reset.
-            </p>
-            <button className="text-button" onClick={() => setResetOpen(true)}>
-              <Icon name="reset" size={14} /> Reset demo data
-            </button>
-          </div>
+          <button className="text-button sidebar-reset" onClick={() => setResetOpen(true)}>
+            <Icon name="reset" size={14} /> Reset demo data
+          </button>
           <div className="demo-user">
             <span className="user-avatar">D</span>
             <div>
