@@ -13,12 +13,12 @@ const pageSummaries: Record<
   { description: string; scope: string }
 > = {
   investigation: {
-    description: 'Read-only synthetic evidence, separate from queue records.',
-    scope: 'Stateless synthetic evidence',
+    description: 'Look up a transaction across payment, processing, and reconciliation sources.',
+    scope: 'Read-only lookup',
   },
   vendors: {
-    description: 'Take a fictional vendor request through Finance, Security, and Legal reviews.',
-    scope: 'Separate local simulation · excluded from local counts',
+    description: 'Take a vendor request through Finance, Security, and Legal reviews.',
+    scope: 'Separate from My work counts',
   },
 };
 
@@ -45,7 +45,7 @@ export function Overview({
       id: module.id,
       title: module.title,
       description: module.description,
-      scope: 'Browser-local synthetic records',
+      scope: 'Queue',
     })),
     ...customPages.map((page) => ({ id: page.id, title: page.title, ...pageSummaries[page.id] })),
   ].filter((item) =>
@@ -57,16 +57,14 @@ export function Overview({
     <div className="work-home">
       <div className="page-heading overview-heading">
         <div>
-          <p className="eyebrow">SYNTHETIC · BROWSER-LOCAL WORK</p>
+          <p className="eyebrow">WORKSPACE</p>
           <h1>My work</h1>
           <p>Find a next item, allocate unassigned work, or inspect what is waiting.</p>
         </div>
-        <Badge label="Local demo · not shared" dot={false} />
       </div>
       <p className="work-scope">
-        “You” is the current demo owner label, not an authenticated identity. Counts use only this
-        browser’s KYC and refund queues; Investigation is independent. Flags are configurations, not
-        pending tasks. No separate approver queue or independent-review permission is modeled.
+        Counts cover the KYC and refund queues. Feature flags are configurations, so they aren’t
+        listed as work.
       </p>
       <nav className="work-counts" aria-label="Local work views">
         {(Object.keys(workViews) as WorkView[]).map((key) => (
@@ -82,7 +80,7 @@ export function Overview({
           >
             <span>{workViews[key].title}</span>
             <strong>{workItemsForView(items, key).length}</strong>
-            <small>Local records · view exact list</small>
+            <small>View list</small>
           </a>
         ))}
       </nav>
@@ -91,25 +89,22 @@ export function Overview({
           <h2 id="work-title">
             {workViews[view].title} <span className="count-pill">{visible.length}</span>
           </h2>
-          <span className="subtle">Oldest opened first · not an SLA</span>
+          <span className="subtle">Oldest first</span>
         </div>
         <div className="work-list-help">
           <p>{workViews[view].description}</p>
-          <p>
-            Unassigned waiting items appear in both views. Open a record to review its module rules;
-            this list does not authorize a decision.
-          </p>
+          <p>Unassigned items that are waiting appear in both views.</p>
         </div>
         <div className="table-scroll">
           <table>
-            <caption className="sr-only">{workViews[view].title} · local synthetic records</caption>
+            <caption className="sr-only">{workViews[view].title}</caption>
             <thead>
               <tr>
                 <th scope="col">Record / tool</th>
                 <th scope="col">Why it needs attention</th>
                 <th scope="col">Status</th>
-                <th scope="col">Local owner</th>
-                <th scope="col">Opened age</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Time open</th>
               </tr>
             </thead>
             <tbody>
@@ -156,15 +151,11 @@ export function Overview({
         </div>
         {visible.length === 0 && (
           <div className="empty-state">
-            <h3>No local items in this view</h3>
+            <h3>Nothing in this view</h3>
             <p>Try another work view or use the tool directory below.</p>
           </div>
         )}
-        <p className="work-list-help">
-          Showing all {visible.length} matching local records. Record names are stable links: copy
-          their link address to send a reference. Another browser needs its own matching local
-          sample; no shared handoff is implemented.
-        </p>
+        <p className="work-list-help">Showing all {visible.length} matching records.</p>
       </section>
       <section className="work-directory" aria-labelledby="directory-title">
         <div className="section-heading">
@@ -198,9 +189,9 @@ export function Overview({
       <div className="page-note">
         <Icon name="info" size={16} />
         <span>
-          Local notes and actions are demo activity, not authenticated audit history.{' '}
+          Every change is recorded with its reason.{' '}
           <button className="text-button" onClick={() => navigate('activity')}>
-            View local activity
+            View activity
           </button>
         </span>
       </div>

@@ -66,7 +66,6 @@ export function ToolView({
         <div>
           <div className="title-line">
             <h1>{module.title}</h1>
-            <Badge label="Demo" tone="purple" dot={false} />
           </div>
           <p>{module.description}</p>
         </div>
@@ -77,15 +76,12 @@ export function ToolView({
             className="text-button"
             onClick={() => document.getElementById('queue-results')?.focus()}
           >
-            {visible.length} matching local records · current filters
+            {visible.length} matching records · current filters
           </button>
           <button className="text-button" onClick={() => setFilters(defaultFilters)}>
-            All {records.length} local records · clear filters
+            All {records.length} records · clear filters
           </button>
-          <p>
-            Browser-local synthetic data only. Record IDs are stable links; copy their link address
-            to send a reference, not a shared view.
-          </p>
+          <p>Record IDs are stable links you can copy to reference a record.</p>
         </div>
       ) : (
         <div className="metrics">
@@ -111,9 +107,6 @@ export function ToolView({
             </h2>
             <span className="count-pill">{recordHref ? visible.length : records.length}</span>
           </div>
-          <span className="subtle panel-hint">
-            <Icon name="box" size={14} /> Curated sample · not company volume
-          </span>
         </div>
         <div className="table-toolbar">
           <label className="search-input">
@@ -198,7 +191,7 @@ export function ToolView({
                   checked={agingOnly}
                   onChange={(event) => updateFilters({ agingOnly: event.target.checked })}
                 />{' '}
-                Open 48h+ (not an SLA)
+                Open 48h+
               </label>
             )}
           </div>
@@ -237,12 +230,10 @@ export function ToolView({
               required
             />
             <button className="button button-secondary" disabled={localViews.blocked}>
-              Save view locally
+              Save view
             </button>
           </form>
-          <p className="view-help">
-            Views save filters and sorting, not record snapshots. “You” is a demo label.
-          </p>
+          <p className="view-help">Views save your filters and sorting.</p>
           {viewError && (
             <p className="form-error" role="alert">
               {viewError}
@@ -289,7 +280,7 @@ export function ToolView({
                 <th>{module.secondaryColumn}</th>
                 <th>Status</th>
                 <th>Owner</th>
-                <th>Age since opening</th>
+                <th>Time open</th>
                 <th>Updated</th>
                 <th>
                   <span className="sr-only">Open record</span>
@@ -363,9 +354,7 @@ export function ToolView({
                   <td
                     className="date-cell"
                     title={
-                      record.openedAt
-                        ? `Opened ${shortDate(record.openedAt)} · not an SLA`
-                        : 'Not recorded in older demo data'
+                      record.openedAt ? `Opened ${shortDate(record.openedAt)}` : 'Not recorded'
                     }
                   >
                     {ageLabel(record.openedAt, now)}
@@ -405,10 +394,6 @@ export function ToolView({
           </span>
         </div>
       </section>
-      <div className="page-note">
-        <Icon name="info" size={16} />
-        <span>Local demo only. Changes are saved in this browser, not shared with a team.</span>
-      </div>
     </>
   );
 }

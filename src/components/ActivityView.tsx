@@ -13,14 +13,14 @@ export function ActivityView({ activity }: { activity: Activity[] }) {
       <div className="page-heading">
         <div>
           <h1>Activity</h1>
-          <p>A shared history of changes made in this local demo.</p>
+          <p>Every decision, note, and reassignment, with its reason.</p>
         </div>
       </div>
       <div className="notice activity-notice">
         <Icon name="info" size={18} />
         <p>
-          This is editable browser data, not a secure or compliance-grade audit log. Resetting the
-          demo clears it.
+          Activity is stored in this browser and cleared when you reset the demo. It isn’t a
+          compliance-grade audit log.
         </p>
       </div>
       <section className="panel">
