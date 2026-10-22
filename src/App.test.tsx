@@ -309,11 +309,14 @@ describe('workspace components (jsdom)', () => {
       ['KYC review', 'KYC review queue'],
       ['Refunds', 'Refunds dashboard'],
       ['Feature flags', 'Feature flags'],
-      ['New tool', 'New tool'],
     ]) {
       await user.click(within(nav).getByRole('link', { name: new RegExp(label) }));
       expect(screen.getByRole('heading', { name: title, level: 1 })).toBeInTheDocument();
     }
+    expect(within(nav).queryByRole('link', { name: /New tool/ })).not.toBeInTheDocument();
+    await user.click(within(screen.getByRole('banner')).getByRole('link', { name: 'New tool' }));
+    expect(screen.getByRole('heading', { name: 'New tool', level: 1 })).toBeInTheDocument();
+    expect(window.location.hash).toBe('#new-tool');
   });
   it('searches and filters a queue and clears an empty state', async () => {
     const user = userEvent.setup();

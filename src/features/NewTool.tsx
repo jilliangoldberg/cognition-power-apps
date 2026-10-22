@@ -43,9 +43,12 @@ export function NewTool() {
     <div className="custom-page new-tool-page">
       <div className="page-heading">
         <div>
-          <p className="eyebrow">BUILD A TOOL WITH DEVIN</p>
+          <p className="eyebrow">ANYONE CAN BUILD A TOOL</p>
           <h1>New tool</h1>
-          <p>Describe the tool in your own words. Devin builds it and opens a pull request.</p>
+          <p>
+            Describe what your team needs in your own words. Devin builds it on the shared Workbench
+            and opens a pull request for review.
+          </p>
         </div>
       </div>
       <div className="new-tool-layout">

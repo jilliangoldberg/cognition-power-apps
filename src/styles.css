@@ -545,6 +545,16 @@ select:focus-visible {
   background: #69a88d;
   border-radius: 50%;
 }
+.new-tool-cta {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  min-height: 36px;
+  text-decoration: none;
+}
+.topbar-right > .text-button {
+  white-space: nowrap;
+}
 .topbar-divider {
   height: 13px;
   width: 1px;
@@ -606,6 +616,16 @@ select:focus-visible {
 }
 .button-primary:hover:not(:disabled) {
   background: var(--purple-dark);
+}
+.button-soft {
+  background: #f4f0fc;
+  border-color: #d8cdf3;
+  color: var(--purple-dark);
+}
+.button-soft:hover:not(:disabled),
+.button-soft[aria-current='page'] {
+  background: #ebe4fa;
+  border-color: #c6b7ee;
 }
 .button-secondary {
   background: #fff;
@@ -2319,6 +2339,13 @@ tbody tr:focus-within {
   }
   .topbar-right {
     font-size: 11px;
+    gap: 12px;
+  }
+  .topbar-right > .local-indicator {
+    display: none;
+  }
+  .new-tool-cta {
+    padding: 8px 12px;
   }
   .page-heading p:not(.eyebrow) {
     font-size: 11px;
