@@ -551,13 +551,17 @@ select:focus-visible {
   padding: 8px 16px;
   min-height: 36px;
   text-decoration: none;
-  box-shadow: 0 2px 8px #7354d240;
+  background: #f4f0fc;
+  border-color: #d8cdf3;
+  color: var(--purple-dark);
+}
+.new-tool-cta:hover,
+.new-tool-cta[aria-current='page'] {
+  background: #ebe4fa;
+  border-color: #c6b7ee;
 }
 .topbar-right > .text-button {
   white-space: nowrap;
-}
-.new-tool-cta[aria-current='page'] {
-  background: var(--purple-dark);
 }
 .topbar-divider {
   height: 13px;

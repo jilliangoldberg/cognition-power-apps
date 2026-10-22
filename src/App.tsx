@@ -305,7 +305,7 @@ export default function App() {
             </button>
             <a
               href="#new-tool"
-              className="button button-primary new-tool-cta"
+              className="button new-tool-cta"
               aria-current={page === 'new-tool' ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
