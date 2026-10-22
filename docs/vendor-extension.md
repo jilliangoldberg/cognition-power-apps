@@ -2,8 +2,7 @@
 
 Investigation remains the fourth tool and the first non-queue extension. Vendor
 Onboarding & Spend Approvals is a fifth business-tool example: reuse the same
-foundation for requesting departments, Finance, Security, and Legal. Shared KYC
-remains a collaboration variant of KYC, not a sixth independent business use case.
+foundation for requesting departments, Finance, Security, and Legal.
 
 ## Value story
 
@@ -57,7 +56,7 @@ are deliberately explicit examples, not configurable company policy.
 | Metrics, panels, table, detail and timeline styling | Independent versioned browser storage and explicit vendor reset     | Feature-specific CSS; no global workflow-engine changes |
 
 - No changes to `ToolModule`, queue record schemas, v1/v2 migrations, original
-  action validation, backend/API/authentication, SQLite, or provider adapters.
+  action validation, or authentication.
 - No additional npm dependencies. The feature reuses the existing Zod dependency
   to validate request details and saved state.
 - Main implementation: `src/features/VendorOnboarding.tsx` and
@@ -69,9 +68,8 @@ are deliberately explicit examples, not configurable company policy.
   Tests and documentation are excluded from these source totals. This is a
   changed-line inventory, not a measurement of independent extension effort.
 - Original Activity remains scoped to the original three local tools. Vendor
-  history lives on its page and is not imported as authenticated server history.
-- Storage key `workbench.vendor-demo.v1` is independent of original local state
-  and shared SQLite. Unreadable saved bytes are preserved and sample editing is
+  history lives on its page and is not imported into original Activity.
+- Storage key `workbench.vendor-demo.v1` is independent of original local state. Unreadable saved bytes are preserved and sample editing is
   blocked until explicit vendor reset. Failed saves warn that changes remain
   in memory only. Original reset does not erase vendor work, and vice versa.
 - Local data is browser-editable and not coordinated across tabs or users. All

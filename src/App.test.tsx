@@ -26,7 +26,7 @@ beforeEach(() => {
 });
 
 describe('task-first local workspace and references (jsdom)', () => {
-  it('returns an evidence-assessed local case to assigned work without weakening Shared KYC rules', async () => {
+  it('returns an evidence-assessed local case to assigned work', async () => {
     const user = userEvent.setup();
     const data = createFixtures();
     data.records.kyc[0].fields.evidenceReviewed = false;
@@ -220,8 +220,8 @@ describe('task-first local workspace and references (jsdom)', () => {
     expect(screen.getByRole('searchbox')).toHaveValue('Olivia');
     expect(screen.getByLabelText('Sort records')).toHaveValue('name');
   });
-  it.each(['#kyc/deleted-record', '#kyc/%E0%A4%A', '#missing/KYC-1042', '#shared-kyc/KYC-1042'])(
-    'does not open an invalid, deleted, unknown-tool or independent shared link: %s',
+  it.each(['#kyc/deleted-record', '#kyc/%E0%A4%A', '#missing/KYC-1042', '#shared-kyc'])(
+    'does not open an invalid, deleted, unknown-tool or removed-page link: %s',
     (hash) => {
       window.history.replaceState(null, '', hash);
       render(<App />);
@@ -244,13 +244,14 @@ describe('task-first local workspace and references (jsdom)', () => {
     const user = userEvent.setup();
     render(<App />);
     const directory = screen.getByRole('region', { name: 'Tool directory' });
-    expect(within(directory).getByRole('button', { name: 'Shared KYC' })).toBeInTheDocument();
     expect(within(directory).getByRole('button', { name: 'Vendor approvals' })).toBeInTheDocument();
     await user.type(
       screen.getByRole('searchbox', { name: 'Search tool directory' }),
       'Investigation',
     );
-    expect(within(directory).queryByRole('button', { name: 'Shared KYC' })).not.toBeInTheDocument();
+    expect(
+      within(directory).queryByRole('button', { name: 'Vendor approvals' }),
+    ).not.toBeInTheDocument();
     await user.click(within(directory).getByRole('button', { name: 'Investigation' }));
     expect(window.location.hash).toBe('#investigation');
     expect(

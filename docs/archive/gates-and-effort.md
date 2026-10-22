@@ -1,5 +1,7 @@
 # v0.3 gates, extension effort, and operating-cost evidence
 
+> **Archived.** Shared KYC, its server and the Stripe lookup described below have since been removed from the prototype, so links into `server/` no longer resolve.
+
 ## Authoritative scope
 
 The gate numbers here belong to the earlier delivery sequence, not the eight-step prototype roadmap. See the [prototype promise/proof contract](prototype-contract.md), [current interaction walkthrough](../reference.md#try-the-workflows), and [independent-agent extension proof](../extension-proof.md) for roadmap steps 1–4. Their interaction/reuse improvements do not add enterprise identity, provider writes, or a production-readiness claim. Counts and measurements below describe the earlier fixed increment, not the combined parallel change set.

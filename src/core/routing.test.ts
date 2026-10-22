@@ -3,15 +3,7 @@ import type { Page } from './types';
 import { defaultFilters } from './views';
 import { readRoute, recordRoute, routeHash } from './routing';
 
-const pages: Page[] = [
-  'overview',
-  'kyc',
-  'refunds',
-  'flags',
-  'investigation',
-  'shared-kyc',
-  'activity',
-];
+const pages: Page[] = ['overview', 'kyc', 'refunds', 'flags', 'investigation', 'activity'];
 
 describe('workspace hash routes', () => {
   it.each(pages)('preserves the existing #%s page', (page) => {
@@ -54,19 +46,15 @@ describe('workspace hash routes', () => {
     expect(parsed.returnHash).toBe('#overview?work=waiting');
     expect(parsed.page).toBe('refunds');
   });
-  it.each([
-    '#unknown/ID',
-    '#kyc/%E0%A4%A',
-    '#kyc/',
-    '#kyc/a/b',
-    '#investigation/fake',
-    '#shared-kyc/KYC-1042',
-  ])('fails safely for %s', (hash) => {
-    const route = readRoute(hash, pages);
-    expect(route.error).toBeTruthy();
-    expect(route.selection).toBeUndefined();
-  });
-  it.each(['https://example.com', '#unknown', '#kyc/record', '#shared-kyc', '//example.com'])(
+  it.each(['#unknown/ID', '#kyc/%E0%A4%A', '#kyc/', '#kyc/a/b', '#investigation/fake'])(
+    'fails safely for %s',
+    (hash) => {
+      const route = readRoute(hash, pages);
+      expect(route.error).toBeTruthy();
+      expect(route.selection).toBeUndefined();
+    },
+  );
+  it.each(['https://example.com', '#unknown', '#kyc/record', '//example.com'])(
     'rejects an unsafe/non-queue return target %s',
     (from) => {
       expect(

@@ -18,7 +18,6 @@ export function ToolView({
   records,
   onSelect,
   currentOwner = 'You',
-  viewNamespace,
   filters: controlledFilters,
   onFiltersChange,
   recordHref,
@@ -27,7 +26,6 @@ export function ToolView({
   records: ToolRecord[];
   onSelect: (record: ToolRecord) => void;
   currentOwner?: string;
-  viewNamespace?: string;
   filters?: RecordFilters;
   onFiltersChange?: (filters: RecordFilters) => void;
   recordHref?: (record: ToolRecord) => string;
@@ -38,7 +36,7 @@ export function ToolView({
     setLocalFilters(next);
     onFiltersChange?.(next);
   };
-  const [localViews, setLocalViews] = useState(() => loadViews(module, viewNamespace));
+  const [localViews, setLocalViews] = useState(() => loadViews(module));
   const [viewName, setViewName] = useState('');
   const [viewError, setViewError] = useState('');
   const now = useNow();
@@ -53,7 +51,7 @@ export function ToolView({
   );
   const visible = filterRecords(records, module, filters, now);
   function storeViews(views: typeof localViews.views) {
-    const saved = saveViews(module.id, views, viewNamespace);
+    const saved = saveViews(module.id, views);
     setLocalViews({
       views,
       blocked: false,
@@ -85,8 +83,8 @@ export function ToolView({
             All {records.length} local records · clear filters
           </button>
           <p>
-            Browser-local synthetic data only. Shared KYC is excluded. Record IDs are stable links;
-            copy their link address to send a reference, not a shared view.
+            Browser-local synthetic data only. Record IDs are stable links; copy their link address
+            to send a reference, not a shared view.
           </p>
         </div>
       ) : (
@@ -243,10 +241,7 @@ export function ToolView({
             </button>
           </form>
           <p className="view-help">
-            Views save filters and sorting, not record snapshots.{' '}
-            {viewNamespace
-              ? 'Local to this browser and account; not shared.'
-              : '“You” is a demo label.'}
+            Views save filters and sorting, not record snapshots. “You” is a demo label.
           </p>
           {viewError && (
             <p className="form-error" role="alert">
@@ -412,11 +407,7 @@ export function ToolView({
       </section>
       <div className="page-note">
         <Icon name="info" size={16} />
-        <span>
-          {viewNamespace
-            ? 'Shared records are saved on the server. View preferences stay in this browser.'
-            : 'Local demo only. Changes are saved in this browser, not shared with a team.'}
-        </span>
+        <span>Local demo only. Changes are saved in this browser, not shared with a team.</span>
       </div>
     </>
   );

@@ -25,19 +25,13 @@ export function RecordDrawer({
   activity,
   onClose,
   onAction,
-  persistence = 'local',
-  readOnly = false,
-  onRefresh,
 }: {
   module: ToolModule;
   record: ToolRecord;
   records?: ToolRecord[];
-  activity: (Activity & { actorName?: string })[];
+  activity: Activity[];
   onClose: () => void;
   onAction: (request: MutationRequest) => string | null | Promise<string | null>;
-  persistence?: 'local' | 'shared';
-  readOnly?: boolean;
-  onRefresh?: () => Promise<void>;
 }) {
   const [form, setForm] = useState<FormChoice | null>(null);
   const [owner, setOwner] = useState(record.owner);
@@ -48,9 +42,9 @@ export function RecordDrawer({
   const [closePrompt, setClosePrompt] = useState(false);
   const saving = useRef(false);
   const now = useNow();
-  const available = (
-    persistence === 'local' ? (module.localActions ?? module.actions) : module.actions
-  ).filter((candidate) => candidate.available(record));
+  const available = (module.localActions ?? module.actions).filter((candidate) =>
+    candidate.available(record),
+  );
   const action = form?.kind === 'action' ? form.action : null;
   const blocked =
     action && !action.available(record)
@@ -101,7 +95,7 @@ export function RecordDrawer({
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!form || saving.current || readOnly || blocked || closePrompt) return;
+    if (!form || saving.current || blocked || closePrompt) return;
     saving.current = true;
     setSubmitting(true);
     const target = {
@@ -194,7 +188,7 @@ export function RecordDrawer({
             </div>
           ))}
         </dl>
-        {persistence === 'local' && module.localDetails && (
+        {module.localDetails && (
           <section className="workflow-context" aria-label="Local workflow context">
             <h4 className="section-label">FICTIONAL EVIDENCE &amp; FOLLOW-UP</h4>
             <dl className="workflow-context-list">
@@ -214,18 +208,14 @@ export function RecordDrawer({
         )}
         <div className="detail-divider" />
         <h4 className="section-label">ACTIONS</h4>
-        {readOnly ? (
-          <p>Viewer access · shared records are read-only.</p>
-        ) : form ? (
+        {form ? (
           <form className="action-form" onSubmit={submit}>
             <h3>{label}</h3>
             <p>
               {action?.confirmation ??
-                (persistence === 'shared'
-                  ? 'Use fictional context only. This change is saved on the server and attributed to your signed-in account; this is not compliance-grade audit storage.'
-                  : form.kind === 'assignment'
-                    ? 'Owners are local demo labels, not authenticated people or permissions. Explain the handoff.'
-                    : 'Add fictional operational context only. Notes stay in this browser and are editable local data, not a secure audit log.')}
+                (form.kind === 'assignment'
+                  ? 'Owners are local demo labels, not authenticated people or permissions. Explain the handoff.'
+                  : 'Add fictional operational context only. Notes stay in this browser and are editable local data, not a secure audit log.')}
             </p>
             {action?.eligibility && (
               <p className="workflow-eligibility">{action.eligibility(record)}</p>
@@ -277,39 +267,27 @@ export function RecordDrawer({
               required
               rows={3}
             />
-            <div className="input-hint">5–500 characters · Recorded in {persistence} activity</div>
+            <div className="input-hint">5–500 characters · Recorded in local activity</div>
             {error && (
               <p className="form-error" role="alert">
                 {error}
               </p>
             )}
-            {(onRefresh || record.version !== form.version) && (
+            {record.version !== form.version && (
               <div className="action-buttons">
-                {onRefresh && (
-                  <button
-                    type="button"
-                    className="button button-secondary"
-                    disabled={submitting}
-                    onClick={onRefresh}
-                  >
-                    Refresh latest case (keep input)
-                  </button>
-                )}
-                {record.version !== form.version && (
-                  <button
-                    type="button"
-                    className="button button-secondary"
-                    disabled={submitting}
-                    onClick={() => {
-                      setForm({ ...form, version: record.version });
-                      setError(
-                        'Latest version selected. Review the updated case details and confirm your change again.',
-                      );
-                    }}
-                  >
-                    Use refreshed version {record.version}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  disabled={submitting}
+                  onClick={() => {
+                    setForm({ ...form, version: record.version });
+                    setError(
+                      'Latest version selected. Review the updated case details and confirm your change again.',
+                    );
+                  }}
+                >
+                  Use refreshed version {record.version}
+                </button>
               </div>
             )}
             <div className="action-buttons">
@@ -403,27 +381,21 @@ export function RecordDrawer({
           </>
         )}
         <div className="detail-divider" />
-        <h4 className="section-label">
-          {persistence.toUpperCase()} NOTES ({notes.length})
-        </h4>
+        <h4 className="section-label">LOCAL NOTES ({notes.length})</h4>
         {notes.length === 0 ? (
-          <p className="muted activity-empty">
-            No {persistence} notes. Use fictional context only.
-          </p>
+          <p className="muted activity-empty">No local notes. Use fictional context only.</p>
         ) : (
           <ol className="local-notes">
             {notes.map((note) => (
               <li key={note.id}>
                 <p>{note.reason}</p>
-                <small>
-                  {note.actorName ?? 'Demo operator'} · {dateTime(note.at)}
-                </small>
+                <small>Demo operator · {dateTime(note.at)}</small>
               </li>
             ))}
           </ol>
         )}
         <div className="detail-divider" />
-        <h4 className="section-label">{persistence.toUpperCase()} ACTIVITY</h4>
+        <h4 className="section-label">LOCAL ACTIVITY</h4>
         {changes.length === 0 ? (
           <p className="muted activity-empty">
             No workflow changes yet. Initial sample states have no invented operator history.
@@ -441,9 +413,7 @@ export function RecordDrawer({
                     {event.before} → {event.after}
                   </p>
                   <p>{event.reason}</p>
-                  <small>
-                    {event.actorName ?? 'Demo operator'} · {dateTime(event.at)}
-                  </small>
+                  <small>Demo operator · {dateTime(event.at)}</small>
                 </div>
               </li>
             ))}
