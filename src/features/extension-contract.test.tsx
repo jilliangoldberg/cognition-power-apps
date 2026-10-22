@@ -7,7 +7,7 @@ import { investigationExamples } from './evidence';
 
 describe('reviewed static read-only extension seam v1', () => {
   it('registers the existing Investigation once and preserves Shared KYC separately', () => {
-    expect(customPages.map((page) => page.id)).toEqual(['investigation', 'shared-kyc']);
+    expect(customPages.map((page) => page.id)).toEqual(['investigation', 'shared-kyc', 'vendors']);
     expect(customPages[0]).toBe(investigationExtension);
     const ids = [
       'overview',
@@ -23,6 +23,7 @@ describe('reviewed static read-only extension seam v1', () => {
     expect(investigationExtension.owner.status).toBe('proposed');
     expect(investigationExtension.owner.runbook).toBe('docs/extension-guide.md');
     expect(customPages[1]).not.toHaveProperty('readOnly');
+    expect(customPages[2]).not.toHaveProperty('readOnly');
   });
 
   it('lets a builder supply a custom view without a queue schema or shell copy', () => {

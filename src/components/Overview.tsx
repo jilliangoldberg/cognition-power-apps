@@ -7,6 +7,24 @@ import { workspaceItems, workItemsForView, workViews, type WorkView } from '../c
 import { Icon } from './Icon';
 import { Badge } from './Badge';
 
+const pageSummaries: Record<
+  (typeof customPages)[number]['id'],
+  { description: string; scope: string }
+> = {
+  investigation: {
+    description: 'Read-only synthetic evidence, separate from queue records.',
+    scope: 'Stateless synthetic evidence',
+  },
+  'shared-kyc': {
+    description: 'Independent server dataset; demo password sign-in required.',
+    scope: 'Shared synthetic workspace · excluded from local counts',
+  },
+  vendors: {
+    description: 'Take a fictional vendor request through Finance, Security, and Legal reviews.',
+    scope: 'Separate local simulation · excluded from local counts',
+  },
+};
+
 export function Overview({
   data,
   navigate,
@@ -32,18 +50,7 @@ export function Overview({
       description: module.description,
       scope: 'Browser-local synthetic records',
     })),
-    ...customPages.map((page) => ({
-      id: page.id,
-      title: page.title,
-      description:
-        page.id === 'investigation'
-          ? 'Read-only synthetic evidence, separate from queue records.'
-          : 'Independent server dataset; demo password sign-in required.',
-      scope:
-        page.id === 'investigation'
-          ? 'Stateless synthetic evidence'
-          : 'Shared synthetic workspace · excluded from local counts',
-    })),
+    ...customPages.map((page) => ({ id: page.id, title: page.title, ...pageSummaries[page.id] })),
   ].filter((item) =>
     `${item.title} ${item.description}`
       .toLowerCase()

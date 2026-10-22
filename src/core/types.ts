@@ -1,5 +1,12 @@
 export type ToolId = 'kyc' | 'refunds' | 'flags';
-export type Page = 'overview' | ToolId | 'activity' | 'about' | 'investigation' | 'shared-kyc';
+export type Page =
+  | 'overview'
+  | ToolId
+  | 'activity'
+  | 'about'
+  | 'investigation'
+  | 'shared-kyc'
+  | 'vendors';
 export type Tone = 'neutral' | 'purple' | 'green' | 'amber' | 'red' | 'blue';
 
 export interface ToolRecord {
