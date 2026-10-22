@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { NewTool } from './NewTool';
@@ -66,5 +66,72 @@ describe('New tool page', () => {
     await user.type(screen.getByLabelText('Describe the tool you want'), prompt);
     await user.click(screen.getByRole('button', { name: /Copy request/ }));
     expect(screen.getByRole('status')).toHaveTextContent('Could not copy automatically');
+  });
+
+  it('starts a Devin session only after confirmation when the dev server has a key', async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === 'POST'
+        ? new Response(JSON.stringify({ url: 'https://app.devin.ai/sessions/abc' }))
+        : new Response(JSON.stringify({ enabled: true, maxAcu: 7 })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    render(<NewTool />);
+    await user.type(screen.getByLabelText('Describe the tool you want'), prompt);
+    await user.click(await screen.findByRole('button', { name: /Send to Devin/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Start a Devin session?' });
+    expect(dialog).toHaveTextContent('up to 7 ACUs');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await user.click(within(dialog).getByRole('button', { name: 'Start session' }));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/devin/session',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).toEqual({ prompt, kind: null });
+    expect(await screen.findByRole('link', { name: 'Open the Devin session' })).toHaveAttribute(
+      'href',
+      'https://app.devin.ai/sessions/abc',
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it('shows the server error and leaves no session link', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) =>
+        init?.method === 'POST'
+          ? new Response(
+              JSON.stringify({ error: 'Wait a minute before sending another request.' }),
+              {
+                status: 429,
+              },
+            )
+          : new Response(JSON.stringify({ enabled: true, maxAcu: 10 })),
+      ),
+    );
+    render(<NewTool />);
+    await user.type(screen.getByLabelText('Describe the tool you want'), prompt);
+    await user.click(await screen.findByRole('button', { name: /Send to Devin/ }));
+    await user.click(screen.getByRole('button', { name: 'Start session' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Wait a minute');
+    expect(screen.queryByRole('link', { name: 'Open the Devin session' })).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it('explains how to enable sending when the server has no key', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ enabled: false }))),
+    );
+    render(<NewTool />);
+    await user.type(screen.getByLabelText('Describe the tool you want'), prompt);
+    expect(
+      await screen.findByText(/put DEVIN_API_KEY and DEVIN_ORG_ID in a .env/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Send to Devin/ })).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 });

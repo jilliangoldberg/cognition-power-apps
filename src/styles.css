@@ -2596,6 +2596,12 @@ tbody tr:focus-within {
 .new-tool-request [role='status'] {
   padding: 0 20px 20px;
 }
+.new-tool-request .new-tool-hint {
+  margin: 0 20px 20px;
+}
+.new-tool-session-link {
+  margin-top: 12px;
+}
 .new-tool-todo {
   margin: 0;
   padding: 16px 20px 20px 40px;

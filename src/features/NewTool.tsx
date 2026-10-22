@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Dialog } from '../components/Dialog';
 import { Icon } from '../components/Icon';
 import {
   checklist,
@@ -6,6 +7,7 @@ import {
   isStarter,
   MAX_PROMPT,
   promptProblems,
+  SEND_PATH,
   toolKinds,
   type ToolKind,
 } from './toolRequest';
@@ -23,6 +25,47 @@ export function NewTool() {
   const [copied, setCopied] = useState('');
   const problems = promptProblems(prompt);
   const request = problems.length ? '' : devinRequest(prompt, kind);
+  const [devin, setDevin] = useState<{ enabled: boolean; maxAcu: number } | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sessionUrl, setSessionUrl] = useState('');
+  const [sendError, setSendError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    fetch(SEND_PATH)
+      .then((response) => response.json())
+      .then((data: { enabled?: unknown; maxAcu?: unknown }) => {
+        if (alive) setDevin({ enabled: data.enabled === true, maxAcu: Number(data.maxAcu) || 10 });
+      })
+      .catch(() => alive && setDevin({ enabled: false, maxAcu: 10 }));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function send() {
+    setSending(true);
+    setSendError('');
+    try {
+      const response = await fetch(SEND_PATH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, kind }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { url?: unknown; error?: unknown };
+      if (response.ok && typeof data.url === 'string') setSessionUrl(data.url);
+      else
+        setSendError(
+          typeof data.error === 'string' ? data.error : 'Could not start a Devin session.',
+        );
+    } catch {
+      setSendError('Could not reach the dev server. Is npm run dev still running?');
+    } finally {
+      setSending(false);
+      setConfirming(false);
+    }
+  }
 
   function pick(next: (typeof toolKinds)[number]) {
     setKind(next.id);
@@ -112,7 +155,21 @@ export function NewTool() {
               <>
                 <pre tabIndex={0}>{request}</pre>
                 <div className="action-buttons">
-                  <button type="button" className="button button-primary" onClick={copy}>
+                  {devin?.enabled && (
+                    <button
+                      type="button"
+                      className="button button-primary"
+                      disabled={sending}
+                      onClick={() => setConfirming(true)}
+                    >
+                      Send to Devin <Icon name="arrow" size={16} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={`button ${devin?.enabled ? 'button-secondary' : 'button-primary'}`}
+                    onClick={copy}
+                  >
                     <Icon name="check" size={16} /> Copy request
                   </button>
                   <a
@@ -129,6 +186,12 @@ export function NewTool() {
                     {copied}
                   </p>
                 )}
+                {devin && !devin.enabled && (
+                  <p className="subtle new-tool-hint">
+                    To send straight from this page, put DEVIN_API_KEY and DEVIN_ORG_ID in a .env
+                    file and restart npm run dev (see docs/new-tool.md).
+                  </p>
+                )}
               </>
             ) : (
               <ul className="new-tool-todo" aria-live="polite">
@@ -137,9 +200,61 @@ export function NewTool() {
                 ))}
               </ul>
             )}
+            {sendError && (
+              <p className="form-error new-tool-hint" role="alert">
+                {sendError}
+              </p>
+            )}
           </section>
+          {sessionUrl && (
+            <section className="vendor-notice" aria-label="Devin session">
+              <strong>Devin is building your tool.</strong>
+              <p>It will open a pull request when it is done.</p>
+              <a
+                className="button button-primary new-tool-session-link"
+                href={sessionUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open the Devin session <Icon name="arrow" size={16} />
+              </a>
+            </section>
+          )}
         </div>
       </div>
+      {confirming && (
+        <Dialog
+          title="Start a Devin session?"
+          subtitle="USES DEVIN CREDITS"
+          onClose={() => !sending && setConfirming(false)}
+        >
+          <div className="vendor-form">
+            <p>
+              This starts a real Devin session in your organization with the request on this page.
+              It can use up to {devin?.maxAcu ?? 10} ACUs and will open a pull request on the
+              repository.
+            </p>
+            <div className="action-buttons">
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled={sending}
+                onClick={() => setConfirming(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={sending}
+                onClick={send}
+              >
+                {sending ? 'Starting…' : 'Start session'}
+              </button>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }
