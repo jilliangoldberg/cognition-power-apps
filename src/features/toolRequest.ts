@@ -1,3 +1,4 @@
+export const SEND_PATH = '/api/devin/session';
 export const MIN_PROMPT = 40;
 export const MAX_PROMPT = 2000;
 

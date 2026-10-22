@@ -9,6 +9,14 @@ the tool in your own words (starter chips and a short checklist help), and the p
 Devin request with the repository's rules. Devin uses this generator for record queues and builds a
 custom page for anything else, then opens a PR. Nothing is built until that PR is merged.
 
+To send the request straight from the page, copy `.env.example` to `.env`, fill in a Devin API v3
+token (`DEVIN_API_KEY`, prefix `cog_`) and `DEVIN_ORG_ID`, and restart `npm run dev`. A **Send to
+Devin** button then appears. It asks for confirmation and links to the new session. The key stays in
+the dev server (`scripts/devin-proxy.ts`), never in the browser. Each session is capped at
+`DEVIN_MAX_ACU` (default 10), the server allows one session a minute and five per run, and it only
+accepts requests from the Workbench page itself. Without a key, the page works the same with Copy
+request.
+
 ## 1. Generate it
 
 ```sh
