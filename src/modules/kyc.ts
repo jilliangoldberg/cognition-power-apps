@@ -1,5 +1,5 @@
 import { countStatus } from '../core/format';
-import type { ToolModule, ToolRecord } from '../core/types';
+import type { RecordAction, ToolModule, ToolRecord } from '../core/types';
 
 const pending = (status: string) => ['Needs review', 'Escalated'].includes(status);
 export const openKyc = (status: string) => pending(status) || status === 'Waiting for information';
@@ -18,6 +18,7 @@ export function kycDefaults(record: ToolRecord): ToolRecord {
       informationRequest: 'No information request recorded in this demo.',
       communicationState: 'Unsent · no customer messaging integration',
       responseRecorded: false,
+      respondedEvidence: '',
       responseContext: 'No fictional response recorded.',
       evidenceReviewContext: 'No evidence assessment recorded.',
       handoffContext:
@@ -28,11 +29,22 @@ export function kycDefaults(record: ToolRecord): ToolRecord {
   };
 }
 
-const evidenceKeys = ['identityEvidence', 'addressEvidence', 'consistencyEvidence'];
+const evidence = [
+  { key: 'identityEvidence', area: 'identity' },
+  { key: 'addressEvidence', area: 'address' },
+  { key: 'consistencyEvidence', area: 'consistency' },
+];
+const evidenceKeys = evidence.map(({ key }) => key);
+const area = (key: string) => evidence.find((item) => item.key === key)?.area ?? key;
 const assessedReplacement = 'Fictional replacement assessed · was: ';
 const resolved = (value: ToolRecord['fields'][string]) =>
   value === 'Consistent fictional sample' || String(value).startsWith(assessedReplacement);
-const gaps = (r: ToolRecord) => evidenceKeys.some((key) => !resolved(kycDefaults(r).fields[key]));
+const gapKeys = (r: ToolRecord) =>
+  evidenceKeys.filter((key) => !resolved(kycDefaults(r).fields[key]));
+const gaps = (r: ToolRecord) => gapKeys(r).length > 0;
+const responded = (r: ToolRecord) =>
+  String(kycDefaults(r).fields.respondedEvidence).split(',').filter(Boolean);
+const unaddressed = (r: ToolRecord) => gapKeys(r).filter((key) => !responded(r).includes(key));
 
 export const kyc: ToolModule = {
   id: 'kyc',
@@ -181,6 +193,10 @@ export const kyc: ToolModule = {
       value: (r) => String(kycDefaults(r).fields.responseContext),
     },
     {
+      label: 'Gaps with a recorded response',
+      value: (r) => responded(r).map(area).join(', ') || 'None recorded',
+    },
+    {
       label: 'Handoff / escalation context',
       value: (r) => String(kycDefaults(r).fields.handoffContext),
     },
@@ -221,6 +237,7 @@ export const kyc: ToolModule = {
       'informationRequest',
       'communicationState',
       'responseContext',
+      'respondedEvidence',
       'evidenceReviewContext',
       'handoffContext',
       'decisionContext',
@@ -259,6 +276,7 @@ kyc.localActions = [
               informationRequest: reason,
               communicationState: 'Unsent · no customer messaging integration',
               responseRecorded: false,
+              respondedEvidence: '',
               responseContext: 'No fictional response recorded for this request.',
               evidenceReviewed: false,
             }
@@ -272,11 +290,11 @@ kyc.localActions = [
     id: 'record-response',
     label: 'Record fictional response',
     confirmation:
-      'Manually describe a fictional replacement or explanation. This is not a received message or a provider check; the request remains unsent.',
+      'Manually describe a fictional explanation. This is not a received message or a provider check; the request remains unsent.',
     eligibility: () =>
-      'Only waiting cases accept fictional response context. Recording it does not resume or approve the case.',
-    reasonLabel: 'Fictional replacement / explanation',
-    available: (r) => r.status === 'Waiting for information',
+      'Only waiting cases with no open checklist gap accept a general fictional explanation. Recording it does not resume or approve the case.',
+    reasonLabel: 'Fictional explanation',
+    available: (r) => r.status === 'Waiting for information' && !gaps(r),
     apply: (r) => r,
     applyWithContext: (r, reason) => ({
       ...r,
@@ -288,19 +306,48 @@ kyc.localActions = [
       },
     }),
   },
+  ...evidence.map(
+    ({ key, area }): RecordAction => ({
+      id: `record-${area}-response`,
+      label: `Record fictional ${area} response`,
+      confirmation: `Manually describe a fictional replacement or explanation for the ${area} checklist gap only. This is not a received message or a provider check; the request remains unsent.`,
+      eligibility: () =>
+        `Only waiting cases with an open ${area} gap. Each gap needs its own response; recording it does not resume or approve the case.`,
+      reasonLabel: `Fictional ${area} replacement / explanation`,
+      available: (r) => r.status === 'Waiting for information' && unaddressed(r).includes(key),
+      apply: (r) => r,
+      applyWithContext: (r, reason) => {
+        const fields = kycDefaults(r).fields;
+        const entry = `${area[0].toUpperCase()}${area.slice(1)}: ${reason}`;
+        return {
+          ...r,
+          fields: {
+            ...fields,
+            responseRecorded: true,
+            respondedEvidence: [...responded(r), key].join(','),
+            responseContext:
+              fields.responseRecorded === true ? `${fields.responseContext} · ${entry}` : entry,
+            evidenceReviewed: false,
+          },
+        };
+      },
+    }),
+  ),
   {
     id: 'review-evidence',
     label: 'Assess fictional evidence',
     confirmation:
       'Record your assessment of the fictional checklist and any replacement. This illustrative local rule is not identity verification, second review, or client policy.',
     eligibility: () =>
-      'In review only. Missing, expired, inconsistent or older unknown evidence requires fictional response context, then a separate assessment.',
+      'In review only. Each missing, expired, inconsistent or older unknown checklist item needs its own fictional response, then a separate assessment.',
     reasonLabel: 'Evidence assessment reason',
     available: (r) => r.status === 'Needs review' && r.fields.evidenceReviewed !== true,
-    blockedReason: (r) =>
-      gaps(r) && r.fields.responseRecorded !== true
-        ? 'Request the missing information and record a fictional replacement before assessing these evidence gaps.'
-        : undefined,
+    blockedReason: (r) => {
+      const missing = unaddressed(r).map(area);
+      return missing.length
+        ? `Request the missing information and record a fictional replacement for each evidence gap before assessing: ${missing.join(', ')}.`
+        : undefined;
+    },
     apply: (r) => r,
     applyWithContext: (r, reason) => {
       const fields = kycDefaults(r).fields;

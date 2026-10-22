@@ -7,5 +7,12 @@ export function randomId(): string {
 }
 
 export const MAX_RECORD_ID_LENGTH = 500;
-export const isRecordId = (value: unknown): value is string =>
-  typeof value === 'string' && value.length > 0 && value.length <= MAX_RECORD_ID_LENGTH;
+export function isRecordId(value: unknown): value is string {
+  if (typeof value !== 'string' || !value || value.length > MAX_RECORD_ID_LENGTH) return false;
+  try {
+    encodeURIComponent(value);
+    return true;
+  } catch {
+    return false;
+  }
+}

@@ -330,7 +330,7 @@ describe('narrow browser-local workflow stories', () => {
     });
     const response = executeAction(assigned, {
       ...target,
-      actionId: 'record-response',
+      actionId: 'record-address-response',
       expectedVersion: 3,
       reason: 'Fictional replacement shows the missing date.',
     });
@@ -382,6 +382,56 @@ describe('narrow browser-local workflow stories', () => {
     );
   });
 
+  it('requires a separate response for every evidence gap before assessment and approval', () => {
+    const initial = createFixtures();
+    initial.records.kyc[1].fields.identityEvidence = 'Missing fictional identity field';
+    const target = { ...request, recordId: 'KYC-1041' };
+    const waiting = executeAction(initial, { ...target, actionId: 'request-information' });
+    expect(() =>
+      executeAction(waiting, { ...target, actionId: 'record-response', expectedVersion: 2 }),
+    ).toThrow();
+    const address = executeAction(waiting, {
+      ...target,
+      actionId: 'record-address-response',
+      expectedVersion: 2,
+      reason: 'Fictional replacement shows the address date only.',
+    });
+    expect(() =>
+      executeAction(address, {
+        ...target,
+        actionId: 'record-address-response',
+        expectedVersion: 3,
+      }),
+    ).toThrow();
+    const resumed = executeAction(address, { ...target, actionId: 'resume', expectedVersion: 3 });
+    expect(() =>
+      executeAction(resumed, { ...target, actionId: 'review-evidence', expectedVersion: 4 }),
+    ).toThrow('before assessing: identity.');
+    expect(() => executeAction(resumed, { ...target, expectedVersion: 4 })).toThrow('Assess');
+    const again = executeAction(resumed, {
+      ...target,
+      actionId: 'request-information',
+      expectedVersion: 4,
+    });
+    expect(again.records.kyc[1].fields.respondedEvidence).toBe('');
+    let data = again;
+    for (const [index, actionId] of [
+      'record-identity-response',
+      'record-address-response',
+      'resume',
+      'review-evidence',
+      'approve',
+    ].entries())
+      data = executeAction(data, { ...target, actionId, expectedVersion: 5 + index });
+    expect(data.records.kyc[1].status).toBe('Approved');
+    expect(data.records.kyc[1].fields).toMatchObject({
+      identityEvidence: 'Fictional replacement assessed · was: Missing fictional identity field',
+      addressEvidence:
+        'Fictional replacement assessed · was: Missing dated fictional address evidence',
+    });
+    expect(String(data.records.kyc[1].fields.responseContext)).toMatch(/^Identity: .* · Address: /);
+  });
+
   it('does not infer response receipt from resume or carry an old response into a new request', () => {
     const target = { ...request, recordId: 'KYC-1039' };
     const waiting = executeAction(createFixtures(), { ...target, actionId: 'request-information' });
@@ -397,7 +447,7 @@ describe('narrow browser-local workflow stories', () => {
     });
     const response = executeAction(requested, {
       ...target,
-      actionId: 'record-response',
+      actionId: 'record-identity-response',
       expectedVersion: 4,
     });
     const returned = executeAction(response, { ...target, actionId: 'resume', expectedVersion: 5 });
@@ -409,7 +459,7 @@ describe('narrow browser-local workflow stories', () => {
     expect(secondRequest.records.kyc[3].fields.responseRecorded).toBe(false);
     expect(secondRequest.records.kyc[3].fields.responseContext).toContain('No fictional response');
     expect(
-      secondRequest.activity.some((event) => event.action === 'Record fictional response'),
+      secondRequest.activity.some((event) => event.action === 'Record fictional identity response'),
     ).toBe(true);
   });
 

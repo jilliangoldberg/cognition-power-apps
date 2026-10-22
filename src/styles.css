@@ -1790,7 +1790,7 @@ tbody tr:focus-within {
 .workspace-record-reference {
   font-size: 11px;
   width: fit-content;
-  max-width: 100%;
+  max-width: min(100%, 360px);
   text-decoration: underline;
   color: #654592;
 }

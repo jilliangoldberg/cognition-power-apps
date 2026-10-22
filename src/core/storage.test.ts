@@ -39,7 +39,7 @@ describe('versioned local demo data', () => {
     invalid.records.refunds[0].fields.amountCents = 'not money';
     expect(isDemoState(invalid)).toBe(false);
   });
-  it.each(['', 'A'.repeat(501)])(
+  it.each(['', 'A'.repeat(501), 'KYC-\ud800'])(
     'rejects saved record IDs that a record link cannot open (length %#)',
     (id) => {
       const data = createFixtures();
@@ -197,7 +197,7 @@ describe('versioned local demo data', () => {
     for (const [index, change] of [
       { actionId: 'request-information' },
       { kind: 'assignment' as const, owner: 'Jamie Brooks' },
-      { actionId: 'record-response' },
+      { actionId: 'record-address-response' },
       { kind: 'note' as const },
       { actionId: 'resume' },
       { actionId: 'review-evidence' },
