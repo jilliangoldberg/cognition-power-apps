@@ -1,5 +1,6 @@
 :root {
   font-family:
+    'Inter Variable',
     Inter,
     -apple-system,
     BlinkMacSystemFont,
@@ -311,7 +312,7 @@ select:focus-visible {
 }
 .eyebrow {
   color: #8c829f;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 1.6px;
   margin-bottom: 10px;
@@ -392,16 +393,17 @@ select:focus-visible {
   margin-bottom: 3px;
 }
 .workspace-switch div > span {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
+  white-space: nowrap;
 }
 .workspace-switch .badge {
-  font-size: 9px;
+  font-size: 11px;
   padding: 3px 5px;
   background: #f7f7fa;
 }
 .nav-label {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 1.4px;
   color: #707687;
@@ -437,7 +439,7 @@ select:focus-visible {
   flex: 1;
 }
 .nav-count {
-  font-size: 10px;
+  font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
   color: #9699a5;
@@ -467,17 +469,17 @@ select:focus-visible {
   margin: 0 6px 2px 0;
 }
 .sandbox-card > strong {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 .sandbox-card p {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.8;
   color: #93909f;
   margin: 8px 0 10px;
 }
 .sandbox-card .text-button {
-  font-size: 10px;
+  font-size: 11px;
   gap: 5px;
   color: #7d63b7;
 }
@@ -506,7 +508,7 @@ select:focus-visible {
   margin-bottom: 4px;
 }
 .demo-user div > span {
-  font-size: 9px;
+  font-size: 11px;
   color: #989aaa;
 }
 .main-shell {
@@ -541,7 +543,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 16px;
-  font-size: 10px;
+  font-size: 11px;
 }
 .local-indicator {
   display: flex;
@@ -590,7 +592,7 @@ select:focus-visible {
   letter-spacing: -1px;
 }
 .overview-heading .eyebrow {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1.9px;
   margin-bottom: 12px;
 }
@@ -647,7 +649,7 @@ select:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: #8b72c4;
   background: none;
   border: 0;
@@ -715,11 +717,11 @@ select:focus-visible {
   gap: 9px;
 }
 .section-heading > .subtle {
-  font-size: 10px;
+  font-size: 11px;
   color: #747b8a;
 }
 .count-pill {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   color: #888b9a;
@@ -802,12 +804,12 @@ select:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 9px;
+  font-size: 11px;
   color: #9b9eaa;
   padding: 14px 0;
 }
 .tool-card-footer .badge {
-  font-size: 8px;
+  font-size: 11px;
   padding: 3px 6px;
   color: #8f93a2;
   background: #f8f9fb;
@@ -837,7 +839,7 @@ select:focus-visible {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 9px;
+  font-size: 11px;
   color: #a0a3b1;
 }
 .welcome-empty {
@@ -872,7 +874,7 @@ select:focus-visible {
   max-width: 380px;
 }
 .welcome-empty .button {
-  font-size: 9px;
+  font-size: 11px;
   padding: 8px 10px;
   min-height: 31px;
 }
@@ -904,12 +906,12 @@ select:focus-visible {
   color: #81758f;
 }
 .foundation-strip p {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.7;
   color: #a0a0ae;
 }
 .foundation-strip > .text-button {
-  font-size: 9px;
+  font-size: 11px;
 }
 .workspace-footer {
   border-top: 1px solid #eaeaf1;
@@ -918,12 +920,12 @@ select:focus-visible {
   justify-content: space-between;
   gap: 15px;
   padding: 17px 0 20px;
-  font-size: 8px;
+  font-size: 11px;
   color: #adafbc;
 }
 .workspace-footer > span:first-child {
   letter-spacing: 1.2px;
-  font-size: 7px;
+  font-size: 11px;
 }
 .footer-dot {
   padding: 0 6px;
@@ -936,7 +938,7 @@ select:focus-visible {
   width: fit-content;
   white-space: nowrap;
   max-width: 100%;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.3;
   font-weight: 500;
   border-radius: 5px;
@@ -996,7 +998,7 @@ select:focus-visible {
   border: 0;
   outline: none;
   background: none;
-  font-size: 10px;
+  font-size: 11px;
   color: #4d5264;
   min-width: 0;
   width: 100%;
@@ -1013,7 +1015,7 @@ select:focus-visible {
   color: #a8abba;
 }
 .search-input kbd {
-  font-size: 9px;
+  font-size: 11px;
   color: #b7b9c5;
   background: #f9f9fc;
   border: 1px solid #edeef4;
@@ -1044,7 +1046,7 @@ select:focus-visible {
 }
 .view-presets .button,
 .save-view-form .button {
-  font-size: 10px;
+  font-size: 11px;
   padding: 7px 10px;
 }
 .view-presets [aria-pressed='true'] {
@@ -1056,7 +1058,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: #797187;
 }
 .save-view-form input,
@@ -1077,7 +1079,7 @@ select:focus-visible {
 .view-help,
 .view-warning,
 .view-toolbar .form-error {
-  font-size: 10px;
+  font-size: 11px;
   flex-basis: 100%;
   margin: 0;
   color: #797187;
@@ -1131,7 +1133,7 @@ select:focus-visible {
   border: 1px solid #e4e6ed;
   border-radius: 6px;
   color: #888c9e;
-  font-size: 10px;
+  font-size: 11px;
   padding: 8px 29px 8px 10px;
   cursor: pointer;
   min-height: 34px;
@@ -1166,7 +1168,7 @@ th:first-child {
 }
 td {
   padding: 16px;
-  font-size: 10px;
+  font-size: 11px;
   border-bottom: 1px solid #f0f0f5;
   color: #818697;
 }
@@ -1203,7 +1205,7 @@ tbody tr:focus-within {
   color: var(--purple);
 }
 .record-link small {
-  font-size: 10px;
+  font-size: 11px;
   color: #747c8e;
   display: block;
 }
@@ -1213,7 +1215,7 @@ tbody tr:focus-within {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 550;
   flex-shrink: 0;
 }
@@ -1247,7 +1249,7 @@ tbody tr:focus-within {
   max-width: 360px;
   white-space: normal;
   overflow-wrap: anywhere;
-  font-size: 8px;
+  font-size: 11px;
   margin-top: 5px;
   display: block;
   color: #b2b5c2;
@@ -1270,7 +1272,7 @@ tbody tr:focus-within {
   background: #baabe0;
 }
 .date-cell {
-  font-size: 10px;
+  font-size: 11px;
   color: #70788a;
 }
 .row-arrow {
@@ -1285,7 +1287,7 @@ tbody tr:focus-within {
   justify-content: space-between;
   align-items: center;
   color: #a1a5b4;
-  font-size: 9px;
+  font-size: 11px;
   gap: 10px;
 }
 .table-footer > span:last-child {
@@ -1299,7 +1301,7 @@ tbody tr:focus-within {
   align-items: center;
   gap: 8px;
   color: #a4a3b4;
-  font-size: 9px;
+  font-size: 11px;
   margin-top: 19px;
   line-height: 1.7;
 }
@@ -1379,7 +1381,7 @@ tbody tr:focus-within {
 }
 .dialog-header .eyebrow {
   overflow-wrap: anywhere;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1px;
   margin-bottom: 8px;
   color: #9c92af;
@@ -1438,12 +1440,12 @@ tbody tr:focus-within {
   margin-bottom: 24px;
 }
 .record-meta > span:last-child {
-  font-size: 10px;
+  font-size: 11px;
   color: #999eb0;
 }
 .section-label {
   color: #9a95a9;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1.2px;
   font-weight: 600;
   margin: 26px 0 16px;
@@ -1502,7 +1504,7 @@ tbody tr:focus-within {
 }
 .action-form > label {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 550;
   color: #797187;
   margin-bottom: 8px;
@@ -1526,7 +1528,7 @@ tbody tr:focus-within {
   color: #b0a8bd;
 }
 .input-hint {
-  font-size: 9px;
+  font-size: 11px;
   color: #b0a9bd;
   margin-top: 6px;
 }
@@ -1579,7 +1581,7 @@ tbody tr:focus-within {
   margin-bottom: 7px;
 }
 .record-activity small {
-  font-size: 9px;
+  font-size: 11px;
   color: #b4afc2;
 }
 .drawer-footer {
@@ -1590,7 +1592,7 @@ tbody tr:focus-within {
   background: #fdfcfe;
   border-top: 1px solid var(--line);
   color: #b1a8c0;
-  font-size: 9px;
+  font-size: 11px;
 }
 .reset-body {
   padding: 24px;
@@ -1683,11 +1685,11 @@ tbody tr:focus-within {
   margin-bottom: 5px;
 }
 .recent-list p > span {
-  font-size: 10px;
+  font-size: 11px;
   color: #a4a0b0;
 }
 .recent-list time {
-  font-size: 9px;
+  font-size: 11px;
   color: #aca7b7;
 }
 .activity-notice {
@@ -1727,7 +1729,7 @@ tbody tr:focus-within {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 10px;
+  font-size: 11px;
   color: #a6a0b5;
 }
 .activity-item blockquote {
@@ -1742,7 +1744,7 @@ tbody tr:focus-within {
   overflow-wrap: anywhere;
 }
 .activity-item small {
-  font-size: 9px;
+  font-size: 11px;
   color: #b1aabc;
 }
 .about-grid {
@@ -2021,10 +2023,10 @@ tbody tr:focus-within {
     padding-left: 7px;
   }
   .workspace-switch > div > strong {
-    font-size: 10px;
+    font-size: 11px;
   }
   .workspace-switch div > span {
-    font-size: 9px;
+    font-size: 11px;
   }
   .main-content {
     padding: 29px 25px 0;
@@ -2040,10 +2042,10 @@ tbody tr:focus-within {
     padding: 18px 15px;
   }
   .metric-label {
-    font-size: 9px;
+    font-size: 11px;
   }
   .metric-hint {
-    font-size: 8px;
+    font-size: 11px;
   }
   .tool-cards {
     gap: 12px;
@@ -2088,7 +2090,7 @@ tbody tr:focus-within {
     min-width: 178px;
   }
   .overview-heading .button {
-    font-size: 10px;
+    font-size: 11px;
   }
   .overview-heading h1 {
     font-size: 26px;
@@ -2130,7 +2132,7 @@ tbody tr:focus-within {
     min-height: 0;
     margin: 0;
     max-width: none;
-    font-size: 10px;
+    font-size: 11px;
   }
   .tool-card-footer {
     grid-column: 3;
@@ -2140,7 +2142,7 @@ tbody tr:focus-within {
     align-items: flex-end;
     gap: 10px;
     padding: 0;
-    font-size: 9px;
+    font-size: 11px;
     min-width: 64px;
   }
   .overview-heading {
@@ -2157,10 +2159,10 @@ tbody tr:focus-within {
     font-size: 11px;
   }
   .overview-heading .eyebrow {
-    font-size: 8px;
+    font-size: 11px;
   }
   .section-heading > .subtle {
-    font-size: 9px;
+    font-size: 11px;
   }
   .welcome-empty {
     flex-wrap: wrap;
@@ -2180,7 +2182,7 @@ tbody tr:focus-within {
     max-width: none;
   }
   .foundation-strip p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .table-toolbar {
     flex-wrap: wrap;
@@ -2248,7 +2250,7 @@ tbody tr:focus-within {
     gap: 10px;
   }
   .topbar-right {
-    font-size: 9px;
+    font-size: 11px;
   }
   .page-heading {
     margin-bottom: 23px;
@@ -2271,10 +2273,10 @@ tbody tr:focus-within {
     min-height: 34px;
   }
   .metric-label {
-    font-size: 10px;
+    font-size: 11px;
   }
   .metric-hint {
-    font-size: 9px;
+    font-size: 11px;
   }
   .metric strong {
     font-size: 25px;
@@ -2293,14 +2295,14 @@ tbody tr:focus-within {
     font-size: 14px;
   }
   .tool-card-footer {
-    font-size: 10px;
+    font-size: 11px;
   }
   .foundation-strip p {
-    font-size: 10px;
+    font-size: 11px;
   }
   .workspace-footer {
     margin-top: 24px;
-    font-size: 8px;
+    font-size: 11px;
   }
   .table-toolbar {
     flex-wrap: nowrap;
@@ -2316,7 +2318,7 @@ tbody tr:focus-within {
     width: auto;
   }
   .select-wrap select {
-    font-size: 9px;
+    font-size: 11px;
   }
   .drawer {
     width: 480px;
@@ -2326,7 +2328,7 @@ tbody tr:focus-within {
     left: 50%;
   }
   .page-note {
-    font-size: 10px;
+    font-size: 11px;
   }
   .about-grid {
     grid-template-columns: 1fr 1fr;
@@ -2336,7 +2338,7 @@ tbody tr:focus-within {
     padding: 21px;
   }
   .check-list {
-    font-size: 10px;
+    font-size: 11px;
   }
   .boundaries p {
     font-size: 11px;
@@ -2360,11 +2362,11 @@ tbody tr:focus-within {
     padding: 0 17px;
   }
   .breadcrumbs {
-    font-size: 10px;
+    font-size: 11px;
     gap: 8px;
   }
   .topbar-right {
-    font-size: 8px;
+    font-size: 11px;
   }
   .page-heading p:not(.eyebrow) {
     font-size: 11px;
@@ -2387,10 +2389,10 @@ tbody tr:focus-within {
     min-height: 114px;
   }
   .metric-label {
-    font-size: 9px;
+    font-size: 11px;
   }
   .metric-hint {
-    font-size: 8px;
+    font-size: 11px;
   }
   .metric strong {
     font-size: 23px;
@@ -2409,7 +2411,7 @@ tbody tr:focus-within {
     font-size: 13px;
   }
   .tool-card > p {
-    font-size: 10px;
+    font-size: 11px;
   }
   .tool-card-footer {
     grid-row: 3;
@@ -2418,7 +2420,7 @@ tbody tr:focus-within {
     align-items: center;
     justify-content: space-between;
     padding-top: 12px;
-    font-size: 9px;
+    font-size: 11px;
   }
   .tool-card-top {
     align-self: start;
@@ -2431,7 +2433,7 @@ tbody tr:focus-within {
     font-size: 11px;
   }
   .welcome-empty p {
-    font-size: 10px;
+    font-size: 11px;
   }
   .welcome-empty .empty-icon {
     width: 36px;
@@ -2450,14 +2452,14 @@ tbody tr:focus-within {
     min-width: calc(100% - 52px);
   }
   .foundation-strip p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .foundation-strip strong {
-    font-size: 10px;
+    font-size: 11px;
   }
   .foundation-strip > .text-button {
     margin-left: 49px;
-    font-size: 9px;
+    font-size: 11px;
   }
   .workspace-footer > span:last-child {
     display: none;
@@ -2486,17 +2488,17 @@ tbody tr:focus-within {
     padding: 16px 13px;
   }
   .panel-hint {
-    font-size: 8px;
+    font-size: 11px;
   }
   .table-footer {
     padding: 13px;
-    font-size: 8px;
+    font-size: 11px;
   }
   .table-footer > span:last-child {
     display: none;
   }
   .page-note {
-    font-size: 9px;
+    font-size: 11px;
     align-items: flex-start;
   }
   .page-note svg {
@@ -2522,7 +2524,7 @@ tbody tr:focus-within {
     padding: 22px;
   }
   .toast {
-    font-size: 10px;
+    font-size: 11px;
     padding: 10px;
     gap: 7px;
   }
