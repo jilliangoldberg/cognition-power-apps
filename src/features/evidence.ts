@@ -46,10 +46,10 @@ function sourceEvent(
     occurredAt: new Date(Date.parse(at) - (120 - index * 15) * 60_000).toISOString(),
     description:
       index === 0
-        ? 'Synthetic transaction recorded'
+        ? 'Transaction recorded'
         : index === 1
-          ? 'Synthetic processing update received'
-          : `Synthetic reconciliation report: ${status}`,
+          ? 'Processing update received'
+          : `Reconciliation report: ${status}`,
     reference: `${transactionId}/source-${index}`,
   };
 }
@@ -61,8 +61,7 @@ export function syntheticEvidence(transactionId: string, now = new Date()): Sour
     const noMatch = !known || transactionId === 'TX-DEMO-005';
     const unavailable = transactionId === 'TX-DEMO-003' && index === 2;
     const stale = transactionId === 'TX-DEMO-004' && index === 2;
-    const status =
-      transactionId === 'TX-DEMO-002' && index === 2 ? 'Pending review' : 'Completed example';
+    const status = transactionId === 'TX-DEMO-002' && index === 2 ? 'Pending review' : 'Completed';
     return {
       id: String(index),
       lookupId: transactionId,
@@ -106,7 +105,7 @@ export function retrySyntheticSource(source: SourceEvidence, now = new Date()): 
   if (!canRetrySyntheticSource(source)) return source;
   const index = ['0', '1', '2'].indexOf(source.id);
   if (index < 0) return source;
-  const reportedStatus = source.reportedStatus ?? 'Completed example';
+  const reportedStatus = source.reportedStatus ?? 'Completed';
   const events = source.events.length
     ? source.events
     : [sourceEvent(source.lookupId, index, reportedStatus, source.attemptedAt)];
@@ -129,7 +128,7 @@ export function retrySyntheticSource(source: SourceEvidence, now = new Date()): 
           {
             id: `${source.lookupId}-${source.id}-detail`,
             occurredAt: new Date(Date.parse(source.attemptedAt) - 100 * 60_000).toISOString(),
-            description: 'Synthetic processing detail recovered on simulated retry',
+            description: 'Processing detail recovered on retry',
             reference: `${source.lookupId}/source-${source.id}/detail`,
           },
         ],

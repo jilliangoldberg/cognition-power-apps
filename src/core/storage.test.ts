@@ -315,6 +315,18 @@ describe('versioned local demo data', () => {
     });
   });
 
+  it('clears old flag placeholder text but keeps a real change reason', () => {
+    const data = createFixtures();
+    data.records.flags[0].fields.changeContext =
+      'No prior configuration captured. Existing status is a synthetic saved value, not published state.';
+    data.records.flags[1].fields.changeContext = 'Keep a real change reason.';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const loaded = loadDemo();
+    expect(loaded.blocked).toBe(false);
+    expect(loaded.data.records.flags[0].fields.changeContext).toBe('');
+    expect(loaded.data.records.flags[1].fields.changeContext).toBe('Keep a real change reason.');
+  });
+
   it('keeps an unattributable saved response but still asks for a response per open gap', () => {
     const data = createFixtures();
     const record = data.records.kyc[1];

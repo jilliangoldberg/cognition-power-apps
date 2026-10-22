@@ -157,7 +157,7 @@ describe('task-first local workspace and references (jsdom)', () => {
     await user.selectOptions(screen.getByLabelText('Filter by status'), 'Needs review');
     await user.selectOptions(screen.getByLabelText('Filter by owner'), 'You');
     await user.selectOptions(screen.getByLabelText('Sort records'), 'opened');
-    await user.click(screen.getByLabelText('Open 48h+ (not an SLA)'));
+    await user.click(screen.getByLabelText('Open 48h+'));
     const queueHash = window.location.hash;
     const link = screen.getByRole('link', { name: 'Record reference KYC-1042' });
     await user.click(link);
@@ -176,14 +176,12 @@ describe('task-first local workspace and references (jsdom)', () => {
     expect(screen.getByLabelText('Filter by status')).toHaveValue('Needs review');
     expect(screen.getByLabelText('Filter by owner')).toHaveValue('You');
     expect(screen.getByLabelText('Sort records')).toHaveValue('opened');
-    expect(screen.getByLabelText('Open 48h+ (not an SLA)')).toBeChecked();
+    expect(screen.getByLabelText('Open 48h+')).toBeChecked();
     expect(screen.getAllByRole('row')).toHaveLength(2);
-    await user.click(
-      screen.getByRole('button', { name: '1 matching local records · current filters' }),
-    );
+    await user.click(screen.getByRole('button', { name: '1 matching records · current filters' }));
     expect(screen.getByRole('region', { name: 'KYC review queue' })).toHaveFocus();
     expect(window.location.hash).toBe(queueHash);
-    await user.click(screen.getByRole('button', { name: 'All 14 local records · clear filters' }));
+    await user.click(screen.getByRole('button', { name: 'All 14 records · clear filters' }));
     expect(screen.getAllByRole('row')).toHaveLength(15);
   });
   it('uses actual back/forward events for drawer and page history without adding a history entry per keystroke', async () => {
@@ -309,11 +307,14 @@ describe('workspace components (jsdom)', () => {
       ['KYC review', 'KYC review queue'],
       ['Refunds', 'Refunds dashboard'],
       ['Feature flags', 'Feature flags'],
-      ['New tool', 'New tool'],
     ]) {
       await user.click(within(nav).getByRole('link', { name: new RegExp(label) }));
       expect(screen.getByRole('heading', { name: title, level: 1 })).toBeInTheDocument();
     }
+    expect(within(nav).queryByRole('link', { name: /New tool/ })).not.toBeInTheDocument();
+    await user.click(within(screen.getByRole('banner')).getByRole('link', { name: 'New tool' }));
+    expect(screen.getByRole('heading', { name: 'New tool', level: 1 })).toBeInTheDocument();
+    expect(window.location.hash).toBe('#new-tool');
   });
   it('searches and filters a queue and clears an empty state', async () => {
     const user = userEvent.setup();
@@ -518,7 +519,7 @@ describe('workspace components (jsdom)', () => {
     await user.click(screen.getByRole('button', { name: 'Unassigned' }));
     await user.selectOptions(screen.getByLabelText('Sort records'), 'opened');
     await user.type(screen.getByLabelText('View name'), 'Unassigned oldest');
-    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    await user.click(screen.getByRole('button', { name: 'Save view' }));
     await user.click(screen.getByRole('button', { name: 'My records' }));
     expect(screen.getByLabelText('Filter by owner')).toHaveValue('You');
     await user.click(within(screen.getByRole('navigation')).getByRole('link', { name: /Refunds/ }));
@@ -531,7 +532,7 @@ describe('workspace components (jsdom)', () => {
     expect(screen.getByLabelText('Sort records')).toHaveValue('opened');
     expect(screen.queryByRole('button', { name: 'Open Olivia Chen' })).not.toBeInTheDocument();
     await user.type(screen.getByLabelText('View name'), 'unassigned oldest');
-    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    await user.click(screen.getByRole('button', { name: 'Save view' }));
     expect(screen.getByRole('alert')).toHaveTextContent('unique view name');
     await user.click(screen.getByRole('button', { name: 'Delete view Unassigned oldest' }));
     expect(JSON.parse(localStorage.getItem(viewsKey('kyc'))!)).toEqual([]);
@@ -560,11 +561,11 @@ describe('workspace components (jsdom)', () => {
     window.location.hash = '#kyc';
     localStorage.setItem(viewsKey('kyc'), 'bad views');
     render(<App />);
-    expect(screen.getByRole('button', { name: 'Save view locally' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save view' })).toBeDisabled();
     expect(localStorage.getItem(viewsKey('kyc'))).toBe('bad views');
     await user.click(screen.getByRole('button', { name: 'Clear saved views' }));
     expect(localStorage.getItem(viewsKey('kyc'))).toBe('[]');
-    expect(screen.getByRole('button', { name: 'Save view locally' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Save view' })).toBeEnabled();
   });
   it('resets assignments, notes and workflow changes while retaining saved views and unrelated data', async () => {
     const user = userEvent.setup();
@@ -628,7 +629,7 @@ describe('workspace components (jsdom)', () => {
       throw new Error('quota');
     });
     await user.type(screen.getByLabelText('View name'), 'Session-only view');
-    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    await user.click(screen.getByRole('button', { name: 'Save view' }));
     expect(screen.getByRole('alert')).toHaveTextContent('this visit only');
     expect(screen.getByRole('button', { name: 'Session-only view' })).toBeInTheDocument();
     expect(localStorage.getItem(viewsKey('kyc'))).toBeNull();

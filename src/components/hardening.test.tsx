@@ -145,7 +145,7 @@ describe('local workbench integrity', () => {
     });
     render(<App />);
     await user.type(screen.getByLabelText('View name'), 'Temporary queue');
-    await user.click(screen.getByRole('button', { name: 'Save view locally' }));
+    await user.click(screen.getByRole('button', { name: 'Save view' }));
     await user.click(screen.getByRole('link', { name: /Refunds/ }));
     expect(screen.queryByRole('button', { name: 'Temporary queue' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: /KYC review/ }));

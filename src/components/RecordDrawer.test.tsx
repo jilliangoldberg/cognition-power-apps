@@ -212,11 +212,9 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
     expect(screen.getByText('$249.95 requested of $499.90 remaining')).toBeInTheDocument();
     drawer.unmount();
     render(<RecordDrawer {...props} module={flags} record={createFixtures().records.flags[1]} />);
-    expect(screen.getByText(/Proposed local diff: desired Disabled → Enabled/)).toBeInTheDocument();
-    expect(screen.getByText('Not connected · not published to any service')).toBeInTheDocument();
-    expect(
-      screen.getByText('Unknown · no product consumes this configuration'),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Change in Staging: Disabled → Enabled/)).toBeInTheDocument();
+    expect(screen.getByText('Not connected')).toBeInTheDocument();
+    expect(screen.queryByText('Previous configuration')).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 });

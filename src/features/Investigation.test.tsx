@@ -21,7 +21,7 @@ describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
     expect(screen.getAllByText(expected, { exact: false }).length).toBeGreaterThan(0);
     if (suffix === '002') expect(screen.getByRole('status')).toHaveTextContent('Reports disagree');
     if (suffix === '005') {
-      expect(screen.queryByText('Illustrative amount')).not.toBeInTheDocument();
+      expect(screen.queryByText('Amount')).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /Simulate retry/ })).not.toBeInTheDocument();
     }
   });
@@ -55,7 +55,7 @@ describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
     expect(within(rows[2]).getByText(/Retrieved:/)).toBeInTheDocument();
     expect(within(rows[2]).getByText('This evidence is stale.')).toBeInTheDocument();
     expect(
-      screen.getByText(/Ordered by source-reported event time, not proven causality/),
+      screen.getByText(/Ordered by the time each source reported the event/),
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'TX-DEMO-006 · Incomplete response' }));
     expect(within(screen.getByRole('list')).getByText(/Incomplete response/)).toBeInTheDocument();
@@ -66,12 +66,12 @@ describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
   it('normalizes search and never shows old results as the edited query', async () => {
     const user = userEvent.setup();
     render(<Investigation />);
-    await user.clear(screen.getByLabelText('Synthetic transaction ID'));
-    await user.type(screen.getByLabelText('Synthetic transaction ID'), ' tx-demo-001 ');
+    await user.clear(screen.getByLabelText('Transaction ID'));
+    await user.type(screen.getByLabelText('Transaction ID'), ' tx-demo-001 ');
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
     expect(screen.getByRole('heading', { name: 'Evidence for TX-DEMO-001' })).toBeInTheDocument();
-    await user.clear(screen.getByLabelText('Synthetic transaction ID'));
-    await user.type(screen.getByLabelText('Synthetic transaction ID'), 'unknown');
+    await user.clear(screen.getByLabelText('Transaction ID'));
+    await user.type(screen.getByLabelText('Transaction ID'), 'unknown');
     expect(
       screen.getByText(/Input changed. Results below are still for TX-DEMO-001/),
     ).toBeInTheDocument();
