@@ -9,7 +9,7 @@
   --purple: #7354d2;
   --purple-dark: #6141bd;
   --line: #e9eaf0;
-  --muted: #505562;
+  --muted: #1d1d1f;
   --bg: #f8f9fc;
   --sidebar: 244px;
 }
@@ -304,7 +304,7 @@ select:focus-visible {
   color: var(--muted);
 }
 .eyebrow {
-  color: #595265;
+  color: #1d1d1f;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 1.6px;
@@ -399,7 +399,7 @@ select:focus-visible {
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 1.4px;
-  color: #515562;
+  color: #1d1d1f;
   padding-left: 13px;
   margin-bottom: 9px;
 }
@@ -412,7 +412,7 @@ select:focus-visible {
   gap: 11px;
   align-items: center;
   border-radius: 7px;
-  color: #525562;
+  color: #1d1d1f;
   font-size: 13px;
   margin-bottom: 4px;
   transition:
@@ -426,7 +426,7 @@ select:focus-visible {
 }
 .nav-item:hover:not(.active) {
   background: #f7f7fa;
-  color: #343544;
+  color: #1d1d1f;
 }
 .nav-item > span:not(.nav-count) {
   flex: 1;
@@ -435,7 +435,7 @@ select:focus-visible {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #54555c;
+  color: #1d1d1f;
   background: #f5f5f9;
 }
 .active .nav-count {
@@ -468,7 +468,7 @@ select:focus-visible {
 .sandbox-card p {
   font-size: 11px;
   line-height: 1.8;
-  color: #56545e;
+  color: #1d1d1f;
   margin: 8px 0 10px;
 }
 .sandbox-card .text-button {
@@ -502,7 +502,7 @@ select:focus-visible {
 }
 .demo-user div > span {
   font-size: 11px;
-  color: #55555e;
+  color: #1d1d1f;
 }
 .main-shell {
   margin-left: var(--sidebar);
@@ -523,14 +523,14 @@ select:focus-visible {
   align-items: center;
   gap: 14px;
   font-size: 11px;
-  color: #54555f;
+  color: #1d1d1f;
 }
 .breadcrumbs strong {
-  color: #515565;
+  color: #1d1d1f;
   font-weight: 500;
 }
 .breadcrumbs > svg {
-  color: #54555a;
+  color: #1d1d1f;
 }
 .topbar-right {
   display: flex;
@@ -542,7 +542,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #4e5757;
+  color: #1d1d1f;
 }
 .local-indicator > span {
   height: 5px;
@@ -569,7 +569,7 @@ select:focus-visible {
   margin-bottom: 29px;
 }
 .page-heading p:not(.eyebrow) {
-  color: #515563;
+  color: #1d1d1f;
   font-size: 12px;
   line-height: 1.8;
   margin-top: 9px;
@@ -614,7 +614,7 @@ select:focus-visible {
 }
 .button-secondary {
   background: #fff;
-  color: #525564;
+  color: #1d1d1f;
   border-color: #e2e4ec;
   box-shadow: 0 1px 2px #25273503;
 }
@@ -660,7 +660,7 @@ select:focus-visible {
   border: 0;
   border-radius: 5px;
   padding: 6px;
-  color: #54555f;
+  color: #1d1d1f;
 }
 .icon-button:hover {
   background: #f0edf6;
@@ -685,7 +685,7 @@ select:focus-visible {
 }
 .metric-label {
   font-size: 11px;
-  color: #515563;
+  color: #1d1d1f;
   font-weight: 500;
 }
 .metric strong {
@@ -696,7 +696,7 @@ select:focus-visible {
 }
 .metric-hint {
   font-size: 11px;
-  color: #515562;
+  color: #1d1d1f;
 }
 .section-heading {
   display: flex;
@@ -711,13 +711,13 @@ select:focus-visible {
 }
 .section-heading > .subtle {
   font-size: 11px;
-  color: #515560;
+  color: #1d1d1f;
 }
 .count-pill {
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
-  color: #54555f;
+  color: #1d1d1f;
   background: #f0f1f5;
   border: 1px solid #e9eaf0;
   border-radius: 5px;
@@ -757,7 +757,7 @@ select:focus-visible {
   margin-bottom: 18px;
 }
 .tool-card-top > svg {
-  color: #54555a;
+  color: #1d1d1f;
 }
 .app-icon {
   display: grid;
@@ -787,7 +787,7 @@ select:focus-visible {
 .tool-card > p {
   font-size: 12px;
   line-height: 1.8;
-  color: #515562;
+  color: #1d1d1f;
   min-height: 40px;
   margin-bottom: 21px;
   max-width: 245px;
@@ -798,13 +798,13 @@ select:focus-visible {
   justify-content: space-between;
   align-items: center;
   font-size: 11px;
-  color: #54555c;
+  color: #1d1d1f;
   padding: 14px 0;
 }
 .tool-card-footer .badge {
   font-size: 11px;
   padding: 3px 6px;
-  color: #54555f;
+  color: #1d1d1f;
   background: #f8f9fb;
   border: 1px solid #edeef4;
 }
@@ -833,7 +833,7 @@ select:focus-visible {
   gap: 6px;
   align-items: center;
   font-size: 11px;
-  color: #54555d;
+  color: #1d1d1f;
 }
 .welcome-empty {
   padding: 27px 25px;
@@ -849,7 +849,7 @@ select:focus-visible {
   height: 47px;
   width: 47px;
   background: #f7f5fc;
-  color: #59526b;
+  color: #1d1d1f;
   flex-shrink: 0;
 }
 .welcome-empty > div {
@@ -863,7 +863,7 @@ select:focus-visible {
 .welcome-empty p {
   font-size: 11px;
   line-height: 1.7;
-  color: #515562;
+  color: #1d1d1f;
   max-width: 380px;
 }
 .welcome-empty .button {
@@ -882,7 +882,7 @@ select:focus-visible {
   height: 37px;
   display: grid;
   place-items: center;
-  color: #585269;
+  color: #1d1d1f;
   border: 1px solid #e8e3f3;
   border-radius: 9px;
   background: #f6f3fb;
@@ -896,12 +896,12 @@ select:focus-visible {
   font-size: 11px;
   font-weight: 550;
   margin-bottom: 6px;
-  color: #5b5265;
+  color: #1d1d1f;
 }
 .foundation-strip p {
   font-size: 11px;
   line-height: 1.7;
-  color: #55555d;
+  color: #1d1d1f;
 }
 .foundation-strip > .text-button {
   font-size: 11px;
@@ -914,7 +914,7 @@ select:focus-visible {
   gap: 15px;
   padding: 17px 0 20px;
   font-size: 11px;
-  color: #54555c;
+  color: #1d1d1f;
 }
 .workspace-footer > span:first-child {
   letter-spacing: 1.2px;
@@ -922,7 +922,7 @@ select:focus-visible {
 }
 .footer-dot {
   padding: 0 6px;
-  color: #595264;
+  color: #1d1d1f;
 }
 .badge {
   display: inline-flex;
@@ -945,7 +945,7 @@ select:focus-visible {
 }
 .badge-neutral {
   background: #f2f3f6;
-  color: #4f5563;
+  color: #1d1d1f;
 }
 .badge-purple {
   background: #f2ecfd;
@@ -984,7 +984,7 @@ select:focus-visible {
   gap: 8px;
   padding: 8px 10px;
   width: 280px;
-  color: #54555d;
+  color: #1d1d1f;
   min-height: 34px;
 }
 .search-input input {
@@ -992,7 +992,7 @@ select:focus-visible {
   outline: none;
   background: none;
   font-size: 11px;
-  color: #4d5264;
+  color: #1d1d1f;
   min-width: 0;
   width: 100%;
   padding: 0;
@@ -1005,11 +1005,11 @@ select:focus-visible {
   outline: none;
 }
 .search-input input::placeholder {
-  color: #54555d;
+  color: #1d1d1f;
 }
 .search-input kbd {
   font-size: 11px;
-  color: #54555a;
+  color: #1d1d1f;
   background: #f9f9fc;
   border: 1px solid #edeef4;
   border-radius: 3px;
@@ -1052,7 +1052,7 @@ select:focus-visible {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #595363;
+  color: #1d1d1f;
 }
 .save-view-form input,
 .action-form select {
@@ -1061,7 +1061,7 @@ select:focus-visible {
   border-radius: 6px;
   background: #fff;
   padding: 8px 10px;
-  color: #5c516c;
+  color: #1d1d1f;
   font-size: 11px;
   max-width: 100%;
 }
@@ -1075,7 +1075,7 @@ select:focus-visible {
   font-size: 11px;
   flex-basis: 100%;
   margin: 0;
-  color: #595363;
+  color: #1d1d1f;
   line-height: 1.7;
 }
 .view-warning,
@@ -1113,7 +1113,7 @@ select:focus-visible {
   overflow-wrap: anywhere;
 }
 .local-notes small {
-  color: #595363;
+  color: #1d1d1f;
 }
 .select-wrap {
   position: relative;
@@ -1125,7 +1125,7 @@ select:focus-visible {
   background: #fff;
   border: 1px solid #e4e6ed;
   border-radius: 6px;
-  color: #535560;
+  color: #1d1d1f;
   font-size: 11px;
   padding: 8px 29px 8px 10px;
   cursor: pointer;
@@ -1135,7 +1135,7 @@ select:focus-visible {
   position: absolute;
   pointer-events: none;
   right: 9px;
-  color: #54555d;
+  color: #1d1d1f;
 }
 .table-scroll {
   overflow: auto;
@@ -1152,7 +1152,7 @@ thead {
 th {
   font-size: 11px;
   font-weight: 500;
-  color: #505562;
+  color: #1d1d1f;
   padding: 12px 16px;
   border-bottom: 1px solid var(--line);
 }
@@ -1163,7 +1163,7 @@ td {
   padding: 16px;
   font-size: 11px;
   border-bottom: 1px solid #f0f0f5;
-  color: #525560;
+  color: #1d1d1f;
 }
 td:first-child {
   padding-left: 20px;
@@ -1190,7 +1190,7 @@ tbody tr:focus-within {
 .record-link strong {
   font-weight: 550;
   font-size: 12px;
-  color: #505569;
+  color: #1d1d1f;
   display: block;
   margin-bottom: 5px;
 }
@@ -1199,7 +1199,7 @@ tbody tr:focus-within {
 }
 .record-link small {
   font-size: 11px;
-  color: #505562;
+  color: #1d1d1f;
   display: block;
 }
 .avatar {
@@ -1235,7 +1235,7 @@ tbody tr:focus-within {
 }
 .secondary-value {
   display: block;
-  color: #505563;
+  color: #1d1d1f;
   font-size: 11px;
 }
 .record-id {
@@ -1245,7 +1245,7 @@ tbody tr:focus-within {
   font-size: 11px;
   margin-top: 5px;
   display: block;
-  color: #54555c;
+  color: #1d1d1f;
   letter-spacing: 0.3px;
 }
 .owner {
@@ -1253,7 +1253,7 @@ tbody tr:focus-within {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #505562;
+  color: #1d1d1f;
 }
 .owner-dot {
   height: 5px;
@@ -1266,10 +1266,10 @@ tbody tr:focus-within {
 }
 .date-cell {
   font-size: 11px;
-  color: #505563;
+  color: #1d1d1f;
 }
 .row-arrow {
-  color: #54555a;
+  color: #1d1d1f;
   padding-right: 18px;
   padding-left: 0;
 }
@@ -1279,7 +1279,7 @@ tbody tr:focus-within {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #54555e;
+  color: #1d1d1f;
   font-size: 11px;
   gap: 10px;
 }
@@ -1287,19 +1287,19 @@ tbody tr:focus-within {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #585362;
+  color: #1d1d1f;
 }
 .page-note {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #55545e;
+  color: #1d1d1f;
   font-size: 11px;
   margin-top: 19px;
   line-height: 1.7;
 }
 .page-note svg {
-  color: #575360;
+  color: #1d1d1f;
 }
 .empty-state {
   padding: 45px 20px;
@@ -1342,7 +1342,7 @@ tbody tr:focus-within {
   padding: 0;
   max-width: calc(100vw - 32px);
   width: 455px;
-  color: #414556;
+  color: #1d1d1f;
 }
 .dialog::backdrop {
   background: #23203742;
@@ -1377,7 +1377,7 @@ tbody tr:focus-within {
   font-size: 11px;
   letter-spacing: 1px;
   margin-bottom: 8px;
-  color: #595363;
+  color: #1d1d1f;
 }
 .drawer {
   position: fixed;
@@ -1422,7 +1422,7 @@ tbody tr:focus-within {
 }
 .record-profile p {
   font-size: 11px;
-  color: #53555e;
+  color: #1d1d1f;
   margin-top: 5px;
   overflow-wrap: anywhere;
 }
@@ -1434,10 +1434,10 @@ tbody tr:focus-within {
 }
 .record-meta > span:last-child {
   font-size: 11px;
-  color: #53555f;
+  color: #1d1d1f;
 }
 .section-label {
-  color: #57545f;
+  color: #1d1d1f;
   font-size: 11px;
   letter-spacing: 1.2px;
   font-weight: 600;
@@ -1450,12 +1450,12 @@ tbody tr:focus-within {
   margin: 0;
 }
 .detail-grid dt {
-  color: #515563;
+  color: #1d1d1f;
   font-size: 11px;
   margin-bottom: 7px;
 }
 .detail-grid dd {
-  color: #505568;
+  color: #1d1d1f;
   font-size: 12px;
   line-height: 1.7;
   margin: 0;
@@ -1470,7 +1470,7 @@ tbody tr:focus-within {
 }
 .action-help {
   font-size: 11px;
-  color: #515561;
+  color: #1d1d1f;
   line-height: 1.7;
   margin-bottom: 16px;
 }
@@ -1491,7 +1491,7 @@ tbody tr:focus-within {
 }
 .action-form > p {
   font-size: 11px;
-  color: #58545f;
+  color: #1d1d1f;
   line-height: 1.8;
   margin-bottom: 17px;
 }
@@ -1499,7 +1499,7 @@ tbody tr:focus-within {
   display: block;
   font-size: 11px;
   font-weight: 550;
-  color: #595363;
+  color: #1d1d1f;
   margin-bottom: 8px;
 }
 .required {
@@ -1510,7 +1510,7 @@ tbody tr:focus-within {
   width: 100%;
   min-height: 85px;
   padding: 11px;
-  color: #5c516c;
+  color: #1d1d1f;
   background: #fff;
   border: 1px solid #ded7e8;
   border-radius: 6px;
@@ -1518,11 +1518,11 @@ tbody tr:focus-within {
   line-height: 1.7;
 }
 .action-form textarea::placeholder {
-  color: #58545f;
+  color: #1d1d1f;
 }
 .input-hint {
   font-size: 11px;
-  color: #58545e;
+  color: #1d1d1f;
   margin-top: 6px;
 }
 .action-form .action-buttons {
@@ -1567,7 +1567,7 @@ tbody tr:focus-within {
 }
 .record-activity p {
   font-size: 11px;
-  color: #55555e;
+  color: #1d1d1f;
   line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -1575,7 +1575,7 @@ tbody tr:focus-within {
 }
 .record-activity small {
   font-size: 11px;
-  color: #57545d;
+  color: #1d1d1f;
 }
 .drawer-footer {
   display: flex;
@@ -1584,7 +1584,7 @@ tbody tr:focus-within {
   padding: 17px 27px;
   background: #fdfcfe;
   border-top: 1px solid var(--line);
-  color: #58545f;
+  color: #1d1d1f;
   font-size: 11px;
 }
 .reset-body {
@@ -1592,7 +1592,7 @@ tbody tr:focus-within {
 }
 .reset-body p {
   font-size: 12px;
-  color: #56545f;
+  color: #1d1d1f;
   line-height: 1.9;
   margin-bottom: 24px;
 }
@@ -1619,7 +1619,7 @@ tbody tr:focus-within {
   border-radius: 8px;
   padding: 12px 14px;
   pointer-events: auto;
-  color: #5b5168;
+  color: #1d1d1f;
   font-size: 11px;
 }
 .toast-check {
@@ -1674,16 +1674,16 @@ tbody tr:focus-within {
   display: block;
   font-size: 11px;
   font-weight: 550;
-  color: #5b5265;
+  color: #1d1d1f;
   margin-bottom: 5px;
 }
 .recent-list p > span {
   font-size: 11px;
-  color: #56545d;
+  color: #1d1d1f;
 }
 .recent-list time {
   font-size: 11px;
-  color: #57545d;
+  color: #1d1d1f;
 }
 .activity-notice {
   margin-bottom: 23px;
@@ -1715,7 +1715,7 @@ tbody tr:focus-within {
 }
 .activity-item-body > p {
   font-size: 11px;
-  color: #575461;
+  color: #1d1d1f;
   margin-bottom: 9px;
 }
 .state-change {
@@ -1723,14 +1723,14 @@ tbody tr:focus-within {
   align-items: center;
   gap: 9px;
   font-size: 11px;
-  color: #58545f;
+  color: #1d1d1f;
 }
 .activity-item blockquote {
   margin: 12px 0;
   padding: 10px 14px;
   border-left: 2px solid #ded3f1;
   background: #faf8fe;
-  color: #595362;
+  color: #1d1d1f;
   font-size: 11px;
   line-height: 1.8;
   white-space: pre-wrap;
@@ -1738,7 +1738,7 @@ tbody tr:focus-within {
 }
 .activity-item small {
   font-size: 11px;
-  color: #58545d;
+  color: #1d1d1f;
 }
 .about-grid {
   display: grid;
@@ -1757,18 +1757,18 @@ tbody tr:focus-within {
   padding-left: 18px;
   margin: 0;
   font-size: 12px;
-  color: #57545f;
+  color: #1d1d1f;
   line-height: 2.6;
 }
 .check-list li::marker {
-  color: #5a5269;
+  color: #1d1d1f;
 }
 .boundaries h2 {
   margin: 0 0 15px;
 }
 .boundaries p {
   font-size: 12px;
-  color: #58545f;
+  color: #1d1d1f;
   line-height: 1.9;
   max-width: 850px;
 }
@@ -1784,10 +1784,10 @@ tbody tr:focus-within {
 .next-step h2 {
   font-size: 13px;
   margin: 1px 0 9px;
-  color: #5a5361;
+  color: #1d1d1f;
 }
 .next-step p {
-  color: #58545d;
+  color: #1d1d1f;
   font-size: 11px;
   line-height: 1.9;
   max-width: 750px;
@@ -1796,7 +1796,7 @@ tbody tr:focus-within {
 .work-scope,
 .work-list-help,
 .workspace-queue-scope {
-  color: #595265;
+  color: #1d1d1f;
   font-size: 12px;
   line-height: 1.8;
 }
@@ -1816,7 +1816,7 @@ tbody tr:focus-within {
   align-items: flex-start;
   gap: 9px;
   padding: 20px;
-  color: #51465f;
+  color: #1d1d1f;
   text-decoration: none;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -1847,7 +1847,7 @@ tbody tr:focus-within {
   min-width: 800px;
 }
 .work-list td {
-  color: #51465f;
+  color: #1d1d1f;
   font-size: 12px;
   line-height: 1.7;
   vertical-align: top;
@@ -1902,12 +1902,12 @@ tbody tr:focus-within {
 .work-directory li p {
   font-size: 12px;
   line-height: 1.7;
-  color: #595265;
+  color: #1d1d1f;
   margin: 8px 0;
 }
 .work-directory li small {
   font-size: 11px;
-  color: #595265;
+  color: #1d1d1f;
 }
 .workspace-queue-scope {
   margin-bottom: 20px;
@@ -1926,7 +1926,7 @@ tbody tr:focus-within {
 }
 .workspace-local-queue td {
   font-size: 12px;
-  color: #51465f;
+  color: #1d1d1f;
 }
 .workspace-local-queue th {
   font-size: 11px;
