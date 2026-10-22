@@ -66,6 +66,32 @@ export interface DetailSection {
   fields: DetailField[];
 }
 
+export interface IntakeField {
+  key: string;
+  label: string;
+  kind?: 'text' | 'textarea' | 'date' | 'select';
+  options?: string[];
+  placeholder?: string;
+  hint?: string;
+  optional?: boolean;
+  maxLength?: number;
+}
+
+/** Optional submission form: the shell shows a button that creates a new record from `fields`. */
+export interface ToolIntake {
+  label: string;
+  description: string;
+  idPrefix: string;
+  fields: IntakeField[];
+  /** Valid sample input; the contract test submits it. */
+  example: Record<string, string>;
+  /** Build the record from trimmed, checked values. Throw an `Error` to block with a message. */
+  create: (
+    values: Record<string, string>,
+    now: Date,
+  ) => Pick<ToolRecord, 'name' | 'subtitle' | 'status' | 'fields'>;
+}
+
 export interface ToolModule {
   id: ToolId;
   title: string;
@@ -91,6 +117,7 @@ export interface ToolModule {
   localActions?: RecordAction[];
   localDetails?: DetailSection[];
   withDefaults?: (record: ToolRecord) => ToolRecord;
+  intake?: ToolIntake;
   metrics: (records: ToolRecord[]) => { label: string; value: string; hint: string }[];
   validateFields: (record: ToolRecord) => boolean;
   /** Deterministic synthetic records relative to `now`; used for first load and reset. */

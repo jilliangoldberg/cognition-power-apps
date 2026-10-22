@@ -1,6 +1,7 @@
 import { getModule } from '../modules';
 import type { DemoState, ToolId } from './types';
 import { randomId } from './id';
+import { buildIntakeRecord } from './intake';
 
 interface ChangeTarget {
   moduleId: ToolId;
@@ -78,6 +79,36 @@ export function executeAction(
         reason,
         before,
         after,
+        at: now.toISOString(),
+      },
+      ...state.activity,
+    ],
+  };
+}
+
+export function submitRecord(
+  state: DemoState,
+  moduleId: ToolId,
+  values: Record<string, unknown>,
+  now = new Date(),
+): DemoState {
+  const module = getModule(moduleId);
+  if (!module) throw new Error('Unknown tool.');
+  const record = buildIntakeRecord(module, values, state.records[module.id], now);
+  return {
+    ...state,
+    records: { ...state.records, [module.id]: [record, ...state.records[module.id]] },
+    activity: [
+      {
+        id: randomId(),
+        kind: 'action',
+        moduleId: module.id,
+        recordId: record.id,
+        recordName: record.name,
+        action: module.intake!.label,
+        reason: 'Submitted with the intake form.',
+        before: 'New',
+        after: record.status,
         at: now.toISOString(),
       },
       ...state.activity,

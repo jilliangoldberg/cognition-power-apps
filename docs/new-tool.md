@@ -51,6 +51,7 @@ Edit only the two generated files:
 | `validateFields`                         | Required `fields` shape; saved data failing it is refused |
 | `recordLabel`, `notice`                  | Singular record noun; banner saying what is simulated     |
 | `icon`, `color`, `recordIcon`            | Icon names below; `purple`, `blue` or `green`             |
+| `intake` (optional)                      | A submission form that adds new records (see below)       |
 
 Each entry in `actions`:
 
@@ -68,6 +69,13 @@ Preconditions on fields go in `available`, for example approve only with a recei
 ```ts
 available: (r) => r.status === 'Submitted' && r.fields.receipt === true,
 ```
+
+Optional `intake` adds a button above the table that opens a submission form. Declare `fields`
+(`text`, `textarea`, `date` or `select` with `options`), an `idPrefix` such as `DPR`, a valid
+`example`, and `create(values, now)` returning the new record's `name`, `subtitle`, `status` and
+`fields`. The shell trims values, checks required fields, lengths, options and dates, assigns the
+next ID, sets the owner to `Unassigned` and records the submission in Activity. Throw an `Error`
+from `create` to block a submission with a message. Pipeline requests is the example.
 
 Every action asks for confirmation and a reason of at least 5 characters, so the activity history
 always says why. There is no per-action opt-out; that would be a shared-shell change.

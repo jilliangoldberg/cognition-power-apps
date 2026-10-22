@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getModule, modules } from './modules';
-import { executeAction, type MutationRequest } from './core/actions';
+import { executeAction, submitRecord, type MutationRequest } from './core/actions';
 import { createFixtures } from './core/fixtures';
 import { loadDemo, saveDemo } from './core/storage';
 import type { Page, ToolId, ToolRecord } from './core/types';
@@ -166,6 +166,18 @@ export default function App() {
       return null;
     } catch (error) {
       return error instanceof Error ? error.message : 'Could not apply this change.';
+    }
+  }
+
+  function onSubmitRecord(moduleId: ToolId, values: Record<string, string>) {
+    try {
+      const next = submitRecord(dataRef.current, moduleId, values);
+      dataRef.current = next;
+      setSnapshot((current) => ({ ...current, data: next }));
+      notify(`${next.activity[0].recordId} submitted in local demo.`);
+      return null;
+    } catch (error) {
+      return error instanceof Error ? error.message : 'Could not submit this request.';
     }
   }
 
@@ -371,6 +383,7 @@ export default function App() {
               }
               recordHref={(row) => recordLink(module.id, row)}
               onSelect={(row: ToolRecord) => openRecord(module.id, row)}
+              onSubmitRecord={(values) => onSubmitRecord(module.id, values)}
             />
           )}
           {page === 'activity' && <ActivityView activity={data.activity} />}

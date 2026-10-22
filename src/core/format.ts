@@ -40,3 +40,20 @@ export const initials = (name: string) =>
 
 export const countStatus = (records: { status: string }[], status: string) =>
   records.filter((r) => r.status === status).length;
+
+/** A real calendar date written as YYYY-MM-DD. */
+export const isIsoDay = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  Number.isFinite(Date.parse(`${value}T00:00:00Z`)) &&
+  new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+
+export const dayLabel = (value: string) =>
+  isIsoDay(value)
+    ? new Date(`${value}T00:00:00Z`).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      })
+    : 'Not set';
