@@ -9,6 +9,7 @@ import { STORAGE_KEY } from '../core/storage';
 import { defaultFilters, loadViews, saveViews } from '../core/views';
 import { kyc } from '../modules/kyc';
 import { ActivityView } from './ActivityView';
+import { Overview } from './Overview';
 import { RecordDrawer } from './RecordDrawer';
 import { ToolView } from './ToolView';
 
@@ -168,6 +169,47 @@ describe('local workbench integrity', () => {
     writes.mockRestore();
     expect(saveViews('kyc', loadViews(kyc, 'shared.alex').views, 'shared.alex')).toBe(true);
     expect(loadViews(kyc, 'shared.alex').warning).toBe('');
+  });
+
+  it('opens a record from anywhere on its row exactly once', () => {
+    const record = createFixtures().records.kyc[0];
+    const onSelect = vi.fn();
+    render(<ToolView module={kyc} records={[record]} onSelect={onSelect} />);
+    const row = screen.getByRole('button', { name: `Open ${record.name}` }).closest('tr')!;
+    fireEvent.click(row.querySelector('.row-arrow')!);
+    fireEvent.click(within(row).getByText(record.status));
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(onSelect).toHaveBeenLastCalledWith(record);
+    fireEvent.click(screen.getByRole('button', { name: `Open ${record.name}` }));
+    expect(onSelect).toHaveBeenCalledTimes(3);
+    const selection = vi.spyOn(window, 'getSelection').mockReturnValue({
+      toString: () => record.id,
+    } as Selection);
+    fireEvent.click(row.querySelector('.row-arrow')!);
+    expect(onSelect).toHaveBeenCalledTimes(3);
+    selection.mockRestore();
+  });
+
+  it('opens a My work record from anywhere on its row', () => {
+    const onSelect = vi.fn();
+    const view = render(
+      <Overview
+        data={createFixtures()}
+        navigate={() => {}}
+        view="mine"
+        onViewChange={() => {}}
+        recordHref={() => '#record'}
+        onSelect={onSelect}
+      />,
+    );
+    const link = view.container.querySelector<HTMLElement>('[data-work-record]')!;
+    const [moduleId, recordId] = link.dataset.workRecord!.split(':');
+    fireEvent.click(link.closest('tr')!.querySelector('.work-reason')!);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect.mock.calls[0][0]).toBe(moduleId);
+    expect(onSelect.mock.calls[0][1].id).toBe(recordId);
+    fireEvent.click(link);
+    expect(onSelect).toHaveBeenCalledTimes(2);
   });
 
   it('updates age labels and 48h eligibility without interaction and cleans up timers', () => {

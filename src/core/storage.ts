@@ -61,6 +61,9 @@ export function isDemoState(value: unknown): value is DemoState {
   });
 }
 
+// Every saved schema (v1 and v2) already stores these queues, so a save missing one is damaged.
+const SAVED_SCHEMA_TOOL_IDS: readonly string[] = ['kyc', 'refunds', 'flags'];
+
 export function loadDemo(): { data: DemoState; warning: string; blocked: boolean } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -79,7 +82,9 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
     const added: string[] = [];
     if (object(value) && object(value.records)) {
       const saved = value.records;
-      const missing = modules.filter((module) => !Object.hasOwn(saved, module.id));
+      const missing = modules.filter(
+        (module) => !Object.hasOwn(saved, module.id) && !SAVED_SCHEMA_TOOL_IDS.includes(module.id),
+      );
       if (missing.length) {
         const fresh = createFixtures();
         value = {
