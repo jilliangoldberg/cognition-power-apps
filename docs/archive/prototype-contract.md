@@ -2,7 +2,7 @@
 
 **Pitch:** One workspace for employees to complete important internal work, with a reviewed foundation engineers can reuse with Devin to deliver, release, and support the next tools.
 
-Roadmap **step 1**, not old gate 1. Source-reviewed baseline: `5d3d7191a710fe209ce5aed59ece7ce07b365b69`; no new application tests run. See [current scope](reference.md) and [gate/effort ledger](gates-and-effort.md).
+Roadmap **step 1**, not old gate 1. Source-reviewed baseline: `5d3d7191a710fe209ce5aed59ece7ce07b365b69`; no new application tests run. See [current scope](../reference.md) and [gate/effort ledger](gates-and-effort.md).
 
 ## Promise, not platform parity
 
