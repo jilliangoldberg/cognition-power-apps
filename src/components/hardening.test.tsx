@@ -170,6 +170,25 @@ describe('local workbench integrity', () => {
     expect(loadViews(kyc, 'shared.alex').warning).toBe('');
   });
 
+  it('opens a record from anywhere on its row exactly once', () => {
+    const record = createFixtures().records.kyc[0];
+    const onSelect = vi.fn();
+    render(<ToolView module={kyc} records={[record]} onSelect={onSelect} />);
+    const row = screen.getByRole('button', { name: `Open ${record.name}` }).closest('tr')!;
+    fireEvent.click(row.querySelector('.row-arrow')!);
+    fireEvent.click(within(row).getByText(record.status));
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(onSelect).toHaveBeenLastCalledWith(record);
+    fireEvent.click(screen.getByRole('button', { name: `Open ${record.name}` }));
+    expect(onSelect).toHaveBeenCalledTimes(3);
+    const selection = vi.spyOn(window, 'getSelection').mockReturnValue({
+      toString: () => record.id,
+    } as Selection);
+    fireEvent.click(row.querySelector('.row-arrow')!);
+    expect(onSelect).toHaveBeenCalledTimes(3);
+    selection.mockRestore();
+  });
+
   it('updates age labels and 48h eligibility without interaction and cleans up timers', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-10-19T12:00:00Z'));

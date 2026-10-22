@@ -302,7 +302,16 @@ export function ToolView({
             </thead>
             <tbody>
               {visible.map((record, index) => (
-                <tr key={record.id}>
+                <tr
+                  key={record.id}
+                  className="clickable-row"
+                  onClick={(event) => {
+                    const target = event.target as Element;
+                    if (target.closest('a, button, input, select, textarea')) return;
+                    if (window.getSelection()?.toString()) return;
+                    onSelect(record);
+                  }}
+                >
                   <td>
                     <button
                       className="record-link"
