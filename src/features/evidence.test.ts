@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canRetrySyntheticSource,
   investigationExamples,
+  looksLikeCardNumber,
   retrySyntheticSource,
   summarizeEvidence,
   syntheticEvidence,
@@ -34,25 +35,42 @@ describe('synthetic Investigation evidence contract', () => {
     },
   );
 
-  it('keeps reference context and illustrative money attributed to the reporting source', () => {
+  it('attaches payment details only to the ledger, with card brand and last 4 only', () => {
     const sources = syntheticEvidence('TX-DEMO-001', clock);
-    expect(sources[0]).toMatchObject({
-      amountCents: 24995,
-      relatedReferences: [
-        { kind: 'Internal record', reference: 'TX-DEMO-001/record' },
-        { kind: 'Account', reference: 'CUST-INV-001' },
-        { kind: 'Counterparty', reference: 'CP-INV-001' },
-      ],
+    expect(sources[0].payment).toEqual({
+      customerName: 'Maya Chen',
+      customerEmail: 'maya.chen@example.com',
+      merchant: 'Northwind Outfitters',
+      card: { brand: 'Visa', last4: '4242' },
+      amountCents: 18_450,
     });
-    expect(sources[1].amountCents).toBeUndefined();
-    expect(sources[1].relatedReferences).toHaveLength(1);
+    expect(sources[1].payment).toBeUndefined();
+    expect(sources[1].relatedReferences).toEqual([
+      { kind: 'Internal record', reference: 'TX-DEMO-001/record' },
+    ]);
+    sources[0].payment!.card.last4 = '0000';
+    expect(syntheticEvidence('TX-DEMO-001', clock)[0].payment!.card.last4).toBe('4242');
+    for (const { id } of investigationExamples) {
+      const text = JSON.stringify(syntheticEvidence(id, clock));
+      expect(looksLikeCardNumber(text)).toBe(false);
+    }
+  });
+
+  it.each([
+    ['4242 4242 4242 4242', true],
+    ['4242-4242-4242-4242', true],
+    ['378282246310005', true],
+    ['TX-DEMO-001', false],
+    ['4242', false],
+  ])('detects card-number-shaped input %s', (value, expected) => {
+    expect(looksLikeCardNumber(value)).toBe(expected);
   });
 
   it.each(['TX-DEMO-005', 'unknown'])('never creates evidence or context for no match %s', (id) => {
     for (const source of syntheticEvidence(id, clock)) {
       expect(source).toMatchObject({ outcome: 'not-found', events: [], relatedReferences: [] });
       expect(source.reportedStatus).toBeUndefined();
-      expect(source.amountCents).toBeUndefined();
+      expect(source.payment).toBeUndefined();
       expect(canRetrySyntheticSource(source)).toBe(false);
       expect(retrySyntheticSource(source, later)).toBe(source);
     }

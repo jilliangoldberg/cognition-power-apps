@@ -53,6 +53,12 @@
   font-weight: 600;
 }
 
+.investigation .investigation-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .investigation .investigation-verdict {
   border: 1px solid;
   border-left-width: 4px;

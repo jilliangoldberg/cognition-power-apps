@@ -5,6 +5,7 @@ import type { Tone } from '../core/types';
 import {
   canRetrySyntheticSource,
   investigationExamples,
+  looksLikeCardNumber,
   retrySyntheticSource,
   summarizeEvidence,
   syntheticEvidence,
@@ -39,13 +40,20 @@ export function Investigation() {
   const [query, setQuery] = useState('TX-DEMO-003');
   const [sources, setSources] = useState<SourceEvidence[]>(() => syntheticEvidence('TX-DEMO-003'));
   const [searched, setSearched] = useState('TX-DEMO-003');
+  const [refused, setRefused] = useState(false);
   function investigate(id: string) {
+    setRefused(false);
     setQuery(id);
     setSearched(id);
     setSources(syntheticEvidence(id));
   }
   function search(event: FormEvent) {
     event.preventDefault();
+    if (looksLikeCardNumber(query)) {
+      setQuery('');
+      setRefused(true);
+      return;
+    }
     const id = query.trim().toUpperCase();
     if (id) investigate(id);
   }
@@ -53,8 +61,7 @@ export function Investigation() {
   const events = sources
     .flatMap((source) => source.events.map((event) => ({ ...event, source })))
     .sort((a, b) => a.occurredAt.localeCompare(b.occurredAt) || a.id.localeCompare(b.id));
-  const ledger = sources.find((source) => source.amountCents !== undefined);
-  const parties = ledger?.relatedReferences.filter((r) => r.kind !== 'Internal record') ?? [];
+  const payment = sources.find((source) => source.payment)?.payment;
   return (
     <section className="custom-page investigation">
       <p className="eyebrow">READ-ONLY LOOKUP</p>
@@ -70,7 +77,11 @@ export function Investigation() {
           value={query}
           maxLength={64}
           required
-          onChange={(e) => setQuery(e.target.value)}
+          aria-describedby={refused ? 'investigation-refused' : undefined}
+          onChange={(e) => {
+            setRefused(false);
+            setQuery(e.target.value);
+          }}
         />
         <button className="button button-primary" disabled={!query.trim()}>
           Investigate
@@ -90,7 +101,12 @@ export function Investigation() {
           </button>
         ))}
       </div>
-      {searched && query.trim().toUpperCase() !== searched && (
+      {refused && (
+        <p id="investigation-refused" role="alert" className="investigation-notice">
+          That looks like a full card number, so it was cleared. Search by transaction ID instead.
+        </p>
+      )}
+      {searched && !refused && query.trim().toUpperCase() !== searched && (
         <p className="investigation-notice">
           Input changed. Results below are still for {searched}; investigate to replace them.
         </p>
@@ -99,18 +115,29 @@ export function Investigation() {
         <div className="investigation-results" aria-live="polite">
           <div className="investigation-header">
             <h2>{searched}</h2>
-            {ledger?.amountCents !== undefined && (
+            {payment && (
               <dl>
                 <div>
-                  <dt>Amount</dt>
-                  <dd>{money(ledger.amountCents)} USD</dd>
+                  <dt>Customer</dt>
+                  <dd>
+                    {payment.customerName}
+                    <span className="investigation-sub">{payment.customerEmail}</span>
+                  </dd>
                 </div>
-                {parties.map((party) => (
-                  <div key={party.kind}>
-                    <dt>{party.kind}</dt>
-                    <dd>{party.reference}</dd>
-                  </div>
-                ))}
+                <div>
+                  <dt>Merchant</dt>
+                  <dd>{payment.merchant}</dd>
+                </div>
+                <div>
+                  <dt>Card</dt>
+                  <dd>
+                    {payment.card.brand} •••• {payment.card.last4}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Amount</dt>
+                  <dd>{money(payment.amountCents)} USD</dd>
+                </div>
               </dl>
             )}
           </div>

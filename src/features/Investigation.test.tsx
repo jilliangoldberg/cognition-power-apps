@@ -79,6 +79,34 @@ describe('Investigation read-only extension (jsdom, not browser E2E)', () => {
     expect(screen.getByText(/Processor fee and payout details received/)).toBeInTheDocument();
   });
 
+  it('shows the customer, merchant, masked card and amount for a found payment', async () => {
+    const user = userEvent.setup();
+    render(<Investigation />);
+    await user.click(screen.getByRole('button', { name: 'All systems agree' }));
+    expect(screen.getByText('Maya Chen')).toBeInTheDocument();
+    expect(screen.getByText('maya.chen@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Northwind Outfitters')).toBeInTheDocument();
+    expect(screen.getByText('Visa •••• 4242')).toBeInTheDocument();
+    expect(screen.getByText('$184.50 USD')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Not found anywhere' }));
+    expect(screen.queryByText('Customer')).not.toBeInTheDocument();
+  });
+
+  it('clears a pasted card number without echoing it or replacing the results', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Investigation />);
+    const input = screen.getByLabelText('Transaction ID');
+    await user.clear(input);
+    await user.type(input, '4242 4242 4242 4242');
+    await user.click(screen.getByRole('button', { name: 'Investigate' }));
+    expect(input).toHaveValue('');
+    expect(screen.getByRole('alert')).toHaveTextContent('looks like a full card number');
+    expect(container.textContent).not.toMatch(/4242 4242/);
+    expect(screen.getByRole('heading', { name: 'TX-DEMO-003' })).toBeInTheDocument();
+    await user.type(input, 'T');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('normalizes search and never shows old results as the edited query', async () => {
     const user = userEvent.setup();
     render(<Investigation />);

@@ -8,7 +8,7 @@ export interface EvidenceEvent {
 }
 
 export interface RelatedReference {
-  kind: 'Internal record' | 'Account' | 'Counterparty';
+  kind: 'Internal record';
   reference: string;
 }
 
@@ -24,9 +24,60 @@ export interface SourceEvidence {
   complete: boolean;
   events: EvidenceEvent[];
   relatedReferences: RelatedReference[];
-  amountCents?: number;
+  payment?: PaymentDetails;
   retryCount: number;
 }
+
+// Only the card brand and last 4 digits exist, so a full card number cannot be rendered.
+export interface PaymentDetails {
+  customerName: string;
+  customerEmail: string;
+  merchant: string;
+  card: { brand: 'Visa' | 'Mastercard' | 'Amex'; last4: string };
+  amountCents: number;
+}
+
+const payments: Record<string, PaymentDetails> = {
+  'TX-DEMO-001': {
+    customerName: 'Maya Chen',
+    customerEmail: 'maya.chen@example.com',
+    merchant: 'Northwind Outfitters',
+    card: { brand: 'Visa', last4: '4242' },
+    amountCents: 18_450,
+  },
+  'TX-DEMO-002': {
+    customerName: 'Jordan Ellis',
+    customerEmail: 'jordan.ellis@example.com',
+    merchant: 'Bluebird Books',
+    card: { brand: 'Mastercard', last4: '5100' },
+    amountCents: 3_299,
+  },
+  'TX-DEMO-003': {
+    customerName: 'Priya Raman',
+    customerEmail: 'priya.raman@example.com',
+    merchant: 'Harbor Coffee Roasters',
+    card: { brand: 'Visa', last4: '1881' },
+    amountCents: 24_995,
+  },
+  'TX-DEMO-004': {
+    customerName: 'Sam Okafor',
+    customerEmail: 'sam.okafor@example.com',
+    merchant: 'Atlas Fitness',
+    card: { brand: 'Amex', last4: '0005' },
+    amountCents: 8_900,
+  },
+  'TX-DEMO-006': {
+    customerName: 'Lena Fischer',
+    customerEmail: 'lena.fischer@example.com',
+    merchant: 'Copperleaf Home',
+    card: { brand: 'Visa', last4: '7731' },
+    amountCents: 124_000,
+  },
+};
+
+const CARD_NUMBER = /\d(?:[ -]?\d){11,18}/;
+
+export const looksLikeCardNumber = (value: string) => CARD_NUMBER.test(value);
 
 export const investigationExamples = [
   { id: 'TX-DEMO-001', label: 'All systems agree' },
@@ -77,19 +128,14 @@ export function syntheticEvidence(transactionId: string, now = new Date()): Sour
       stale,
       complete: !(transactionId === 'TX-DEMO-006' && index === 1),
       retryCount: 0,
-      amountCents: !unavailable && !noMatch && index === 0 ? 24995 : undefined,
+      payment:
+        !unavailable && !noMatch && index === 0 && payments[transactionId]
+          ? { ...payments[transactionId], card: { ...payments[transactionId].card } }
+          : undefined,
       relatedReferences:
         unavailable || noMatch
           ? []
-          : [
-              { kind: 'Internal record', reference: `${transactionId}/record` },
-              ...(index === 0
-                ? ([
-                    { kind: 'Account', reference: 'CUST-INV-001' },
-                    { kind: 'Counterparty', reference: 'CP-INV-001' },
-                  ] satisfies RelatedReference[])
-                : []),
-            ],
+          : [{ kind: 'Internal record', reference: `${transactionId}/record` }],
       events: unavailable || noMatch ? [] : [sourceEvent(transactionId, index, status, at(0))],
     };
   });
