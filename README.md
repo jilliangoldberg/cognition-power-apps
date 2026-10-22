@@ -43,10 +43,25 @@ Details: [extension guide](docs/extension-guide.md) and the [change ledger for t
 
 ## Running the demo
 
-Requires Node 24 (`.nvmrc`).
+The demo requires Node.js 24 (pinned in `.nvmrc`) and npm, which is installed with Node.js. Check whether they are already available:
 
 ```sh
-nvm use
+node --version   # should print v24.x
+npm --version
+```
+
+If either command is not found, or Node.js is not version 24, install it using one of these options:
+
+- **macOS or Linux (recommended):** install [nvm](https://github.com/nvm-sh/nvm#installing-and-updating) by following its install instructions, then open a new terminal and run `nvm install 24`.
+- **Windows:** install [nvm-windows](https://github.com/coreybutler/nvm-windows/releases), then run `nvm install 24` and `nvm use 24`.
+- **Any platform:** download the Node.js 24 installer from [nodejs.org](https://nodejs.org/en/download).
+
+Then get the code and start the app:
+
+```sh
+git clone https://github.com/jilliangoldberg/cognition-power-apps.git
+cd cognition-power-apps
+nvm use          # macOS/Linux with nvm only; reads .nvmrc
 npm install
 npm run dev
 ```
