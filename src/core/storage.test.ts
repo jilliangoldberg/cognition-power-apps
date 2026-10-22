@@ -187,6 +187,60 @@ describe('versioned local demo data', () => {
     },
   );
 
+  it.each(['Waiting for information', 'Needs review'])(
+    'attributes a response saved before per-gap tracking to the single open gap (%s)',
+    (status) => {
+      const data = createFixtures();
+      const record = data.records.kyc[1];
+      record.status = status;
+      record.fields.responseRecorded = true;
+      record.fields.responseContext = 'Saved fictional address replacement.';
+      delete record.fields.respondedEvidence;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const loaded = loadDemo().data;
+      expect(loaded.records.kyc[1].fields).toMatchObject({
+        respondedEvidence: 'addressEvidence',
+        responseContext: 'Saved fictional address replacement.',
+      });
+      const target = { moduleId: 'kyc' as const, recordId: 'KYC-1041', reason: 'Context.' };
+      const review =
+        status === 'Needs review'
+          ? loaded
+          : executeAction(loaded, { ...target, actionId: 'resume', expectedVersion: 1 });
+      const version = review.records.kyc[1].version;
+      const assessed = executeAction(review, {
+        ...target,
+        actionId: 'review-evidence',
+        expectedVersion: version,
+      });
+      expect(assessed.records.kyc[1].fields.addressEvidence).toContain('Fictional replacement');
+    },
+  );
+
+  it('keeps an unattributable saved response but still asks for a response per open gap', () => {
+    const data = createFixtures();
+    const record = data.records.kyc[1];
+    record.fields.identityEvidence = 'Missing fictional identity field';
+    record.fields.responseRecorded = true;
+    record.fields.responseContext = 'Saved fictional replacement.';
+    delete record.fields.respondedEvidence;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const loaded = loadDemo().data;
+    expect(loaded.records.kyc[1].fields).toMatchObject({
+      respondedEvidence: '',
+      responseContext: 'Saved fictional replacement.',
+    });
+    expect(() =>
+      executeAction(loaded, {
+        moduleId: 'kyc',
+        recordId: 'KYC-1041',
+        reason: 'Context.',
+        actionId: 'review-evidence',
+        expectedVersion: 1,
+      }),
+    ).toThrow('before assessing: identity, address.');
+  });
+
   it('round-trips response context, decision, assignment and note without losing local history', () => {
     let data = createFixtures();
     const target = {

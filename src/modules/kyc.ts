@@ -4,31 +4,6 @@ import type { RecordAction, ToolModule, ToolRecord } from '../core/types';
 const pending = (status: string) => ['Needs review', 'Escalated'].includes(status);
 export const openKyc = (status: string) => pending(status) || status === 'Waiting for information';
 
-export function kycDefaults(record: ToolRecord): ToolRecord {
-  return {
-    ...record,
-    fields: {
-      workflowVersion: 1,
-      identityEvidence: 'Not recorded in saved demo',
-      addressEvidence: 'Not recorded in saved demo',
-      consistencyEvidence: 'Not recorded in saved demo',
-      evidenceReviewed: false,
-      informationNeeded:
-        'Identify the missing or inconsistent fictional evidence before follow-up.',
-      informationRequest: 'No information request recorded in this demo.',
-      communicationState: 'Unsent · no customer messaging integration',
-      responseRecorded: false,
-      respondedEvidence: '',
-      responseContext: 'No fictional response recorded.',
-      evidenceReviewContext: 'No evidence assessment recorded.',
-      handoffContext:
-        'Inspect owner assignment activity for handoffs; escalation and resume context appears here.',
-      decisionContext: 'No reason recorded here; inspect existing activity for saved decisions.',
-      ...record.fields,
-    },
-  };
-}
-
 const evidence = [
   { key: 'identityEvidence', area: 'identity' },
   { key: 'addressEvidence', area: 'address' },
@@ -39,6 +14,34 @@ const area = (key: string) => evidence.find((item) => item.key === key)?.area ??
 const assessedReplacement = 'Fictional replacement assessed · was: ';
 const resolved = (value: ToolRecord['fields'][string]) =>
   value === 'Consistent fictional sample' || String(value).startsWith(assessedReplacement);
+
+export function kycDefaults(record: ToolRecord): ToolRecord {
+  const fields: ToolRecord['fields'] = {
+    workflowVersion: 1,
+    identityEvidence: 'Not recorded in saved demo',
+    addressEvidence: 'Not recorded in saved demo',
+    consistencyEvidence: 'Not recorded in saved demo',
+    evidenceReviewed: false,
+    informationNeeded: 'Identify the missing or inconsistent fictional evidence before follow-up.',
+    informationRequest: 'No information request recorded in this demo.',
+    communicationState: 'Unsent · no customer messaging integration',
+    responseRecorded: false,
+    respondedEvidence: '',
+    responseContext: 'No fictional response recorded.',
+    evidenceReviewContext: 'No evidence assessment recorded.',
+    handoffContext:
+      'Inspect owner assignment activity for handoffs; escalation and resume context appears here.',
+    decisionContext: 'No reason recorded here; inspect existing activity for saved decisions.',
+    ...record.fields,
+  };
+  // Responses saved before per-gap tracking can only be attributed when one gap is open.
+  if (record.fields.respondedEvidence === undefined && fields.responseRecorded === true) {
+    const open = evidenceKeys.filter((key) => !resolved(fields[key]));
+    if (open.length === 1) fields.respondedEvidence = open[0];
+  }
+  return { ...record, fields };
+}
+
 const gapKeys = (r: ToolRecord) =>
   evidenceKeys.filter((key) => !resolved(kycDefaults(r).fields[key]));
 const gaps = (r: ToolRecord) => gapKeys(r).length > 0;
