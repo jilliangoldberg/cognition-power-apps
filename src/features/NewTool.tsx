@@ -206,12 +206,15 @@ export function NewTool() {
           {sessionUrl && (
             <section className="vendor-notice" aria-label="Devin session">
               <strong>Devin is building your tool.</strong>
-              <p>
-                It will open a pull request when it is done.{' '}
-                <a href={sessionUrl} target="_blank" rel="noreferrer">
-                  Open the Devin session
-                </a>
-              </p>
+              <p>It will open a pull request when it is done.</p>
+              <a
+                className="button button-primary new-tool-session-link"
+                href={sessionUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open the Devin session <Icon name="arrow" size={16} />
+              </a>
             </section>
           )}
         </div>
