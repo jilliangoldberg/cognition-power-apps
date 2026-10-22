@@ -1,7 +1,7 @@
 import { isRecord } from '../core/storage';
 import type { ToolModule } from '../core/types';
 
-export const BUILT_IN_PAGES = ['overview', 'activity'];
+export const BUILT_IN_PAGES = ['overview', 'activity', 'new-tool'];
 
 // Checks one tool definition in isolation. Returns readable problems; empty means it fits the shell.
 export function contractProblems(module: ToolModule, now = new Date('2026-01-15T12:00:00Z')) {
