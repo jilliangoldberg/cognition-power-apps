@@ -36,7 +36,7 @@ With roughly 60 engineers and more than ten additional tools planned, the main c
 
 ## Extending the platform
 
-- **Queue tools** are defined in `src/modules/<tool>.ts`: fields, statuses, guarded actions, metrics and sample records. The shared shell provides the rest of the experience.
+- **Queue tools** are defined in `src/modules/<tool>/` (`index.ts` plus `samples.ts`): fields, statuses, guarded actions, metrics and sample records. The shared shell provides the rest of the experience.
 - **Custom pages** register through a small typed contract. Investigation consists of its own view (`src/features/Investigation.tsx`) and data (`src/features/evidence.ts`), plus one `defineReadOnlyPage` entry in `src/features/pages.tsx`. Automated tests check the registration and confirm that existing tools and saved data are unaffected.
 
 Details: [extension guide](docs/extension-guide.md) and the [change ledger for the Investigation extension](docs/extension-proof.md).

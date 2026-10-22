@@ -155,10 +155,12 @@ export function RecordDrawer({
           </div>
         )}
         <div className="record-profile">
-          <span
-            className={`avatar avatar-large ${module.id === 'flags' ? 'avatar-flag' : 'avatar-0'}`}
-          >
-            {module.id === 'flags' ? <Icon name="flag" size={25} /> : initials(record.name)}
+          <span className={`avatar avatar-large ${module.recordIcon ? 'avatar-icon' : 'avatar-0'}`}>
+            {module.recordIcon ? (
+              <Icon name={module.recordIcon} size={25} />
+            ) : (
+              initials(record.name)
+            )}
           </span>
           <div>
             <h3>{record.name}</h3>

@@ -1,5 +1,6 @@
-import { countStatus } from '../core/format';
-import type { RecordAction, ToolModule, ToolRecord } from '../core/types';
+import { countStatus } from '../../core/format';
+import type { RecordAction, ToolModule, ToolRecord } from '../../core/types';
+import { kycSamples } from './samples';
 
 const pending = (status: string) => ['Needs review', 'Escalated'].includes(status);
 export const openKyc = (status: string) => pending(status) || status === 'Waiting for information';
@@ -227,6 +228,7 @@ export const kyc: ToolModule = {
       hint: 'Curated examples, not company volume',
     },
   ],
+  samples: kycSamples,
   validateFields: (r) =>
     ['customerId', 'country', 'accountType', 'risk', 'reviewReason', 'summary'].every(
       (key) => typeof r.fields[key] === 'string',

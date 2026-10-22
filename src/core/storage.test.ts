@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFixtures } from './fixtures';
 import { isDemoState, loadDemo, saveDemo, STORAGE_KEY } from './storage';
 import { executeAction } from './actions';
+import { modules } from '../modules';
+import { flags } from '../modules/flags';
 
 beforeEach(() => localStorage.clear());
 
@@ -38,6 +40,47 @@ describe('versioned local demo data', () => {
     const invalid = createFixtures();
     invalid.records.refunds[0].fields.amountCents = 'not money';
     expect(isDemoState(invalid)).toBe(false);
+  });
+  it('adds sample records for a newly registered tool without touching saved work', () => {
+    const saved = createFixtures();
+    saved.records.kyc[0].status = 'Approved';
+    saved.records.kyc[0].version = 3;
+    const raw = JSON.stringify(saved);
+    localStorage.setItem(STORAGE_KEY, raw);
+    const newTool = { ...flags, id: 'new-tool', shortTitle: 'New tool' };
+    modules.push(newTool);
+    try {
+      const result = loadDemo();
+      expect(result.blocked).toBe(false);
+      expect(result.warning).toContain('Added sample records for new tools: New tool');
+      expect(result.data.records.kyc).toEqual(saved.records.kyc);
+      expect(result.data.records['new-tool'].map((r) => r.id)).toEqual(
+        saved.records.flags.map((r) => r.id),
+      );
+      expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
+    } finally {
+      modules.pop();
+    }
+  });
+  it.each(['kyc', 'refunds', 'flags'])(
+    'refuses saved data that lost an original %s queue instead of refilling it with samples',
+    (id) => {
+      const saved = createFixtures();
+      const partial: Record<string, unknown> = { ...saved.records };
+      delete partial[id];
+      const raw = JSON.stringify({ ...saved, records: partial });
+      localStorage.setItem(STORAGE_KEY, raw);
+      expect(loadDemo().blocked).toBe(true);
+      expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
+    },
+  );
+  it('still refuses saved data whose existing tool records are invalid', () => {
+    const saved = createFixtures();
+    saved.records.flags[0].status = 'Production';
+    const partial: Record<string, unknown> = { ...saved.records };
+    delete partial.kyc;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, records: partial }));
+    expect(loadDemo().blocked).toBe(true);
   });
   it.each(['', 'A'.repeat(501), 'KYC-\ud800'])(
     'rejects saved record IDs that a record link cannot open (length %#)',

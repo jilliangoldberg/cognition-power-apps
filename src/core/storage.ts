@@ -61,6 +61,9 @@ export function isDemoState(value: unknown): value is DemoState {
   });
 }
 
+// Every saved schema (v1 and v2) already stores these queues, so a save missing one is damaged.
+const SAVED_SCHEMA_TOOL_IDS: readonly string[] = ['kyc', 'refunds', 'flags'];
+
 export function loadDemo(): { data: DemoState; warning: string; blocked: boolean } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -76,6 +79,24 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
         ),
       };
     }
+    const added: string[] = [];
+    if (object(value) && object(value.records)) {
+      const saved = value.records;
+      const missing = modules.filter(
+        (module) => !Object.hasOwn(saved, module.id) && !SAVED_SCHEMA_TOOL_IDS.includes(module.id),
+      );
+      if (missing.length) {
+        const fresh = createFixtures();
+        value = {
+          ...value,
+          records: {
+            ...saved,
+            ...Object.fromEntries(missing.map((m) => [m.id, fresh.records[m.id]])),
+          },
+        };
+        added.push(...missing.map((module) => module.shortTitle));
+      }
+    }
     if (!isDemoState(value)) throw new Error('Unsupported demo data');
     // Add only conservative flat defaults; never replace saved records or infer past outcomes.
     const data: DemoState = {
@@ -89,9 +110,16 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
     if (!isDemoState(data)) throw new Error('Unsupported workflow data');
     return {
       data,
-      warning: legacy
-        ? 'Saved work preserved in the updated format. Reset demo data only if you want the richer sample records; resetting removes your local changes.'
-        : '',
+      warning: [
+        legacy
+          ? 'Saved work preserved in the updated format. Reset demo data only if you want the richer sample records; resetting removes your local changes.'
+          : '',
+        added.length
+          ? `Added sample records for new tools: ${added.join(', ')}. Saved work in other tools is unchanged.`
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
       blocked: false,
     };
   } catch {

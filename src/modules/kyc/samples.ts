@@ -1,0 +1,260 @@
+import type { ToolRecord } from '../../core/types';
+
+export function kycSamples(now: Date): ToolRecord[] {
+  const time = (hours: number) => new Date(now.getTime() - hours * 3_600_000).toISOString();
+  const contexts: Record<string, [string, string]> = {
+    'KYC-1042': [
+      'Information refresh for an existing customer: the submitted name differs from the account profile.',
+      'Compare the name change explanation with the updated evidence.',
+    ],
+    'KYC-1041': [
+      'Onboarding: the supplied address evidence is missing its issue date.',
+      'Request dated evidence before recording a decision.',
+    ],
+    'KYC-1040': [
+      'Information refresh: inconsistent identity details remain unresolved after the first review.',
+      'An additional reviewer should assess the discrepancy; resume review before deciding.',
+    ],
+    'KYC-1039': [
+      'Existing customer refresh: the supplied document is expired.',
+      'Ask for current evidence; this is not an automatic rejection.',
+    ],
+    'KYC-1038': [
+      'Onboarding: a required identity field was omitted from the submission.',
+      'Request the missing information and place the case in the waiting queue.',
+    ],
+    'KYC-1037': [
+      'Example resolved review: the address discrepancy was explained in a resubmission.',
+      'No further case decision; approval here is not provider verification.',
+    ],
+    'KYC-1036': [
+      'Example resolved review: the customer supplied consistent replacement information.',
+      'No further case decision in this sample.',
+    ],
+    'KYC-1035': [
+      'Example closed review: inconsistent information remained unresolved after follow-up.',
+      'This illustrative case decision is not a statement about an actual customer.',
+    ],
+    'KYC-1034': [
+      'The first submission was unreadable; clearer evidence has been requested.',
+      'Wait for a resubmission, then explicitly return the case to review.',
+    ],
+    'KYC-1033': [
+      'A periodic information refresh is waiting for the customer to confirm a changed address.',
+      'Return to review after the requested information arrives.',
+    ],
+    'KYC-1032': [
+      'A resubmission arrived after missing identity information was requested.',
+      'Review the new information rather than treating receipt as approval.',
+    ],
+    'KYC-1031': [
+      'Two supplied identity fields conflict; the case needs another reviewer.',
+      'Keep the case escalated until the discrepancy has been assessed.',
+    ],
+    'KYC-1030': [
+      'New submission: a spelling difference needs a manual comparison.',
+      'Check the explanation and record a reasoned case decision.',
+    ],
+    'KYC-1029': [
+      'Example completed refresh: the requested information was supplied and reviewed.',
+      'No further decision is needed in this local sample.',
+    ],
+  };
+  const customer = (
+    id: string,
+    name: string,
+    country: string,
+    status: string,
+    risk: string,
+    reviewReason: string,
+    owner: string,
+    hours: number,
+  ): ToolRecord => ({
+    id,
+    name,
+    subtitle: `${name.toLowerCase().replaceAll(' ', '.')}@example.com`,
+    status,
+    owner,
+    openedAt: time(hours + (id === 'KYC-1033' ? 120 : 12)),
+    updatedAt: time(hours),
+    version: 1,
+    fields: {
+      customerId: `CUS-${id.slice(4)}`,
+      country,
+      accountType: 'Personal',
+      risk,
+      reviewReason,
+      summary: contexts[id][0],
+      nextStep: contexts[id][1],
+      identityEvidence:
+        id === 'KYC-1039'
+          ? 'Expired fictional document'
+          : id === 'KYC-1038'
+            ? 'Missing fictional identity field'
+            : 'Consistent fictional sample',
+      addressEvidence: ['KYC-1041', 'KYC-1033'].includes(id)
+        ? 'Missing dated fictional address evidence'
+        : id === 'KYC-1034'
+          ? 'Unreadable fictional submission'
+          : 'Consistent fictional sample',
+      consistencyEvidence: ['KYC-1040', 'KYC-1031', 'KYC-1035'].includes(id)
+        ? 'Inconsistent fictional identity details'
+        : 'Consistent fictional sample',
+      evidenceReviewed: [
+        'KYC-1042',
+        'KYC-1037',
+        'KYC-1036',
+        'KYC-1032',
+        'KYC-1030',
+        'KYC-1029',
+      ].includes(id),
+      evidenceReviewContext:
+        id === 'KYC-1042'
+          ? 'Fixture context: a fictional name-change explanation resolves the original discrepancy; no real review was performed.'
+          : 'Initial synthetic scenario, not an authenticated review event.',
+      informationNeeded: contexts[id][1],
+    },
+  });
+  return [
+    customer(
+      'KYC-1042',
+      'Olivia Chen',
+      'United States',
+      'Needs review',
+      'Medium',
+      'Document mismatch',
+      'You',
+      1,
+    ),
+    customer(
+      'KYC-1041',
+      'James Wilson',
+      'United Kingdom',
+      'Needs review',
+      'Low',
+      'Address verification',
+      'Unassigned',
+      2,
+    ),
+    customer(
+      'KYC-1040',
+      'Sofia Martinez',
+      'Spain',
+      'Escalated',
+      'High',
+      'Additional verification',
+      'Alex Morgan',
+      3,
+    ),
+    customer(
+      'KYC-1039',
+      'Liam Patel',
+      'Canada',
+      'Needs review',
+      'Medium',
+      'Expired document',
+      'You',
+      5,
+    ),
+    customer(
+      'KYC-1038',
+      'Emma Davis',
+      'United States',
+      'Needs review',
+      'Low',
+      'Incomplete information',
+      'Unassigned',
+      8,
+    ),
+    customer(
+      'KYC-1037',
+      'Noah Kim',
+      'South Korea',
+      'Approved',
+      'Low',
+      'Address verification',
+      'Alex Morgan',
+      20,
+    ),
+    customer(
+      'KYC-1036',
+      'Amelia Brown',
+      'Australia',
+      'Approved',
+      'Low',
+      'Document mismatch',
+      'You',
+      24,
+    ),
+    customer(
+      'KYC-1035',
+      'Lucas Silva',
+      'Brazil',
+      'Rejected',
+      'High',
+      'Additional verification',
+      'Alex Morgan',
+      28,
+    ),
+    customer(
+      'KYC-1034',
+      'Maya Robinson',
+      'United States',
+      'Waiting for information',
+      'Low',
+      'Unreadable submission',
+      'Jamie Brooks',
+      4,
+    ),
+    customer(
+      'KYC-1033',
+      'Ethan Taylor',
+      'United Kingdom',
+      'Waiting for information',
+      'Low',
+      'Information refresh',
+      'Alex Morgan',
+      36,
+    ),
+    customer(
+      'KYC-1032',
+      'Isabel Costa',
+      'Canada',
+      'Needs review',
+      'Medium',
+      'Resubmission received',
+      'You',
+      0.5,
+    ),
+    customer(
+      'KYC-1031',
+      'Theo Martin',
+      'France',
+      'Escalated',
+      'High',
+      'Inconsistent details',
+      'Jamie Brooks',
+      48,
+    ),
+    customer(
+      'KYC-1030',
+      'Zara Ahmed',
+      'United States',
+      'Needs review',
+      'Low',
+      'Name clarification',
+      'Unassigned',
+      0.25,
+    ),
+    customer(
+      'KYC-1029',
+      'Owen Lee',
+      'Canada',
+      'Approved',
+      'Low',
+      'Information refresh',
+      'Alex Morgan',
+      72,
+    ),
+  ];
+}
