@@ -382,7 +382,6 @@ export default function App() {
             <span>
               WORKBENCH <span className="footer-dot">/</span> PROTOTYPE 0.3
             </span>
-            <span>Built to start small. Designed to grow.</span>
           </footer>
         </main>
       </div>
