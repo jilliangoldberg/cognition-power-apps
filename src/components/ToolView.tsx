@@ -10,6 +10,7 @@ import {
 import type { ToolModule, ToolRecord } from '../core/types';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
+import { IntakeForm } from './IntakeForm';
 import { openFromRow } from './rowClick';
 import { useNow } from '../core/useNow';
 
@@ -21,6 +22,7 @@ export function ToolView({
   filters: controlledFilters,
   onFiltersChange,
   recordHref,
+  onSubmitNew,
 }: {
   module: ToolModule;
   records: ToolRecord[];
@@ -29,7 +31,9 @@ export function ToolView({
   filters?: RecordFilters;
   onFiltersChange?: (filters: RecordFilters) => void;
   recordHref?: (record: ToolRecord) => string;
+  onSubmitNew?: (values: Record<string, string>) => string | null;
 }) {
+  const [intakeOpen, setIntakeOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(defaultFilters);
   const filters = controlledFilters ?? localFilters;
   const setFilters = (next: RecordFilters) => {
@@ -69,7 +73,20 @@ export function ToolView({
           </div>
           <p>{module.description}</p>
         </div>
+        {module.intake && onSubmitNew && (
+          <button className="button button-soft" onClick={() => setIntakeOpen(true)}>
+            <Icon name="plus" size={15} />
+            {module.intake.label}
+          </button>
+        )}
       </div>
+      {intakeOpen && module.intake && onSubmitNew && (
+        <IntakeForm
+          intake={module.intake}
+          onSubmit={onSubmitNew}
+          onClose={() => setIntakeOpen(false)}
+        />
+      )}
       {recordHref ? (
         <div className="workspace-queue-scope">
           <button

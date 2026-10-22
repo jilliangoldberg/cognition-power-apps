@@ -51,6 +51,7 @@ Edit only the two generated files:
 | `validateFields`                         | Required `fields` shape; saved data failing it is refused |
 | `recordLabel`, `notice`                  | Singular record noun; banner saying what is simulated     |
 | `icon`, `color`, `recordIcon`            | Icon names below; `purple`, `blue` or `green`             |
+| `intake` (optional)                      | A "submit" form that adds new records (see below)         |
 
 Each entry in `actions`:
 
@@ -77,6 +78,13 @@ Reference values:
 - `fields` values: `string`, `number` or `boolean`. Store money as integer cents.
 - Status tones: `neutral`, `purple`, `green`, `amber`, `red`, `blue`.
 - Icons: `grid identity refund flag activity search arrow chevron down close check info reset box code shield clock menu bolt`.
+
+A tool that collects new requests declares `intake`: a button `label`, a form `title`, the form
+`fields` (`text`, `textarea`, `date` or `select`) and `create(values, records, now)`, which returns
+the new record or throws an `Error` with a readable message. The shell then sets `owner` to
+`Unassigned`, `version` to 1 and both timestamps to now, refuses records that fail
+`validateFields` or reuse an ID, and logs a "Submitted" entry in Activity. Pipeline requests
+(`src/modules/pipelines/`) is the example.
 
 `samples.ts` holds deterministic fictional records relative to `now`. Keep them synthetic. Each
 record needs `openedAt` earlier than `updatedAt`, and `updatedAt` no later than `now`; vary

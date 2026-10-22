@@ -66,6 +66,24 @@ export interface DetailSection {
   fields: DetailField[];
 }
 
+export interface IntakeField {
+  key: string;
+  label: string;
+  type?: 'text' | 'textarea' | 'date' | 'select';
+  options?: string[];
+  required?: boolean;
+  maxLength?: number;
+  help?: string;
+}
+
+/** Optional form that adds new records to a tool. `create` validates and throws readable errors. */
+export interface RecordIntake {
+  label: string;
+  title: string;
+  fields: IntakeField[];
+  create: (values: Record<string, string>, records: ToolRecord[], now: Date) => ToolRecord;
+}
+
 export interface ToolModule {
   id: ToolId;
   title: string;
@@ -93,6 +111,7 @@ export interface ToolModule {
   withDefaults?: (record: ToolRecord) => ToolRecord;
   metrics: (records: ToolRecord[]) => { label: string; value: string; hint: string }[];
   validateFields: (record: ToolRecord) => boolean;
+  intake?: RecordIntake;
   /** Deterministic synthetic records relative to `now`; used for first load and reset. */
   samples: (now: Date) => ToolRecord[];
 }
