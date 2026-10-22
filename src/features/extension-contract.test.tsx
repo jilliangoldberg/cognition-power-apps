@@ -12,7 +12,6 @@ describe('reviewed static read-only extension seam v1', () => {
     const ids = [
       'overview',
       'activity',
-      'about',
       ...modules.map((module) => module.id),
       ...customPages.map((page) => page.id),
     ];

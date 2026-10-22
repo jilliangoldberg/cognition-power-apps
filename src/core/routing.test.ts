@@ -11,7 +11,6 @@ const pages: Page[] = [
   'investigation',
   'shared-kyc',
   'activity',
-  'about',
 ];
 
 describe('workspace hash routes', () => {
