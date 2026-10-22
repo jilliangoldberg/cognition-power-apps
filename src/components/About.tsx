@@ -55,6 +55,13 @@ export function About() {
           simulated; flags do not affect a running product.
         </p>
         <p>
+          Vendor onboarding extends the same workspace to Finance, Security, Legal, and requesting
+          departments. It has its own browser-local request model, conditional reviews, revision
+          resets, and decision history. Any demo user can simulate every reviewer; these are not
+          server-authorized approvals. No vendor provisioning, contract signing, or spend execution
+          is implemented. Its synthetic policy is illustrative, not a client’s procurement policy.
+        </p>
+        <p>
           Local storage is not shared. Shared KYC users must refresh to see one another’s changes;
           local resets cannot erase server history. Its optional protected Stripe test-mode lookup
           is read-only and reports “not connected” without a server key. A sandbox snapshot does not
@@ -67,12 +74,13 @@ export function About() {
           <Icon name="arrow" size={23} />
         </span>
         <div>
-          <h2>Next: validate the gates, not a replacement claim</h2>
+          <h2>Land with a useful workflow. Expand through demonstrated reuse.</h2>
           <p>
-            Review the custom extension, multi-user controls, and read-only sandbox behavior before
-            expanding scope. Measure core edits, regressions, human review, and operating costs.
-            External writes are deferred; these gates do not establish a Power Apps replacement or
-            $250K in savings.
+            Vendor reviews illustrate expansion beyond financial operations—not a capability
+            exclusive to Workbench; Power Apps also supports cross-department workflows. Review
+            extension effort, multi-user controls, regressions, and operating costs to establish
+            value. This is engineer-extensible software, not a no-code designer or evidence of a
+            full Power Apps replacement, production readiness, or $250K in savings.
           </p>
         </div>
       </section>

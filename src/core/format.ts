@@ -10,13 +10,20 @@ export const money = (cents: number) =>
     currency: 'USD',
   }).format(cents / 100);
 
-export const dateTime = (value: string) =>
-  new Date(value).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+const timestampFormat = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'UTC',
+  timeZoneName: 'short',
+});
+
+export function dateTime(value: string | undefined): string {
+  if (!value || !Number.isFinite(Date.parse(value))) return 'Not recorded';
+  return timestampFormat.format(new Date(value));
+}
 
 export const shortDate = (value: string) =>
   new Date(value).toLocaleDateString('en-US', {

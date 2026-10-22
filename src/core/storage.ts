@@ -1,5 +1,6 @@
 import { modules } from '../modules';
 import { createFixtures } from './fixtures';
+import { isRecordId } from './id';
 import type { Activity, DemoState, ToolRecord } from './types';
 
 export const STORAGE_KEY = 'workbench.demo.v1';
@@ -12,6 +13,7 @@ export function isRecord(value: unknown): value is ToolRecord {
   return (
     object(value) &&
     ['id', 'name', 'subtitle', 'status', 'owner'].every((key) => typeof value[key] === 'string') &&
+    isRecordId(value.id) &&
     validDate(value.updatedAt) &&
     (value.openedAt === undefined ||
       (validDate(value.openedAt) && Date.parse(value.openedAt) <= Date.parse(value.updatedAt))) &&
@@ -59,6 +61,9 @@ export function isDemoState(value: unknown): value is DemoState {
   });
 }
 
+// Every saved schema (v1 and v2) already stores these queues, so a save missing one is damaged.
+const SAVED_SCHEMA_TOOL_IDS: readonly string[] = ['kyc', 'refunds', 'flags'];
+
 export function loadDemo(): { data: DemoState; warning: string; blocked: boolean } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -77,7 +82,9 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
     const added: string[] = [];
     if (object(value) && object(value.records)) {
       const saved = value.records;
-      const missing = modules.filter((module) => !Object.hasOwn(saved, module.id));
+      const missing = modules.filter(
+        (module) => !Object.hasOwn(saved, module.id) && !SAVED_SCHEMA_TOOL_IDS.includes(module.id),
+      );
       if (missing.length) {
         const fresh = createFixtures();
         value = {
@@ -91,8 +98,18 @@ export function loadDemo(): { data: DemoState; warning: string; blocked: boolean
       }
     }
     if (!isDemoState(value)) throw new Error('Unsupported demo data');
+    // Add only conservative flat defaults; never replace saved records or infer past outcomes.
+    const data: DemoState = {
+      ...value,
+      records: { ...value.records },
+    };
+    for (const module of modules)
+      data.records[module.id] = value.records[module.id].map(
+        (record) => module.withDefaults?.(record) ?? record,
+      );
+    if (!isDemoState(data)) throw new Error('Unsupported workflow data');
     return {
-      data: value,
+      data,
       warning: [
         legacy
           ? 'Saved work preserved in the updated format. Reset demo data only if you want the richer sample records; resetting removes your local changes.'

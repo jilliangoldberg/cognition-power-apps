@@ -2,6 +2,8 @@
 
 ## Authoritative scope
 
+The gate numbers here belong to the earlier delivery sequence, not the eight-step prototype roadmap. See the [prototype promise/proof contract](prototype-contract.md), [current interaction walkthrough](reference.md#try-the-workflows), and [independent-agent extension proof](extension-proof.md) for roadmap steps 1–4. Their interaction/reuse improvements do not add enterprise identity, provider writes, or a production-readiness claim. Counts and measurements below describe the earlier fixed increment, not the combined parallel change set.
+
 This implementation follows **3 → narrow 4 → 5a; 5b is a separate decision**. Earlier attached planning documents describe a larger potential platform; they are not implementation evidence. The reusable product is for engineers working with Devin, not a no-code builder. All original tools remain synthetic/browser-local; no saved browser work is promoted to authenticated history.
 
 | Gate                   | Evidence delivered                                                                                                                                                                                              | What it does not prove                                                                                                                     |
