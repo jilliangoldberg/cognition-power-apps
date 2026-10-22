@@ -441,35 +441,9 @@ select:focus-visible {
   margin-top: auto;
   padding-top: 35px;
 }
-.sandbox-card {
-  margin: 0 3px 19px;
-  background: #f9f8fd;
-  border: 1px solid #ede8f6;
-  border-radius: 9px;
-  padding: 16px 12px;
-}
-.sandbox-light {
-  display: inline-block;
-  background: #987cdd;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  margin: 0 6px 2px 0;
-}
-.sandbox-card > strong {
-  font-size: 11px;
-  font-weight: 600;
-}
-.sandbox-card p {
-  font-size: 11px;
-  line-height: 1.8;
-  color: #1d1d1f;
-  margin: 8px 0 10px;
-}
-.sandbox-card .text-button {
-  font-size: 11px;
+.sidebar-reset {
+  margin: 0 9px 15px;
   gap: 5px;
-  color: #5e4a8a;
 }
 .demo-user {
   display: flex;
@@ -2318,8 +2292,8 @@ tbody tr:focus-within {
   .sidebar-bottom {
     padding-top: 24px;
   }
-  .sandbox-card {
-    margin-bottom: 13px;
+  .sidebar-reset {
+    margin-bottom: 11px;
   }
   .demo-user {
     padding-top: 14px;
