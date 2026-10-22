@@ -2,23 +2,30 @@ import { countStatus } from '../../core/format';
 import type { ToolModule, ToolRecord } from '../../core/types';
 import { flagSamples } from './samples';
 
+const legacyContext = [
+  'No prior configuration captured. Existing status is a synthetic saved value, not published state.',
+  'Reason is recorded in local activity.',
+];
+
 export function flagDefaults(record: ToolRecord): ToolRecord {
-  return {
+  const migrated: ToolRecord = {
     ...record,
     fields: {
       workflowVersion: 1,
       previousStatus: '',
       previousAudience: '',
-      changeContext:
-        'No prior configuration captured. Existing status is a synthetic saved value, not published state.',
+      changeContext: '',
       ...record.fields,
     },
   };
+  if (legacyContext.includes(String(migrated.fields.changeContext)))
+    migrated.fields.changeContext = '';
+  return migrated;
 }
 
 const stagingBlock = (r: ToolRecord) =>
   r.fields.environment !== 'Staging'
-    ? 'Only synthetic Staging configuration can change. Production and other environments are not supported.'
+    ? "Only Staging flags can be changed here. Production isn't connected."
     : undefined;
 const configuration = (r: ToolRecord) =>
   `${r.fields.environment} · desired ${r.status} · audience: ${r.fields.audience}`;
@@ -35,7 +42,7 @@ const change = (
     previousStatus: r.status,
     previousAudience: String(r.fields.audience),
     audience,
-    changeContext: reason ?? 'Reason is recorded in local activity.',
+    changeContext: reason ?? '',
   },
 });
 const history = (before: ToolRecord, after: ToolRecord) => ({
@@ -43,7 +50,13 @@ const history = (before: ToolRecord, after: ToolRecord) => ({
   after: configuration(after),
 });
 const preview = (r: ToolRecord, status: string, audience = String(r.fields.audience)) =>
-  `Proposed local diff: desired ${r.status} → ${status}; environment stays Staging; audience ${r.fields.audience} → ${audience}. Publication: not connected. Observed consumer state: unknown.`;
+  `Change in Staging: ${r.status} → ${status}. Audience: ${
+    audience === r.fields.audience
+      ? `${audience} (unchanged)`
+      : `${r.fields.audience} → ${audience}`
+  }.`;
+const text = (r: ToolRecord, key: string) =>
+  typeof r.fields[key] === 'string' ? String(r.fields[key]) : '';
 
 export const flags: ToolModule = {
   id: 'flags',
@@ -52,7 +65,7 @@ export const flags: ToolModule = {
   icon: 'flag',
   recordIcon: 'flag',
   color: 'green',
-  description: 'Explore a small staging configuration panel. Changes stay in this browser.',
+  description: 'Turn staging feature flags on and off, with a reason recorded for every change.',
   recordLabel: 'flags',
   primaryColumn: 'Feature flag',
   secondaryColumn: 'Environment',
@@ -61,35 +74,54 @@ export const flags: ToolModule = {
   owners: ['Unassigned', 'You', 'Payments', 'Growth', 'Platform', 'Operations'],
   details: [
     { label: 'Flag key', value: (r) => r.subtitle },
-    { label: 'Environment', value: (r) => String(r.fields.environment) },
-    { label: 'Description', value: (r) => String(r.fields.description) },
-    { label: 'Target audience', value: (r) => String(r.fields.audience) },
-    { label: 'Desired local state', value: (r) => r.status },
-    { label: 'Publication state', value: () => 'Not connected · not published to any service' },
-    {
-      label: 'Observed consumer state',
-      value: () => 'Unknown · no product consumes this configuration',
-    },
-    {
-      label: 'Prior desired configuration',
-      value: (r) =>
-        r.fields.previousStatus
-          ? `${r.fields.previousStatus} · audience: ${r.fields.previousAudience}`
-          : 'Not captured; older history is not inferred',
-    },
-    { label: 'Last change context', value: (r) => String(flagDefaults(r).fields.changeContext) },
+    { label: 'Environment', value: (r) => text(r, 'environment') },
+    { label: 'Description', value: (r) => text(r, 'description'), wide: true },
   ],
-  notice:
-    'Local staging configuration only. No product or flag-evaluation service reads these values.',
+  localDetails: [
+    {
+      title: 'Configuration',
+      fields: [
+        {
+          label: 'State',
+          value: (r) => `${r.status} for ${text(r, 'audience')}`,
+          badge: (r) =>
+            r.status === 'Enabled'
+              ? { label: 'On', tone: 'green' }
+              : { label: 'Off', tone: 'neutral' },
+        },
+        {
+          label: 'Previous configuration',
+          value: (r) =>
+            r.fields.previousStatus
+              ? `${r.fields.previousStatus} for ${text(r, 'previousAudience')}`
+              : '',
+        },
+        {
+          label: 'Publishing',
+          value: () => 'Changes are saved in this workspace only.',
+          badge: () => ({ label: 'Not connected', tone: 'neutral' }),
+        },
+      ],
+    },
+    {
+      title: 'Change notes',
+      fields: [
+        {
+          label: 'Last change reason',
+          value: (r) => text(flagDefaults(r), 'changeContext'),
+          wide: true,
+        },
+      ],
+    },
+  ],
+  notice: 'Staging only. Changes are saved here and are not published to a flag service.',
   actions: [
     {
       id: 'enable',
       label: 'Enable flag',
       tone: 'primary',
-      confirmation: 'Enable this staging flag in local demo data only.',
+      confirmation: 'Enable this flag in Staging.',
       available: (r) => r.status === 'Disabled',
-      eligibility: () =>
-        'Synthetic Staging only. Owner labels are not publish permissions; this change never publishes.',
       blockedReason: stagingBlock,
       preview: (r) => preview(r, 'Enabled'),
       history,
@@ -100,10 +132,8 @@ export const flags: ToolModule = {
       id: 'disable',
       label: 'Disable flag',
       tone: 'danger',
-      confirmation: 'Disable this staging flag in local demo data only.',
+      confirmation: 'Disable this flag in Staging.',
       available: (r) => r.status === 'Enabled',
-      eligibility: () =>
-        'Synthetic Staging only. Disabling is a new desired configuration, not a production kill switch.',
       blockedReason: stagingBlock,
       preview: (r) => preview(r, 'Disabled'),
       history,
@@ -113,14 +143,11 @@ export const flags: ToolModule = {
     {
       id: 'restore',
       label: 'Restore prior configuration',
-      confirmation:
-        'Restore the previous local desired Boolean value and audience as a new reasoned, versioned change. This cannot undo external effects.',
+      confirmation: 'Restore the previous state and audience as a new change.',
       available: (r) =>
         ['Enabled', 'Disabled'].includes(String(r.fields.previousStatus)) &&
         typeof r.fields.previousAudience === 'string' &&
         (r.fields.previousStatus !== r.status || r.fields.previousAudience !== r.fields.audience),
-      eligibility: () =>
-        'Requires a captured prior local value. Restoring adds a new history entry; it does not erase or rewind history.',
       blockedReason: stagingBlock,
       preview: (r) =>
         preview(r, String(r.fields.previousStatus), String(r.fields.previousAudience)),
@@ -133,18 +160,18 @@ export const flags: ToolModule = {
   ],
   withDefaults: flagDefaults,
   metrics: (records) => [
-    { label: 'Sample flags', value: String(records.length), hint: 'Curated staging examples' },
+    { label: 'Total flags', value: String(records.length), hint: 'In Staging' },
     {
       label: 'Enabled',
       value: String(countStatus(records, 'Enabled')),
-      hint: 'Local configuration only',
+      hint: 'Currently on',
     },
     {
       label: 'Disabled',
       value: String(countStatus(records, 'Disabled')),
-      hint: 'Available to enable',
+      hint: 'Currently off',
     },
-    { label: 'Environment', value: 'Staging', hint: 'No production connection' },
+    { label: 'Environment', value: 'Staging', hint: 'Production not connected' },
   ],
   samples: flagSamples,
   validateFields: (r) =>

@@ -211,7 +211,7 @@ describe('versioned local demo data', () => {
           summary: 'Preserve a user-edited summary.',
           evidenceReviewed: false,
           responseRecorded: false,
-          identityEvidence: 'Not recorded in saved demo',
+          identityEvidence: 'Not recorded',
         },
       });
       expect(loaded.data.records.kyc).toHaveLength(data.records.kyc.length);
@@ -256,9 +256,51 @@ describe('versioned local demo data', () => {
         actionId: 'review-evidence',
         expectedVersion: version,
       });
-      expect(assessed.records.kyc[1].fields.addressEvidence).toContain('Fictional replacement');
+      expect(assessed.records.kyc[1].fields.addressEvidence).toContain('Resolved · was');
     },
   );
+
+  it('migrates KYC records saved with the old evidence wording and placeholder text', () => {
+    const data = createFixtures();
+    const record = data.records.kyc[1];
+    Object.assign(record.fields, {
+      identityEvidence: 'Consistent fictional sample',
+      addressEvidence:
+        'Fictional replacement assessed · was: Missing dated fictional address evidence',
+      consistencyEvidence: 'Inconsistent fictional identity details',
+      informationRequest: 'No information request recorded in this demo.',
+      responseContext: 'No fictional response recorded.',
+      evidenceReviewContext: 'Initial synthetic scenario, not an authenticated review event.',
+      handoffContext:
+        'Inspect owner assignment activity for handoffs; escalation and resume context appears here.',
+      decisionContext: 'Keep a real saved reason.',
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const loaded = loadDemo();
+    expect(loaded.blocked).toBe(false);
+    expect(loaded.data.records.kyc[1].fields).toMatchObject({
+      identityEvidence: 'Clear',
+      addressEvidence: 'Resolved · was: Missing issue date',
+      consistencyEvidence: "Details don't match",
+      informationRequest: '',
+      responseContext: '',
+      evidenceReviewContext: '',
+      handoffContext: '',
+      decisionContext: 'Keep a real saved reason.',
+    });
+  });
+
+  it('clears old flag placeholder text but keeps a real change reason', () => {
+    const data = createFixtures();
+    data.records.flags[0].fields.changeContext =
+      'No prior configuration captured. Existing status is a synthetic saved value, not published state.';
+    data.records.flags[1].fields.changeContext = 'Keep a real change reason.';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const loaded = loadDemo();
+    expect(loaded.blocked).toBe(false);
+    expect(loaded.data.records.flags[0].fields.changeContext).toBe('');
+    expect(loaded.data.records.flags[1].fields.changeContext).toBe('Keep a real change reason.');
+  });
 
   it('keeps an unattributable saved response but still asks for a response per open gap', () => {
     const data = createFixtures();
@@ -281,7 +323,7 @@ describe('versioned local demo data', () => {
         actionId: 'review-evidence',
         expectedVersion: 1,
       }),
-    ).toThrow('before assessing: identity, address.');
+    ).toThrow('open check first: identity, address.');
   });
 
   it('round-trips response context, decision, assignment and note without losing local history', () => {

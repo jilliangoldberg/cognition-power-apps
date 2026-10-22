@@ -54,7 +54,16 @@ export interface RecordAction {
 
 export interface DetailField {
   label: string;
+  /** Rows with an empty value and no badge are hidden. */
   value: (record: ToolRecord) => string;
+  /** Status pill shown beside the label, e.g. a verification check result. */
+  badge?: (record: ToolRecord) => { label: string; tone: Tone };
+  wide?: boolean;
+}
+
+export interface DetailSection {
+  title: string;
+  fields: DetailField[];
 }
 
 export interface ToolModule {
@@ -78,7 +87,7 @@ export interface ToolModule {
   notice: string;
   actions: RecordAction[];
   localActions?: RecordAction[];
-  localDetails?: DetailField[];
+  localDetails?: DetailSection[];
   withDefaults?: (record: ToolRecord) => ToolRecord;
   metrics: (records: ToolRecord[]) => { label: string; value: string; hint: string }[];
   validateFields: (record: ToolRecord) => boolean;

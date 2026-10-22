@@ -33,14 +33,14 @@ export function Investigation() {
   const contextSource = sources.find((source) => source.amountCents !== undefined);
   return (
     <section className="custom-page investigation">
-      <p className="eyebrow">READ-ONLY EXTENSION · SYNTHETIC ONLY</p>
+      <p className="eyebrow">READ-ONLY LOOKUP</p>
       <h1>Transaction investigation</h1>
       <p>
-        Read-only evidence from three fictional sources. No provider, payment instrument, or client
-        business model is implied. This page does not change transactions.
+        Compare what the payment, processing, and reconciliation sources report for one transaction.
+        This page doesn’t change transactions.
       </p>
       <form className="toolbar" onSubmit={search}>
-        <label htmlFor="investigation-id">Synthetic transaction ID</label>
+        <label htmlFor="investigation-id">Transaction ID</label>
         <input
           id="investigation-id"
           value={query}
@@ -52,7 +52,7 @@ export function Investigation() {
           Investigate
         </button>
       </form>
-      <div className="investigation-examples" aria-label="Synthetic investigation examples">
+      <div className="investigation-examples" aria-label="Example transactions">
         {investigationExamples.map((example) => (
           <button
             key={example.id}
@@ -75,15 +75,14 @@ export function Investigation() {
           {contextSource && contextSource.amountCents !== undefined && (
             <dl className="detail-grid">
               <div>
-                <dt>Illustrative amount</dt>
+                <dt>Amount</dt>
                 <dd>
-                  {money(contextSource.amountCents)} USD · reported by {contextSource.label};
-                  curated synthetic example, not a benchmark
+                  {money(contextSource.amountCents)} USD · reported by {contextSource.label}
                 </dd>
               </div>
               <div>
                 <dt>Current reported status</dt>
-                <dd>See each source below; no single authoritative status is inferred.</dd>
+                <dd>Reports can differ. Check each source below.</dd>
               </div>
             </dl>
           )}
@@ -94,9 +93,7 @@ export function Investigation() {
           </p>
           <p>
             {sources.filter((source) => source.outcome === 'found').length}/{sources.length} sources
-            returned evidence. A complete response covers only this fictional lookup, not a complete
-            transaction history. Related references are context, not linked browser-local refund
-            decisions or authenticated records.
+            returned evidence. Related references are for context only.
           </p>
           <div className="evidence-grid">
             {sources.map((source) => (
@@ -126,7 +123,7 @@ export function Investigation() {
                   {source.outcome === 'unavailable'
                     ? 'Unknown'
                     : source.complete
-                      ? 'Complete synthetic response'
+                      ? 'Complete response'
                       : 'Incomplete · more records may exist'}
                 </p>
                 {source.relatedReferences.length > 0 && (
@@ -167,10 +164,7 @@ export function Investigation() {
             ))}
           </div>
           <h2>Reported event timeline</h2>
-          <p>
-            Ordered by source-reported event time, not proven causality. Retrieval time is shown
-            separately above. Retries here are simulated reads, not connectivity tests.
-          </p>
+          <p>Ordered by the time each source reported the event. Retrieval time is shown above.</p>
           <label className="investigation-filter">
             Timeline source
             <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)}>
@@ -196,14 +190,12 @@ export function Investigation() {
                     </p>
                     <p>
                       Retrieved: {dateTime(event.source.retrievedAt)} ·{' '}
-                      {event.source.complete
-                        ? 'Complete synthetic response'
-                        : 'Incomplete response'}
+                      {event.source.complete ? 'Complete response' : 'Incomplete response'}
                     </p>
                     <p>
                       {event.source.stale
                         ? 'This evidence is stale.'
-                        : 'Fictional source event; not workbench operator activity.'}
+                        : 'Reported by the source system.'}
                     </p>
                   </details>
                 </li>

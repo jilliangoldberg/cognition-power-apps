@@ -13,7 +13,7 @@ export const dataAccessOptions = [
 
 const detailsSchema = z.object({
   vendor: z.string().trim().min(2, 'Enter a vendor name (2–120 characters).').max(120),
-  requester: z.string().trim().min(2, 'Enter a fictional requester (2–120 characters).').max(120),
+  requester: z.string().trim().min(2, 'Enter a requester (2–120 characters).').max(120),
   department: z.enum(departments),
   purpose: z.string().trim().min(10, 'Describe the business need (10–1,000 characters).').max(1000),
   annualCents: z
@@ -68,9 +68,9 @@ export function approvalBlocker(details: VendorDetails, team: ReviewTeam): strin
   if (team === 'Finance' && !details.budgetOwner.trim())
     return 'Add a budget owner before Finance approval.';
   if (team === 'Security' && !details.securityReviewed)
-    return 'Mark the synthetic security assessment reviewed before Security approval.';
+    return 'Mark the security assessment reviewed before Security approval.';
   if (team === 'Legal' && !details.contractReviewed)
-    return 'Mark the synthetic contract reviewed before Legal approval.';
+    return 'Mark the contract reviewed before Legal approval.';
   return null;
 }
 
@@ -121,7 +121,7 @@ export function newVendorRequest(
     reviews: pendingReviews(),
     history: [
       historyEvent(
-        'Demo requester',
+        'Requester',
         'Submitted revision 1',
         parsed.data.purpose,
         at,
@@ -145,7 +145,7 @@ export function reviseVendorRequest(
     history: [
       ...request.history,
       historyEvent(
-        'Demo requester',
+        'Requester',
         `Resubmitted revision ${revision}; all reviews reset`,
         'Review the updated request again. Prior decisions apply only to earlier revisions.',
         at,
@@ -200,7 +200,7 @@ export function createVendorFixtures(): VendorState {
       {
         id: `${id}-submitted`,
         at: '2026-10-19T09:00:00.000Z',
-        actor: 'Demo requester',
+        actor: 'Requester',
         action: 'Submitted revision 1',
         reason: details.purpose,
         snapshot: revisionSnapshot(details),
@@ -208,19 +208,19 @@ export function createVendorFixtures(): VendorState {
     ],
   });
   const base: VendorDetails = {
-    vendor: 'Juniper Demo Analytics',
+    vendor: 'Juniper Analytics',
     requester: 'Alex Morgan',
     department: 'Product',
-    purpose: 'Understand product usage using synthetic customer events.',
+    purpose: 'Understand product usage from customer events.',
     annualCents: 2_400_000,
-    budgetOwner: 'Demo Product lead',
+    budgetOwner: 'Priya Shah, Product',
     dataAccess: 'Customer data',
     securityReviewed: false,
     contractReviewed: true,
   };
   const changes = sample('VND-1002', {
     ...base,
-    vendor: 'Harbor Demo Recruiting',
+    vendor: 'Harbor Recruiting',
     requester: 'Sam Patel',
     department: 'People',
     purpose: 'Coordinate recruiting interviews with internal business data.',
@@ -243,7 +243,7 @@ export function createVendorFixtures(): VendorState {
   });
   const ready = sample('VND-1003', {
     ...base,
-    vendor: 'Maple Demo Design',
+    vendor: 'Maple Design',
     department: 'Engineering',
     purpose: 'Create public marketing illustrations with no internal data access.',
     annualCents: 360_000,
@@ -252,7 +252,7 @@ export function createVendorFixtures(): VendorState {
   for (const team of requiredTeams(ready.details)) {
     ready.reviews[team] = {
       status: 'Approved',
-      reason: 'Reviewed the synthetic request for this demo.',
+      reason: 'Reviewed the request and supporting details.',
     };
     ready.history.push({
       id: `${ready.id}-${team}`,

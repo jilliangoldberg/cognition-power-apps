@@ -54,9 +54,10 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
   it('shows KYC gaps and eligibility before reason entry, then completes the explicit local story', async () => {
     const user = userEvent.setup();
     render(<KycStory />);
-    expect(screen.getByText('Missing dated fictional address evidence')).toBeInTheDocument();
+    expect(screen.getByText('Utility bill · Missing issue date')).toBeInTheDocument();
+    expect(screen.queryByText(/fictional/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Approve case' })).toBeDisabled();
-    expect(screen.getByText(/Assess the fictional evidence before approving/)).toBeInTheDocument();
+    expect(screen.getByText(/Assess the evidence before approving/)).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     async function confirm(label: string, reason: string) {
       await user.click(screen.getByRole('button', { name: label }));
@@ -64,24 +65,21 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
       await user.click(screen.getByRole('button', { name: `Confirm ${label.toLowerCase()}` }));
     }
     await confirm('Request information', 'Need a dated fictional address document.');
-    expect(screen.getByText('Unsent · no customer messaging integration')).toBeInTheDocument();
+    expect(screen.getByText(/Not sent · customer messaging is not connected/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Reassign owner' }));
     await user.selectOptions(screen.getByLabelText('New owner'), 'Jamie Brooks');
     await user.type(screen.getByRole('textbox'), 'Jamie will assess the fictional replacement.');
     await user.click(screen.getByRole('button', { name: 'Confirm reassign owner' }));
     expect(screen.getByText('Owner: Jamie Brooks')).toBeInTheDocument();
-    await confirm(
-      'Record fictional address response',
-      'Fictional replacement includes the missing date.',
-    );
+    await confirm('Log address response', 'Fictional replacement includes the missing date.');
     expect(screen.getByText('Waiting for information', { selector: '.badge' })).toBeInTheDocument();
     await confirm('Return to review', 'Ready for a separate evidence assessment.');
     expect(screen.getByRole('button', { name: 'Approve case' })).toBeDisabled();
-    await confirm(
-      'Assess fictional evidence',
-      'The fictional replacement resolves the dated-evidence gap.',
-    );
+    await confirm('Assess evidence', 'The fictional replacement resolves the dated-evidence gap.');
     expect(screen.getByRole('button', { name: 'Approve case' })).toBeEnabled();
+    expect(
+      screen.getByText(/Replacement accepted \(was: missing issue date\)/),
+    ).toBeInTheDocument();
     await confirm('Approve case', 'Approve after reviewing the fictional replacement.');
     expect(screen.getByText('Approved', { selector: '.badge' })).toBeInTheDocument();
     expect(
@@ -89,7 +87,7 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
         selector: '.record-activity p',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Unsent · no customer messaging integration')).toBeInTheDocument();
+    expect(screen.getByText(/Not sent · customer messaging is not connected/)).toBeInTheDocument();
   });
 
   it('retains cancelled assignment context and warns before close, Escape or backdrop discard', async () => {
@@ -214,11 +212,9 @@ describe('narrow workflow drawer components (jsdom, not browser validation)', ()
     expect(screen.getByText(/remaining 49990 cents/)).toBeInTheDocument();
     drawer.unmount();
     render(<RecordDrawer {...props} module={flags} record={createFixtures().records.flags[1]} />);
-    expect(screen.getByText(/Proposed local diff: desired Disabled → Enabled/)).toBeInTheDocument();
-    expect(screen.getByText('Not connected · not published to any service')).toBeInTheDocument();
-    expect(
-      screen.getByText('Unknown · no product consumes this configuration'),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Change in Staging: Disabled → Enabled/)).toBeInTheDocument();
+    expect(screen.getByText('Not connected')).toBeInTheDocument();
+    expect(screen.queryByText('Previous configuration')).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 });

@@ -20,6 +20,7 @@ const paths = {
   shield: 'M12 2 3 6v6c0 5 9 10 9 10s9-5 9-10V6l-9-4z M8 12l3 3 5-6',
   clock: 'M12 6v6l4 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
   menu: 'M3 6h18 M3 12h18 M3 18h18',
+  plus: 'M12 5v14 M5 12h14',
   bolt: 'm13 2-9 12h7l-1 8 10-12h-7l1-8z',
 } as const;
 
