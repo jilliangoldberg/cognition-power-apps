@@ -1,3 +1,5 @@
+import type { Tone } from '../core/types';
+
 export interface EvidenceEvent {
   id: string;
   occurredAt: string;
@@ -27,12 +29,12 @@ export interface SourceEvidence {
 }
 
 export const investigationExamples = [
-  { id: 'TX-DEMO-001', label: 'Clean reports' },
-  { id: 'TX-DEMO-002', label: 'Conflicting reports' },
-  { id: 'TX-DEMO-003', label: 'Unavailable source' },
-  { id: 'TX-DEMO-004', label: 'Stale evidence' },
-  { id: 'TX-DEMO-005', label: 'No matching records' },
-  { id: 'TX-DEMO-006', label: 'Incomplete response' },
+  { id: 'TX-DEMO-001', label: 'All systems agree' },
+  { id: 'TX-DEMO-002', label: 'Systems disagree' },
+  { id: 'TX-DEMO-003', label: 'A system is down' },
+  { id: 'TX-DEMO-004', label: 'Out-of-date data' },
+  { id: 'TX-DEMO-005', label: 'Not found anywhere' },
+  { id: 'TX-DEMO-006', label: 'Partial data' },
 ] as const;
 
 function sourceEvent(
@@ -46,18 +48,20 @@ function sourceEvent(
     occurredAt: new Date(Date.parse(at) - (120 - index * 15) * 60_000).toISOString(),
     description:
       index === 0
-        ? 'Transaction recorded'
+        ? 'Payment recorded in the ledger'
         : index === 1
-          ? 'Processing update received'
-          : `Reconciliation report: ${status}`,
+          ? 'Processor confirmed the charge'
+          : `Bank settlement report: ${status}`,
     reference: `${transactionId}/source-${index}`,
   };
 }
 
+export const sourceLabels = ['Ledger', 'Payment processor', 'Bank settlement'];
+
 export function syntheticEvidence(transactionId: string, now = new Date()): SourceEvidence[] {
   const at = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
   const known = investigationExamples.some((example) => example.id === transactionId);
-  return ['Internal records', 'Processing events', 'Reconciliation reports'].map((label, index) => {
+  return sourceLabels.map((label, index) => {
     const noMatch = !known || transactionId === 'TX-DEMO-005';
     const unavailable = transactionId === 'TX-DEMO-003' && index === 2;
     const stale = transactionId === 'TX-DEMO-004' && index === 2;
@@ -128,9 +132,60 @@ export function retrySyntheticSource(source: SourceEvidence, now = new Date()): 
           {
             id: `${source.lookupId}-${source.id}-detail`,
             occurredAt: new Date(Date.parse(source.attemptedAt) - 100 * 60_000).toISOString(),
-            description: 'Processing detail recovered on retry',
+            description: 'Processor fee and payout details received',
             reference: `${source.lookupId}/source-${source.id}/detail`,
           },
         ],
+  };
+}
+
+export interface EvidenceSummary {
+  tone: Tone;
+  headline: string;
+  nextStep: string;
+}
+
+export function summarizeEvidence(sources: SourceEvidence[]): EvidenceSummary {
+  const found = sources.filter((source) => source.outcome === 'found');
+  const statuses = [...new Set(found.map((source) => source.reportedStatus))];
+  const unavailable = sources.find((source) => source.outcome === 'unavailable');
+  const stale = found.find((source) => source.stale);
+  const partial = found.find((source) => !source.complete);
+  if (!found.length && !unavailable)
+    return {
+      tone: 'neutral',
+      headline: 'No system has a record of this transaction',
+      nextStep: 'Check the ID for typos, or ask the customer for their receipt.',
+    };
+  if (statuses.length > 1)
+    return {
+      tone: 'red',
+      headline: 'Systems disagree',
+      nextStep:
+        found.map((source) => `${source.label} says ${source.reportedStatus}`).join(', ') +
+        '. Don’t confirm the payment to the customer yet; escalate to the payments team.',
+    };
+  if (unavailable)
+    return {
+      tone: 'amber',
+      headline: `${unavailable.label} didn’t respond`,
+      nextStep: `${found.length ? `The other systems say ${statuses[0]}, but the` : 'The'} result isn’t confirmed until all three respond. Retry ${unavailable.label}.`,
+    };
+  if (stale)
+    return {
+      tone: 'amber',
+      headline: `${stale.label} data is out of date`,
+      nextStep: `Refresh ${stale.label} before relying on it.`,
+    };
+  if (partial)
+    return {
+      tone: 'amber',
+      headline: `${partial.label} returned partial data`,
+      nextStep: `Retry ${partial.label} to fetch the missing details.`,
+    };
+  return {
+    tone: 'green',
+    headline: `All ${sources.length} systems agree: ${statuses[0]}`,
+    nextStep: 'No discrepancies found.',
   };
 }

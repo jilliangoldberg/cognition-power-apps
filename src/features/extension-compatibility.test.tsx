@@ -43,9 +43,7 @@ describe('shared formatter upgrade across local modules and custom Investigation
       vi.setSystemTime(clock);
       render(<Investigation />);
       fireEvent.click(screen.getByRole('button', { name: 'Investigate' }));
-      expect(screen.getAllByText(`Last attempted: ${dateTime(clock.toISOString())}`)).toHaveLength(
-        3,
-      );
+      expect(screen.getAllByText(dateTime(clock.toISOString()))).toHaveLength(2);
       expect(within(screen.getByRole('list')).getAllByRole('listitem')[0]).toHaveTextContent(
         'Oct 19, 2026, 4:00 AM UTC',
       );
@@ -62,7 +60,7 @@ describe('shared formatter upgrade across local modules and custom Investigation
     window.location.hash = '#investigation';
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Investigate' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Simulate retry Reconciliation reports' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry Bank settlement' }));
     expect(localStorage.getItem(STORAGE_KEY)).toBe(raw);
     expect(data.schemaVersion).toBe(2);
   });

@@ -12,11 +12,11 @@ describe('fourth-tool custom view', () => {
     const user = userEvent.setup();
     render(<Investigation />);
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    expect(screen.getByText('Unavailable · outcome unknown')).toBeInTheDocument();
-    expect(screen.getAllByText('Evidence retrieved')).toHaveLength(2);
-    await user.click(screen.getByRole('button', { name: 'Simulate retry Reconciliation reports' }));
-    expect(screen.queryByText('Unavailable · outcome unknown')).not.toBeInTheDocument();
-    expect(screen.getAllByText('Evidence retrieved')).toHaveLength(3);
+    expect(screen.getByText('No response')).toBeInTheDocument();
+    expect(screen.getAllByText('Completed')).toHaveLength(2);
+    await user.click(screen.getByRole('button', { name: 'Retry Bank settlement' }));
+    expect(screen.queryByText('No response')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Completed')).toHaveLength(3);
   });
   it('reports source disagreements without inventing an authoritative combined status', async () => {
     const user = userEvent.setup();
@@ -24,7 +24,7 @@ describe('fourth-tool custom view', () => {
     await user.clear(screen.getByLabelText('Transaction ID'));
     await user.type(screen.getByLabelText('Transaction ID'), 'TX-DEMO-002');
     await user.click(screen.getByRole('button', { name: 'Investigate' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Reports disagree');
+    expect(screen.getByRole('status')).toHaveTextContent('Systems disagree');
   });
   it('distinguishes no-match, unavailable, stale, and incomplete evidence at a fixed clock', () => {
     const clock = new Date('2026-10-19T06:00:00Z');

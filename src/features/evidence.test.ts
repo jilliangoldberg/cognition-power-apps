@@ -3,6 +3,7 @@ import {
   canRetrySyntheticSource,
   investigationExamples,
   retrySyntheticSource,
+  summarizeEvidence,
   syntheticEvidence,
 } from './evidence';
 
@@ -106,5 +107,32 @@ describe('synthetic Investigation evidence contract', () => {
     expect(canRetrySyntheticSource(conflicting)).toBe(false);
     expect(retrySyntheticSource(conflicting, later)).toBe(conflicting);
     expect(conflicting.reportedStatus).toBe('Pending review');
+  });
+
+  it.each([
+    ['TX-DEMO-001', 'green', 'All 3 systems agree: Completed'],
+    ['TX-DEMO-002', 'red', 'Systems disagree'],
+    ['TX-DEMO-003', 'amber', 'Bank settlement didn’t respond'],
+    ['TX-DEMO-004', 'amber', 'Bank settlement data is out of date'],
+    ['TX-DEMO-005', 'neutral', 'No system has a record of this transaction'],
+    ['TX-DEMO-006', 'amber', 'Payment processor returned partial data'],
+    ['unknown', 'neutral', 'No system has a record of this transaction'],
+  ])('summarizes %s as a %s verdict', (id, tone, headline) => {
+    expect(summarizeEvidence(syntheticEvidence(id, clock))).toMatchObject({ tone, headline });
+  });
+
+  it('prefers disagreement over degraded sources and never reports agreement while one is down', () => {
+    const [ledger, processor, bank] = syntheticEvidence('TX-DEMO-002', clock);
+    const disagreeAndStale = [ledger, processor, { ...bank, stale: true }];
+    expect(summarizeEvidence(disagreeAndStale).tone).toBe('red');
+    const down = syntheticEvidence('TX-DEMO-003', clock);
+    expect(summarizeEvidence(down).headline).not.toMatch(/agree/);
+    const allDown = down.map((source) => ({
+      ...source,
+      outcome: 'unavailable' as const,
+      reportedStatus: undefined,
+    }));
+    expect(summarizeEvidence(allDown)).toMatchObject({ tone: 'amber' });
+    expect(summarizeEvidence(allDown).nextStep).toMatch(/^The result isn’t confirmed/);
   });
 });

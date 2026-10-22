@@ -63,14 +63,14 @@ it is not an assertion that a security reviewer signed it off.
 
 ## Fixture and action contract demonstrated by Investigation
 
-| Fixture                    | Meaning                                                | Retry behavior                                                                                |
-| -------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `TX-DEMO-001`              | Three complete fictional reports                       | None needed                                                                                   |
-| `TX-DEMO-002`              | Reconciliation disagrees with other statuses           | No retry offered to erase a disagreement; never infer an authoritative status                 |
-| `TX-DEMO-003`              | Reconciliation unavailable; outcome unknown            | Simulated read of that source only; recovers an existing-time fictional event                 |
-| `TX-DEMO-004`              | Reconciliation retrieved 90 minutes before the attempt | Refresh retrieval metadata; preserve source-reported event time and status                    |
-| `TX-DEMO-005` / unknown ID | All sources return no match                            | No money, parties, events, or retry-created success                                           |
-| `TX-DEMO-006`              | Processing response is incomplete                      | Simulated recovery adds the omitted fictional processing detail; other sources stay unchanged |
+| Fixture                    | Meaning                                                 | Retry behavior                                                                               |
+| -------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `TX-DEMO-001`              | Three complete fictional reports                        | None needed                                                                                  |
+| `TX-DEMO-002`              | Bank settlement disagrees with other statuses           | No retry offered to erase a disagreement; never infer an authoritative status                |
+| `TX-DEMO-003`              | Bank settlement unavailable; outcome unknown            | Simulated read of that source only; recovers an existing-time fictional event                |
+| `TX-DEMO-004`              | Bank settlement retrieved 90 minutes before the attempt | Refresh retrieval metadata; preserve source-reported event time and status                   |
+| `TX-DEMO-005` / unknown ID | All sources return no match                             | No money, parties, events, or retry-created success                                          |
+| `TX-DEMO-006`              | Payment processor response is incomplete                | Simulated recovery adds the omitted fictional processor detail; other sources stay unchanged |
 
 Event references and related record/account/counterparty context stay attributed to each source.
 These identifiers are not a join into browser-local decisions. Only the internal
