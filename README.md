@@ -4,7 +4,7 @@ Workbench is a working prototype of a code-first alternative to a licensed low-c
 
 ## Executive summary
 
-- **The core of three current Power Apps, rebuilt as code:** a KYC review queue, a refunds dashboard and a feature-flag admin. Each covers its main workflow, including exception handling.
+- **Representative versions of three current Power Apps, built as code:** a KYC review queue, a refunds dashboard and a feature-flag admin. Each covers its main workflow, including exception handling.
 - **A shared foundation, so new tools are mostly business logic.** Navigation, work queues, search, saved views, record detail, assignment, notes and history are written once and reused by every tool.
 - **Extensibility shown with a fourth tool.** Investigation, a transaction lookup across several data sources, was added through a typed extension point. It needed no copy of the shell and no change to the existing tools.
 - **Operational controls are on by default.** Every action requires a confirmation and a written reason, eligibility rules are enforced before an action is allowed, and each record keeps its own history.
@@ -12,7 +12,7 @@ Workbench is a working prototype of a code-first alternative to a licensed low-c
 
 ## Why this approach fits a growing engineering team
 
-With roughly 60 engineers and more than ten additional tools planned, the main cost is delivering and maintaining each new tool, not building the first one. In this model internal tools follow the same practices as the rest of your software: version control, code review, automated tests and CI. Devin does most of the implementation, so engineers spend their time specifying the work and reviewing it. A consistent foundation also gives every tool the same behavior for queues, audit context and permissions checks.
+With roughly 60 engineers and more than ten additional tools planned, the main cost is delivering and maintaining each new tool, not building the first one. In this model internal tools follow the same practices as the rest of your software: version control, code review, automated tests and CI. Devin does most of the implementation, so engineers spend their time specifying the work and reviewing it. A consistent foundation also gives every tool the same behavior for queues, action reasons and eligibility checks.
 
 ## What the prototype demonstrates
 
