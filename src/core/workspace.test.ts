@@ -1,6 +1,18 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createFixtures } from './fixtures';
 import { workspaceItems, workItemsForView } from './workspace';
+
+// These tests assert the curated demo data of the original three tools, so a newly added tool
+// must not change them.
+vi.mock('../modules', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../modules')>();
+  const original = actual.modules.filter((m) => ['kyc', 'refunds', 'flags'].includes(m.id));
+  return {
+    ...actual,
+    modules: original,
+    getModule: (id: string) => original.find((m) => m.id === id)!,
+  };
+});
 
 describe('browser-local My work', () => {
   it('uses the local evidence rule rather than the separate Shared KYC command list', () => {
