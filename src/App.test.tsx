@@ -631,3 +631,16 @@ describe('workspace components (jsdom)', () => {
     expect(screen.getByLabelText(/^Note/)).toHaveValue('Preserve this local note draft.');
   });
 });
+
+describe('demo sign-in notice', () => {
+  it('explains that the demo has no sign-in instead of pretending to authenticate', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+    const dialog = screen.getByRole('dialog', { name: "Sign-in isn't part of this demo" });
+    expect(within(dialog).getByText(/This prototype has no sign-in/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Got it' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
